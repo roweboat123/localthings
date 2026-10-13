@@ -586,6 +586,55 @@ async def test_the_lower_cavity_becomes_its_own_device(hass: HomeAssistant):
     assert any(b.subdevice == lower and b.desc is STOP_BUTTON for b in coordinator.bound)
 
 
+async def test_lower_door_tracks_shared_door_without_changing_raw_resources(hass: HomeAssistant):
+    coordinator = await _discovered(hass)
+    lower = _lower(coordinator)
+    for open_state, expected in [("Close", False), ("Open", True), ("Close", False)]:
+        rep = {PREFIX + "items": [{PREFIX + "id": "0", PREFIX + "openState": open_state}]}
+        coordinator._observe.apply("/doors/vs/0", rep, source="poll")
+        state = flatten(coordinator.bound, coordinator.entity_resources())
+        assert state["door_open"] is expected
+        assert state["subdevice1_door_open"] is expected
+        assert coordinator.canonical_resources(lower)["/doors/vs/0"] == rep
+        assert coordinator.device_resources(lower)["/doors/vs/0"] == {PREFIX + "items": []}
+        assert coordinator.resource("/doors/vs/1") == {PREFIX + "items": []}
+
+    coordinator._observe.apply("/doors/vs/0", {PREFIX + "items": []}, source="poll")
+    state = flatten(coordinator.bound, coordinator.entity_resources())
+    assert state["subdevice1_door_open"] is None
+
+
+@pytest.mark.parametrize(
+    "href,rep",
+    [
+        ("/information/vs/0", {PREFIX + "modelNum": "LCD_OV_WALL_OTHER|1|2"}),
+        ("/information/vs/1", {PREFIX + "description": "LCD_OV_WALL_16K"}),
+        ("/connected/vs/1", {PREFIX + "connected": "Off"}),
+        ("/doors/vs/0", {PREFIX + "items": [{PREFIX + "id": "0"}]}),
+        (
+            "/doors/vs/0",
+            {PREFIX + "items": [{PREFIX + "id": "0", PREFIX + "openState": "Unknown"}]},
+        ),
+    ],
+)
+async def test_shared_door_requires_the_measured_model_and_a_known_state(
+    hass: HomeAssistant, href, rep
+):
+    coordinator = await _discovered(hass)
+    coordinator._observe.apply(href, rep, source="poll")
+    assert coordinator.entity_resources()["/doors/vs/1"] == {PREFIX + "items": []}
+
+
+async def test_shared_door_preserves_a_lower_cavitys_own_reading(hass: HomeAssistant):
+    coordinator = await _discovered(hass)
+    own_door = {PREFIX + "items": [{PREFIX + "id": "0", PREFIX + "openState": "Open"}]}
+    coordinator._observe.apply("/doors/vs/1", own_door, source="poll")
+    state = flatten(coordinator.bound, coordinator.entity_resources())
+    assert state["door_open"] is False
+    assert state["subdevice1_door_open"] is True
+    assert coordinator.entity_resources()["/doors/vs/1"] == own_door
+
+
 async def test_legacy_oven_power_is_status_only_on_both_cavities(hass: HomeAssistant):
     coordinator = await _discovered(hass)
     for cavity in (MAIN, _lower(coordinator)):

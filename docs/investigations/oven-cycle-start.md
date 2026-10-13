@@ -195,6 +195,35 @@ No divider-out, timer-free, or other-mode starts were hardware-tested in
 this session. The numbered Healthy Cook labels remain numbered; no mapping
 from those protocol codes to particular recipes has been established.
 
+### Shared door and write verification
+
+Read-only captures on 2026-10-13, with the divider installed, showed:
+
+| Physical door | `/doors/vs/0` | `/doors/vs/1` |
+|---|---|---|
+| Closed | Item `0`, `openState: Close` | Empty items list |
+| Open | Item `0`, `openState: Open` | Empty items list |
+
+The owner was using the oven for cooking during these reads. These captures
+establish door reporting, not idle behavior or a temperature fault.
+For board `LCD_OV_WALL_16K` with the connected `LCD_OV_WALL_16K_DIV` record,
+the entity view shares this single door's known Open/Close reading when the
+lower record's items list is empty. A lower record with its own items is
+preserved; other boards and an unknown upper reading receive no fallback.
+Raw reads and diagnostics still export exactly what each record reported.
+
+The successful start captures also exposed a separate verifier issue:
+`held` and the temperature element could be false even with the requested
+350 F setpoint present. Temperature reads include additional fields such as
+current temperature and increment, and legacy HTTPS returns a numeric
+setpoint even when the request used a string. Verification now matches
+items by ID, compares only written fields, and treats finite numeric
+setpoint strings and numbers equivalently. Units and IDs remain exact;
+missing, ambiguous or mismatched items do not verify. Batch verification
+uses the same comparison as each individual element, including merged
+option tokens. This does not change the payload sent or hide stale reads:
+a Stop that still reads Run remains unverified until Ready is observed.
+
 ## What is measured
 
 | Board | Model | Tried | Result |

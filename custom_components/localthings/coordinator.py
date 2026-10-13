@@ -10,6 +10,7 @@ import time
 from collections.abc import Callable, Sequence
 from dataclasses import asdict
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
 from typing import Any, cast
 from urllib.parse import unquote, urlsplit
 
@@ -66,7 +67,7 @@ from .registry import CAPABILITIES
 from .registry.adapter import _key, flatten
 from .registry.batch import parse_device0_batch
 from .registry.by_type import resolve as resolve_registry
-from .registry.capabilities import cook
+from .registry.capabilities import cook, oven
 from .registry.capabilities.common import (
     REMOTE_CONTROL_HREFS,
     merge_items_field,
@@ -285,16 +286,43 @@ def _refusal(code: int, response: Any) -> str:
 
 
 def _field_present_in(key: str, value: Any, readback: dict) -> bool:
-    """Whether one written field shows in `readback`.
-
-    An options[] write carries only the changed `<Prefix>_<Value>` tokens
-    and the appliance merges them into its full array (issue #54), so the
-    read-back holds every sibling token too: each written token being in it
-    is what "took" means there. Every other field compares whole."""
+    """Compare written fields, allowing the device's merged options and items."""
+    if key not in readback:
+        return False
     current = readback.get(key)
     if key == "x.com.samsung.da.options" and isinstance(value, list) and isinstance(current, list):
         return all(token in current for token in value)
+    if key == "x.com.samsung.da.items" and isinstance(value, list) and isinstance(current, list):
+        return _items_present_in(value, current)
+    if key == "x.com.samsung.da.desired":
+        # Legacy HTTPS returns numeric setpoints even when the request used
+        # strings. IDs and units must still match exactly.
+        if type(value) not in (str, int, float) or type(current) not in (str, int, float):
+            return False
+        try:
+            wanted, actual = Decimal(str(value)), Decimal(str(current))
+        except InvalidOperation:
+            return False
+        return wanted.is_finite() and actual.is_finite() and wanted == actual
     return current == value
+
+
+def _items_present_in(written: list, current: list) -> bool:
+    """Match identified items by ID and only compare fields actually written."""
+    id_key = "x.com.samsung.da.id"
+    if not written or not all(
+        isinstance(item, dict) and isinstance(item.get(id_key), str)
+        for item in [*written, *current]
+    ):
+        return current == written
+    indexed = {item[id_key]: item for item in current}
+    if len(indexed) != len(current) or len({item[id_key] for item in written}) != len(written):
+        return False
+    return all(
+        item[id_key] in indexed
+        and all(_field_present_in(k, v, indexed[item[id_key]]) for k, v in item.items())
+        for item in written
+    )
 
 
 def _payload_present_in(payload: dict | list, readback: dict) -> bool:
@@ -309,7 +337,7 @@ def _payload_present_in(payload: dict | list, readback: dict) -> bool:
     if isinstance(payload, dict):
         return all(_field_present_in(k, v, readback) for k, v in payload.items())
     return all(
-        all((readback.get(element_href) or {}).get(k) == v for k, v in rep.items())
+        _payload_present_in(rep, readback.get(element_href) or {})
         for element_href, rep in _batch_element_reps(payload).items()
     )
 
@@ -571,7 +599,8 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         own reps, plus this integration's discovered cloud programs merged
         onto /course/vs/0 under cloudcourse.FIELD (issue #342), and for an
         oven the upper cavity's modeSpec shared with the lower one and each
-        idle cavity's held cook choices (issue #473, see cook.py).
+        idle cavity's held cook choices (issue #473, see cook.py). The
+        measured Flex Duo model also shares its single door reading.
 
         Merged at read time rather than applied to the state cache, so the
         synthetic field can never be polled over or written to the device --
@@ -589,7 +618,9 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         this per-subdevice means keying the store by actual href the way
         LearnedModes does, and migrating the persisted shape.
         """
-        snapshot = self._with_held_cooks(self._cook_view(self.last_resources))
+        snapshot = oven.shared_door_view(
+            self._with_held_cooks(self._cook_view(self.last_resources))
+        )
         rep = snapshot.get(cloudcourse.COURSE_HREF)
         if rep is None:
             return snapshot

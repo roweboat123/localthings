@@ -662,6 +662,34 @@ OVEN_PROBE_DESIRED_OCF = Capability(
     ),
 )
 
+
+def shared_door_view(resources: dict[str, dict]) -> dict[str, dict]:
+    """Share the NV51K7770 Flex Duo's single door only in the entity view."""
+    prefix = "x.com.samsung.da."
+    main = resources.get("/information/vs/0", {})
+    lower = resources.get("/information/vs/1", {})
+    if (
+        str(main.get(prefix + "modelNum", "")).split("|", 1)[0] != "LCD_OV_WALL_16K"
+        or lower.get(prefix + "description") != "LCD_OV_WALL_16K_DIV"
+        or resources.get("/connected/vs/1", {}).get(prefix + "connected") != "On"
+    ):
+        return resources
+    lower_door = resources.get("/doors/vs/1", {})
+    items = resources.get("/doors/vs/0", {}).get(prefix + "items")
+    if (
+        lower_door.get(prefix + "items") != []
+        or not isinstance(items, list)
+        or len(items) != 1
+        or not isinstance(items[0], dict)
+        or items[0].get(prefix + "id") != "0"
+        or items[0].get(prefix + "openState") not in ("Open", "Close")
+    ):
+        return resources
+    # Open/closed captures show only the upper record reports this shared
+    # door; raw reads and diagnostics must retain the lower record's [].
+    return {**resources, "/doors/vs/1": {**lower_door, prefix + "items": items}}
+
+
 OVEN_DOOR = Capability(
     href="/doors/vs/0",
     poll_tier="hot",
