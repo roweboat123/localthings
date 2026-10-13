@@ -1,7 +1,9 @@
 """NumberDesc.bounds_fn: bounds read from the whole resources view."""
 
 from typing import cast
+from unittest.mock import AsyncMock, Mock
 
+import pytest
 from homeassistant.components.number import NumberMode
 
 from custom_components.localthings.coordinator import LocalThingsCoordinator
@@ -79,3 +81,49 @@ def test_cook_time_uses_numeric_entry_without_narrowing_the_range():
     assert entity.mode == NumberMode.BOX
     assert entity.native_unit_of_measurement == "min"
     assert (entity.native_min_value, entity.native_max_value, entity.native_step) == (0, 1439, 1)
+
+
+@pytest.mark.parametrize("minutes", [0, 4, 10, 90, 599])
+async def test_cook_time_unit_changes_preserve_duration_bounds_and_writes(hass, minutes):
+    desc = next(e for e in OVEN_OPERATIONAL_STATE.entities if e.key == "cook_time")
+    resources = {
+        "/information/vs/0": {"x.com.samsung.da.modelNum": "LCD_OV_WALL_16K"},
+    }
+    entity = _number(desc, resources)
+    entity.hass = hass
+    coordinator = entity.coordinator
+    coordinator.data = {entity._state_key: minutes}
+    coordinator.async_send_command = AsyncMock()
+    registry = Mock(options={"number": {"unit_of_measurement": "h"}})
+    entity.registry_entry = registry
+    entity.async_registry_entry_updated()
+
+    assert entity.unit_of_measurement == "h"
+    assert entity.state == pytest.approx(minutes / 60)
+    assert entity.capability_attributes == {
+        "min": 0.0,
+        "max": pytest.approx(599 / 60),
+        "step": pytest.approx(1 / 60),
+        "mode": "box",
+    }
+    coordinator.async_send_command.assert_not_awaited()
+    await entity.async_set_native_value(entity.state)
+    coordinator.async_send_command.assert_awaited_once_with(entity._bound, minutes)
+
+    registry.options = {"number": {"unit_of_measurement": "min"}}
+    entity.async_registry_entry_updated()
+    assert entity.state == minutes
+    assert entity.capability_attributes == {"min": 0.0, "max": 599.0, "step": 1.0, "mode": "box"}
+    assert coordinator.data[entity._state_key] == minutes
+
+
+async def test_hour_entry_sends_minutes_and_retains_one_minute_precision(hass):
+    desc = next(e for e in OVEN_OPERATIONAL_STATE.entities if e.key == "cook_time")
+    entity = _number(desc, {})
+    entity.hass = hass
+    entity.coordinator.async_send_command = AsyncMock()
+    entity.registry_entry = Mock(options={"number": {"unit_of_measurement": "h"}})
+    entity.async_registry_entry_updated()
+
+    await entity.async_set_native_value(1.5)
+    entity.coordinator.async_send_command.assert_awaited_once_with(entity._bound, 90)

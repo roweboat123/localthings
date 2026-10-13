@@ -663,7 +663,11 @@
           "upper_healthycook1": "Gezond koken 1 (boven)",
           "upper_healthycook2": "Gezond koken 2 (boven)",
           "upper_healthycook3": "Gezond koken 3 (boven)",
-          "upper_healthycook4": "Gezond koken 4 (boven)"
+          "upper_healthycook4": "Gezond koken 4 (boven)",
+          "lower_healthycook1": "Gezond koken 1 (onder)",
+          "lower_healthycook2": "Gezond koken 2 (onder)",
+          "lower_healthycook3": "Gezond koken 3 (onder)",
+          "lower_healthycook4": "Gezond koken 4 (onder)"
         }
       },
       "operating_mode": {
@@ -1135,6 +1139,54 @@
           "off": "Uit",
           "low": "Laag",
           "high": "Hoog"
+        }
+      },
+      "oven_mode_lcd_wall_16k": {
+        "name": "Bereidingsmodus",
+        "state": {
+          "no_operation": "Niet actief",
+          "bake": "Bakken",
+          "broil": "Grillen",
+          "convection": "Hetelucht",
+          "convection_bake": "Bakken met hetelucht",
+          "convection_broil": "Grillen met hetelucht",
+          "frozen_pizza_plus": "Frozen Pizza+",
+          "slow_cook": "Langzaam garen",
+          "plate_warm": "Borden warmhouden",
+          "air_fry": "Airfryen",
+          "convection_roast": "Heteluchtbraden",
+          "keep_warm": "Warmhouden",
+          "bread_proof": "Deeg rijzen",
+          "dehydrate": "Drogen",
+          "self_clean": "Zelfreiniging",
+          "air_fryer": "Airfryer",
+          "upper_broil": "Grillen (boven)",
+          "upper_convection_bake": "Bakken met hetelucht (boven)",
+          "upper_convection_roast": "Heteluchtbraden (boven)",
+          "lower_bake": "Bakken (onder)",
+          "lower_convection_bake": "Bakken met hetelucht (onder)",
+          "steam_bake": "Stoombakken",
+          "steam_roast": "Stoombraden",
+          "upper_steam_bake": "Stoombakken (boven)",
+          "descale": "Ontkalken",
+          "drain": "Water aftappen",
+          "lower_convection_roast": "Heteluchtbraden (onder)",
+          "autocook": "Automatisch koken",
+          "pyro_free": "Pyro Free",
+          "healthycook1": "Gezond koken 1",
+          "healthycook2": "Gezond koken 2",
+          "healthycook3": "Gezond koken 3",
+          "healthycook4": "Gezond koken 4",
+          "healthycook5": "Gezond koken 5",
+          "healthycook6": "Gezond koken 6",
+          "upper_healthycook1": "Gepofte aardappel (boven)",
+          "upper_healthycook2": "Gegrilde kip (boven)",
+          "upper_healthycook3": "Zalmsteak (boven)",
+          "upper_healthycook4": "Witvisfilet (boven)",
+          "lower_healthycook1": "Gepofte aardappel (onder)",
+          "lower_healthycook2": "Gegrilde kip (onder)",
+          "lower_healthycook3": "Zalmsteak (onder)",
+          "lower_healthycook4": "Witvisfilet (onder)"
         }
       }
     },

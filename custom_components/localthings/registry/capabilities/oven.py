@@ -212,13 +212,14 @@ def _option_write(prefix, new_value):
 # ---------------------------------------------------------------------------
 
 
-def _oven_setpoint_write(p, rep, href=None):
+def _oven_setpoint_write(p, rep, href=None, resources=None):
     """RMW write to /temperatures/vs/0 items array."""
     try:
         temp = float(p)
     except (TypeError, ValueError):
         return None
-    min_v, max_v, step_v = _setpoint_bounds(rep)
+    bounds = cook.temp_bounds(resources or {}) if cook.is_lcd_wall_16k(resources or {}) else None
+    min_v, max_v, step_v = bounds or _setpoint_bounds(rep)
     temp_i = int(round(temp / step_v) * step_v)
     if not (min_v <= temp_i <= max_v):
         return None
@@ -230,13 +231,15 @@ def _oven_setpoint_write(p, rep, href=None):
     return ["temperatures", "vs", "0"], {"x.com.samsung.da.items": items}
 
 
-def _cook_time_write(p, rep, href=None):
+def _cook_time_write(p, rep, href=None, resources=None):
     """Write operationTime + remainingTime (H:MM:SS) from minutes."""
     try:
         minutes = round(float(p))
     except (TypeError, ValueError):
         return None
-    if not (0 <= minutes <= 1439):
+    limit = cook.legacy_wall_time_max(resources or {})
+    maximum = limit // 60 if limit is not None else 1439
+    if not (0 <= minutes <= maximum):
         return None
     h, m = divmod(minutes, 60)
     hms = f"{h:02d}:{m:02d}:00"
@@ -319,9 +322,10 @@ def _mode_setpoint_bounds(rep, resources):
 
 
 def _cook_time_bounds(rep, resources):
-    """Before a start, the held mode's own time limits in whole minutes.
-    Mid-cook the static 0-1439 stays: those writes predate modeSpec and are
-    known to hold."""
+    """Legacy wall limits also hold mid-cook; other boards keep their
+    existing running range and use modeSpec while choosing an idle cook."""
+    if (maximum := cook.legacy_wall_time_max(resources)) is not None:
+        return 0.0, float(maximum // 60), 1.0
     if not cook.operation_ready(resources):
         return None
     spec = cook.mode_specs(resources).get(cook.current_mode(resources) or "")
@@ -391,6 +395,7 @@ OVEN_OPERATIONAL_STATE = Capability(
         NumberDesc(
             key="cook_time",
             mode="box",
+            device_class="duration",
             field="x.com.samsung.da.operationTime",
             unit="min",
             native_min=0,
@@ -755,6 +760,9 @@ OVEN_MODE = Capability(
         # SelectDesc first — test_oven_mode_options_nonempty uses entities[0]
         SelectDesc(
             key="oven_mode",
+            translation_key=lambda resources: (
+                "oven_mode_lcd_wall_16k" if cook.is_lcd_wall_16k(resources) else "oven_mode"
+            ),
             field="x.com.samsung.da.modes",
             icon="mdi:tune",
             options=_oven_mode_options,

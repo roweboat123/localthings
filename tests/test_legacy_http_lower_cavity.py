@@ -40,6 +40,7 @@ from custom_components.localthings.registry.capabilities.operational import (
 from custom_components.localthings.registry.entities import BinarySensorDesc, SwitchDesc
 from custom_components.localthings.registry.identity import DeviceIdentity
 from custom_components.localthings.registry.subdevices import MAIN
+from custom_components.localthings.select import LocalThingsSelect
 from custom_components.localthings.transport import Transport
 from tests.test_legacy_http_transport import _FakeConnection
 from tests.test_subdevice_discovery import _coordinator
@@ -256,11 +257,19 @@ class TestCavityModes:
             "LowerBake",
             "LowerConvectionBake",
             "LowerConvectionRoast",
+            "LowerHealthycook1",
+            "LowerHealthycook2",
+            "LowerHealthycook3",
+            "LowerHealthycook4",
         ]
         assert _startable(resources, 1) == [
             "LowerBake",
             "LowerConvectionBake",
             "LowerConvectionRoast",
+            "LowerHealthycook1",
+            "LowerHealthycook2",
+            "LowerHealthycook3",
+            "LowerHealthycook4",
         ]
 
     def test_only_upper_modes_start_with_the_divider_in(self):
@@ -753,10 +762,102 @@ async def test_both_discovered_setpoints_expose_numeric_box_attributes(hass: Hom
         assert entity.capability_attributes == {
             "mode": "box",
             "min": 175.0,
-            "max": 550.0,
+            "max": 480.0,
             "step": 5.0,
         }
         assert entity.native_unit_of_measurement == "°F"
+
+
+@pytest.mark.parametrize("index,prefix", [(0, "Upper"), (1, "Lower")])
+@pytest.mark.parametrize("recipe,temperature", [(1, 375), (2, 375), (3, 375), (4, 400)])
+async def test_verified_recipe_selection_holds_its_raw_code_and_preset(
+    hass: HomeAssistant, index, prefix, recipe, temperature
+):
+    coordinator = await _discovered(hass)
+    cavity = _lower(coordinator) if index else MAIN
+    bound = {b.desc.key: b for b in coordinator.bound if b.subdevice == cavity}
+    select = LocalThingsSelect(coordinator, bound["oven_mode"])
+    assert select.translation_key == "oven_mode_lcd_wall_16k"
+    _FakeConnection.log.clear()
+
+    await select.async_select_option(f"{prefix.lower()}_healthycook{recipe}")
+
+    target = LocalThingsNumber(coordinator, bound["oven_setpoint"])
+    assert target.native_value == temperature
+    assert target.native_max_value == 480
+    await coordinator.async_send_command(bound["cook_time"], 599)
+    plan = coordinator._held_cooks[cavity].plan(coordinator._cavity_resources(cavity))
+    assert plan.mode == f"{prefix}Healthycook{recipe}"
+    assert plan.temperature == temperature
+    assert plan.duration == 35940
+    assert not _requests()
+    assert coordinator._held_cooks.get(MAIN if index else _lower(coordinator)) is None
+
+    with pytest.raises(ServiceValidationError):
+        await coordinator.async_send_command(bound["oven_setpoint"], 485)
+    with pytest.raises(ServiceValidationError):
+        await coordinator.async_send_command(bound["cook_time"], 600)
+
+
+async def test_legacy_limits_hold_during_cooking_and_keep_other_models_unchanged(hass):
+    running = {
+        **LOWER,
+        "Mode": {**LOWER["Mode"], "modes": ["LowerHealthycook4"]},
+        "Operation": {**LOWER["Operation"], "state": "Run"},
+    }
+    coordinator = await _discovered(hass, _routes(lower=running))
+    bound = {b.desc.key: b for b in coordinator.bound if b.subdevice == _lower(coordinator)}
+    timer = LocalThingsNumber(coordinator, bound["cook_time"])
+    target = LocalThingsNumber(coordinator, bound["oven_setpoint"])
+    assert timer.native_max_value == 599
+    assert target.native_max_value == 480
+
+    coordinator._observe.apply(
+        "/information/vs/1", {PREFIX + "modelNum": "OTHER_OVEN"}, source="poll"
+    )
+    assert timer.native_max_value == 1439
+    assert target.native_max_value == 550
+    assert LocalThingsSelect(coordinator, bound["oven_mode"]).translation_key == "oven_mode"
+
+
+def test_recipe_fallback_does_not_change_an_unverified_board():
+    modes = _supported(_seed(_transport("LCD_OV_WALL_20K"), 1), 1)
+    assert not any(m.startswith("LowerHealthycook") for m in modes)
+
+
+async def test_steam_minimum_and_whole_oven_maximum(hass):
+    coordinator = await _discovered(hass)
+    resources = coordinator._cavity_resources(MAIN)
+    assert cook.temp_bounds(resources, "UpperSteamBake") == (230, 480, 5)
+    coordinator = await _discovered(hass, _routes(divided=False))
+    resources = coordinator._cavity_resources(MAIN)
+    assert cook.temp_bounds(resources, "Bake") == (175, 550, 5)
+    assert cook.temp_bounds(resources, "SteamBake") == (230, 550, 5)
+
+
+async def test_live_mode_spec_takes_precedence_over_legacy_limits(hass):
+    coordinator = await _discovered(hass)
+    resources = coordinator._cavity_resources(MAIN)
+    resources = {
+        **resources,
+        cook.MODE_HREF: {
+            **resources[cook.MODE_HREF],
+            cook.MODE_SPEC: [
+                {
+                    "mode": "UpperConvectionBake",
+                    "control": "Start&Setting",
+                    "tempMinF": "200",
+                    "tempMaxF": "450",
+                    "tempIntervalF": "10",
+                    "timeMin": "00:01:00",
+                    "timeMax": "02:00:00",
+                }
+            ],
+        },
+    }
+    assert cook.temp_bounds(resources, "UpperConvectionBake") == (200, 450, 10)
+    assert cook.legacy_wall_time_max(resources) is None
+    assert cook.mode_specs(resources)["UpperConvectionBake"].time_max == 7200
 
 
 @pytest.mark.parametrize("index,mode", [(0, "UpperConvectionBake"), (1, "LowerBake")])

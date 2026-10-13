@@ -190,6 +190,40 @@ def _specless_temps(live: list) -> dict[str, TempSpec]:
 _OPEN_TIME_MAX = parse_hms("23:59:00")
 
 
+def is_lcd_wall_16k(resources: dict) -> bool:
+    info = resources.get("/information/vs/0") or {}
+    model = info.get("x.com.samsung.da.modelNum")
+    return isinstance(model, str) and model.split("|", 1)[0] == "LCD_OV_WALL_16K"
+
+
+def legacy_wall_time_max(resources: dict) -> int | None:
+    """NV51K7770S manual, p.24: 9h59m; a live modeSpec remains authoritative."""
+    if is_lcd_wall_16k(resources) and (resources.get(MODE_HREF) or {}).get(MODE_SPEC) is None:
+        return 599 * 60
+    return None
+
+
+def _legacy_wall_temps(mode: str) -> dict[str, TempSpec] | None:
+    """Manual pp.29/34 ranges and panel-verified divided Healthy Cook defaults."""
+    divided = mode.startswith(("Upper", "Lower"))
+    name = mode.removeprefix("Upper").removeprefix("Lower")
+    healthy = divided and name in {f"Healthycook{i}" for i in range(1, 5)}
+    if not healthy and name not in {
+        "Bake",
+        "ConvectionBake",
+        "ConvectionRoast",
+        "SteamBake",
+        "SteamRoast",
+    }:
+        return None
+    steam = name.startswith("Steam")
+    default_f = (400 if name == "Healthycook4" else 375) if healthy else None
+    return {
+        "C": TempSpec(110 if steam else 80, 250 if divided else 285, None, 5),
+        "F": TempSpec(230 if steam else 175, 480 if divided else 550, default_f, 5),
+    }
+
+
 def _specless_specs(resources: dict) -> dict[str, ModeSpec]:
     """A board with no modeSpec starts the same way (the NW9000KD started
     Bake from Ready, #300), so its own live modes are offered, bounded by its
@@ -201,8 +235,10 @@ def _specless_specs(resources: dict) -> dict[str, ModeSpec]:
         mode: ModeSpec(
             mode=mode,
             control=START_CONTROL,
-            temps=temps,
-            time_max=_OPEN_TIME_MAX,
+            temps=(
+                _legacy_wall_temps(mode) or temps if is_lcd_wall_16k(resources) and temps else temps
+            ),
+            time_max=legacy_wall_time_max(resources) or _OPEN_TIME_MAX,
             time_optional=True,
         )
         for mode in live
@@ -436,6 +472,15 @@ def temp_bounds(resources: dict, mode: str | None = None) -> tuple[int, int, int
     spec = mode_specs(resources).get(mode or current_mode(resources) or "")
     unit = _UNIT_KEYS.get(device_unit(resources) or "")
     temp = spec.temps.get(unit) if spec and unit else None
+    if temp is None and legacy_wall_time_max(resources) is not None and unit:
+        live = (resources.get(MODE_HREF) or {}).get(_SUPPORTED_MODES) or []
+        divided = cavity(resources) == "Lower" or any(
+            isinstance(m, str) and m.startswith("Upper") for m in live
+        )
+        # An idle cavity still needs usable bounds before a mode is held.
+        if current_mode(resources) in (None, "NoOperation"):
+            temps = _legacy_wall_temps("LowerBake" if divided else "Bake")
+            temp = temps.get(unit) if temps else None
     if temp is None or temp.choices:
         return None
     return temp.minimum, temp.maximum, _step(temp, resources)
