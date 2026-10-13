@@ -3,7 +3,8 @@
 The October 13, 2026 hardware checks confirmed numeric Cook time and the
 lower shared-door display. After the combined update, the owner also
 confirmed numeric Setpoint entry and removal of the obsolete Power control.
-Normal Start/Stop through the revised entities has not yet been verified.
+After the `27242d6` update instructions, the owner confirmed that normal
+Start and Stop work for both upper and lower cavities without errors.
 
 ## Power and Setpoint
 
@@ -21,8 +22,9 @@ Install the complete integration from an immutable tested revision and
 check the installed files before restarting and inspecting live attributes.
 The previously recorded installed revision is therefore unverified. After
 the combined update was supplied, the owner confirmed that Setpoint displays
-as numeric entry and the Power control is gone. This confirms those UI fixes;
-the exact installed commit and physical cooking controls remain unverified.
+as numeric entry and the Power control is gone. Normal Start and Stop were
+subsequently confirmed on both cavities. The exact installed commit was not
+independently captured.
 
 ## Verified Healthy Cook mappings
 
@@ -87,7 +89,10 @@ available mode accepts it; the first mode selection revalidates and retains
 that duration. Later mode changes still restore defaults. Start still
 requires a valid mode and Smart Control. Validation errors resolve mode
 names through the same catalog as Cooking mode, in Home Assistant's configured
-language. Tests reproduce the original failures; hardware retesting is pending.
+language. Tests reproduce the original failures. The owner then confirmed
+that time-first entry causes no errors and five minutes remains after
+selecting Bake and waiting about a minute on the lower cavity. A remaining
+validation error's translated text has not yet been captured on the live UI.
 
 Cook time uses the standard Home Assistant numeric box and duration unit
 setting. Minutes remain the default. The entity converts its value, bounds,
@@ -106,11 +111,11 @@ hour fractions can need more characters to retain one-minute precision.
 
 ## Remaining hardware checks
 
-Verify time entry before mode selection, native Cook time unit setting,
-idle value persistence, normal Start/Stop and Smart Control behavior.
-Check a short timed cook and
-when its countdown begins. Divider-out, untimed starts and running changes
-remain distinct tests; the panel captures and development checks do not
-establish physical command acceptance.
+Normal Start and Stop are confirmed on both divided cavities. Further
+checks cover the native Cook time unit setting, countdown start and timer
+completion, Smart Control off/door-reset behavior through the normal
+controls, divider-out operation, untimed starts and running adjustments.
+The basic Start/Stop confirmation does not establish every recipe or
+simultaneous-cavity setting combination.
 
 [manual]: https://images.thdstatic.com/catalog/pdfImages/99/9900cc56-8433-4e1b-ba18-4271b575791d.pdf
