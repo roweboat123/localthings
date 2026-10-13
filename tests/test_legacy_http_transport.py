@@ -702,8 +702,7 @@ class TestHeldCourseDefaults:
 
 
 class TestWallOvenStart:
-    """The cook start's Collection batch over 8888 (#572): this firmware has no
-    Collections, so the batch goes as one aggregate PUT."""
+    """LCD_OV_WALL loads the cook settings before a separate Run (#572)."""
 
     FIXTURE = Path(__file__).parent / "fixtures" / "oven_lcd_ov_wall_16k_8888.json"
 
@@ -718,11 +717,23 @@ class TestWallOvenStart:
         device.connect()
         return device
 
-    def test_a_start_goes_as_one_aggregate_body(self, oven):
+    def test_a_start_loads_settings_then_runs_without_a_read_between(self, oven, monkeypatch):
         _, seed = oven.read(["device", "0"], timeout=10.0)
         resources = {e["href"]: e["rep"] for e in seed}
         batch = cook.plan_start(resources, "UpperConvectionBake", 350, 5400).batch()
         _FakeConnection.log.clear()
+
+        def settle(seconds):
+            assert seconds == 3.0
+            assert len(_FakeConnection.log) == 1
+            settings = _FakeConnection.log[0][2]
+            assert settings is not None
+            operation = settings["Device"]["Operation"]
+            assert operation == {"operationTime": "01:30:00"}
+
+        monkeypatch.setattr(
+            "custom_components.localthings.legacy_http_transport.time.sleep", settle
+        )
 
         code, _ = oven.write(["device", "0"], batch, timeout=8.0)
 
@@ -735,10 +746,11 @@ class TestWallOvenStart:
                     "Device": {
                         "Mode": {"modes": ["UpperConvectionBake"]},
                         "Temperatures": [{"id": "0", "desired": 350, "unit": "Fahrenheit"}],
-                        "Operation": {"operationTime": "01:30:00", "state": "Run"},
+                        "Operation": {"operationTime": "01:30:00"},
                     }
                 },
-            )
+            ),
+            ("PUT", "/devices/0", {"Device": {"Operation": {"state": "Run"}}}),
         ]
 
     def test_a_batch_anywhere_else_is_refused(self, oven):

@@ -11,12 +11,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import cast
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
+from custom_components.localthings.entity import _is_included
 from custom_components.localthings.legacy_http_transport import (
     LegacyHttpTransport,
     _with_record_description,
@@ -29,7 +30,9 @@ from custom_components.localthings.registry.capabilities.operational import (
     OPERATIONAL_STATE,
     STOP_BUTTON,
 )
+from custom_components.localthings.registry.entities import BinarySensorDesc, SwitchDesc
 from custom_components.localthings.registry.identity import DeviceIdentity
+from custom_components.localthings.registry.subdevices import MAIN
 from custom_components.localthings.transport import Transport
 from tests.test_legacy_http_transport import _FakeConnection
 from tests.test_subdevice_discovery import _coordinator
@@ -78,6 +81,7 @@ def _fake_https(monkeypatch):
     )
     _FakeConnection.log = []
     _FakeConnection.routes = _routes()
+    monkeypatch.setattr("custom_components.localthings.legacy_http_transport.time.sleep", Mock())
 
 
 def _transport(family: str = "LCD_OV_WALL_16K") -> LegacyHttpTransport:
@@ -393,7 +397,13 @@ class TestWrites:
         assert (method, path) == ("PUT", "/devices/1")
         assert body is not None
         assert body["Device"]["Mode"] == {"modes": ["LowerBake"]}
-        assert body["Device"]["Operation"]["state"] == "Run"
+        assert "Operation" not in body["Device"]
+        assert _FakeConnection.log[1][:3] == (
+            "PUT",
+            "/devices/1",
+            {"Device": {"Operation": {"state": "Run"}}},
+        )
+        assert len(_FakeConnection.log) == 2
 
     def test_a_batch_naming_the_other_cavity_is_refused(self):
         batch = [{"href": "/operational/state/vs/0", "rep": {PREFIX + "state": "Run"}}]
@@ -446,6 +456,62 @@ class TestWrites:
 
         assert code == 0x44
         assert ("PUT", "/devices/1") not in _requests()
+
+    @pytest.mark.parametrize("index,mode", [(0, "UpperConvectionBake"), (1, "LowerBake")])
+    @pytest.mark.parametrize("failed_step", [0, 1])
+    def test_a_refusal_stops_the_sequence_and_keeps_the_reason(
+        self, index, mode, failed_step, monkeypatch
+    ):
+        transport = _transport()
+        responses = [(204, None)] * failed_step + [(400, "Control fail, <Operation.state=Run>")]
+        request = Mock(side_effect=responses)
+        monkeypatch.setattr(transport, "_request", request)
+        batch = cook.CookPlan(mode, 350, "Fahrenheit", 300).batch(
+            lambda href: href[:-1] + str(index)
+        )
+
+        code, response = transport.write(["device", str(index)], batch, timeout=8.0)
+
+        assert code == 0x80
+        assert response == "Control fail, <Operation.state=Run>"
+        assert request.call_count == failed_step + 1
+        assert "state" not in request.call_args_list[0].kwargs["body"]["Device"]["Operation"]
+
+    @pytest.mark.parametrize("index", [0, 1])
+    def test_settings_alone_do_not_start_a_cook(self, index):
+        batch = [
+            {"href": f"/mode/vs/{index}", "rep": {PREFIX + "modes": ["LowerBake"]}},
+            {
+                "href": f"/operational/state/vs/{index}",
+                "rep": {PREFIX + "operationTime": "00:05:00"},
+            },
+        ]
+
+        code, _ = _transport().write(["device", str(index)], batch, timeout=8.0)
+
+        assert code == 0x44
+        assert [entry[:3] for entry in _FakeConnection.log] == [
+            (
+                "PUT",
+                f"/devices/{index}",
+                {
+                    "Device": {
+                        "Mode": {"modes": ["LowerBake"]},
+                        "Operation": {"operationTime": "00:05:00"},
+                    }
+                },
+            )
+        ]
+
+    def test_a_bare_run_is_still_one_write(self):
+        code, _ = _transport().write(
+            ["operational", "state", "vs", "1"], {PREFIX + "state": "Run"}, timeout=8.0
+        )
+
+        assert code == 0x44
+        assert [entry[:3] for entry in _FakeConnection.log] == [
+            ("PUT", "/devices/1", {"Device": {"Operation": {"state": "Run"}}})
+        ]
 
 
 def test_only_stop_is_declared_free_of_remote_control():
@@ -520,6 +586,87 @@ async def test_the_lower_cavity_becomes_its_own_device(hass: HomeAssistant):
     assert any(b.subdevice == lower and b.desc is STOP_BUTTON for b in coordinator.bound)
 
 
+async def test_legacy_oven_power_is_status_only_on_both_cavities(hass: HomeAssistant):
+    coordinator = await _discovered(hass)
+    for cavity in (MAIN, _lower(coordinator)):
+        power = [
+            b
+            for b in coordinator.bound
+            if b.subdevice == cavity
+            and b.desc.key == "power_switch"
+            and _is_included(b, coordinator)
+        ]
+        assert len(power) == 1
+        assert isinstance(power[0].desc, BinarySensorDesc)
+        assert not isinstance(power[0].desc, SwitchDesc)
+
+
+@pytest.mark.parametrize("index,mode", [(0, "UpperConvectionBake"), (1, "LowerBake")])
+@pytest.mark.parametrize("use_button", [False, True])
+async def test_normal_start_keeps_the_lock_through_both_writes(
+    hass: HomeAssistant, monkeypatch, index, mode, use_button
+):
+    coordinator = await _discovered(hass)
+    cavity = _lower(coordinator) if index else MAIN
+
+    def bound(key):
+        return next(b for b in coordinator.bound if b.subdevice == cavity and b.desc.key == key)
+
+    if use_button:
+        await coordinator.async_send_command(bound("oven_mode"), mode)
+        await coordinator.async_send_command(bound("oven_setpoint"), 350)
+        await coordinator.async_send_command(bound("cook_time"), 5)
+    _FakeConnection.log.clear()
+
+    def settle(seconds):
+        assert seconds == 3.0
+        assert coordinator._session_lock.locked()
+        assert _requests() == [("PUT", f"/devices/{index}")]
+
+    sleep = Mock(side_effect=settle)
+    monkeypatch.setattr("custom_components.localthings.legacy_http_transport.time.sleep", sleep)
+
+    if use_button:
+        await coordinator.async_send_command(bound("start_cooking"), "")
+    else:
+        await coordinator.async_start_cooking(cavity, mode=mode, temperature=350, duration=300)
+
+    sleep.assert_called_once_with(3.0)
+    assert [entry[:3] for entry in _FakeConnection.log] == [
+        (
+            "PUT",
+            f"/devices/{index}",
+            {
+                "Device": {
+                    "Mode": {"modes": [mode]},
+                    "Temperatures": [{"id": "0", "desired": 350, "unit": "Fahrenheit"}],
+                    "Operation": {"operationTime": "00:05:00"},
+                }
+            },
+        ),
+        ("PUT", f"/devices/{index}", {"Device": {"Operation": {"state": "Run"}}}),
+    ]
+    assert not coordinator._session_lock.locked()
+
+
+@pytest.mark.parametrize("index", [0, 1])
+async def test_legacy_start_still_requires_smart_control(hass: HomeAssistant, index):
+    coordinator = await _discovered(hass, _remote_control_off(_routes()))
+    cavity = _lower(coordinator) if index else MAIN
+    _FakeConnection.log.clear()
+
+    with pytest.raises(ServiceValidationError) as err:
+        await coordinator.async_start_cooking(
+            cavity,
+            mode="LowerBake" if index else "UpperConvectionBake",
+            temperature=350,
+            duration=300,
+        )
+
+    assert err.value.translation_key == "remote_control_disabled"
+    assert _FakeConnection.log == []
+
+
 class _StopsOnStop(dict):
     """Routes where the lower cavity reads Run until a PUT reaches it."""
 
@@ -580,12 +727,12 @@ async def test_other_writes_still_need_remote_control(hass: HomeAssistant):
     routes = _routes()
     routes["/devices/0/configuration"] = (200, off)
     coordinator = await _discovered(hass, routes)
-    power = next(
-        b for b in coordinator.bound if b.subdevice.key == "" and b.desc.key == "power_switch"
+    start = next(
+        b for b in coordinator.bound if b.subdevice.key == "" and b.desc.key == "start_cooking"
     )
 
     with pytest.raises(ServiceValidationError):
-        await coordinator.async_send_command(power, False)
+        await coordinator.async_send_command(start, "")
 
 
 async def test_a_refused_stop_reaches_the_user(hass: HomeAssistant):

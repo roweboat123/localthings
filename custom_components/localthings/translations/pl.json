@@ -650,7 +650,20 @@
           "steam_roast": "Pieczenie mięs z parą",
           "upper_steam_bake": "Pieczenie z parą (górna)",
           "descale": "Odkamienianie",
-          "drain": "Opróżnianie wody"
+          "drain": "Opróżnianie wody",
+          "lower_convection_roast": "Pieczenie mięs z termoobiegiem (dolna)",
+          "autocook": "Gotowanie automatyczne",
+          "pyro_free": "Pyro Free",
+          "healthycook1": "Zdrowe gotowanie 1",
+          "healthycook2": "Zdrowe gotowanie 2",
+          "healthycook3": "Zdrowe gotowanie 3",
+          "healthycook4": "Zdrowe gotowanie 4",
+          "healthycook5": "Zdrowe gotowanie 5",
+          "healthycook6": "Zdrowe gotowanie 6",
+          "upper_healthycook1": "Zdrowe gotowanie 1 (górna)",
+          "upper_healthycook2": "Zdrowe gotowanie 2 (górna)",
+          "upper_healthycook3": "Zdrowe gotowanie 3 (górna)",
+          "upper_healthycook4": "Zdrowe gotowanie 4 (górna)"
         }
       },
       "operating_mode": {

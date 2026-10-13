@@ -650,7 +650,20 @@
           "steam_roast": "Steam roast",
           "upper_steam_bake": "Upper steam bake",
           "descale": "Descale",
-          "drain": "Drain"
+          "drain": "Drain",
+          "lower_convection_roast": "Lower convection roast",
+          "autocook": "Auto cook",
+          "pyro_free": "Pyro Free",
+          "healthycook1": "Healthy cook 1",
+          "healthycook2": "Healthy cook 2",
+          "healthycook3": "Healthy cook 3",
+          "healthycook4": "Healthy cook 4",
+          "healthycook5": "Healthy cook 5",
+          "healthycook6": "Healthy cook 6",
+          "upper_healthycook1": "Upper healthy cook 1",
+          "upper_healthycook2": "Upper healthy cook 2",
+          "upper_healthycook3": "Upper healthy cook 3",
+          "upper_healthycook4": "Upper healthy cook 4"
         }
       },
       "operating_mode": {

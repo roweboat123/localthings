@@ -650,7 +650,20 @@
           "steam_roast": "Dampfbraten",
           "upper_steam_bake": "Dampfbacken (oben)",
           "descale": "Entkalken",
-          "drain": "Wasser ablassen"
+          "drain": "Wasser ablassen",
+          "lower_convection_roast": "Umluftbraten (unten)",
+          "autocook": "Automatisches Garen",
+          "pyro_free": "Pyro Free",
+          "healthycook1": "Gesundes Garen 1",
+          "healthycook2": "Gesundes Garen 2",
+          "healthycook3": "Gesundes Garen 3",
+          "healthycook4": "Gesundes Garen 4",
+          "healthycook5": "Gesundes Garen 5",
+          "healthycook6": "Gesundes Garen 6",
+          "upper_healthycook1": "Gesundes Garen 1 (oben)",
+          "upper_healthycook2": "Gesundes Garen 2 (oben)",
+          "upper_healthycook3": "Gesundes Garen 3 (oben)",
+          "upper_healthycook4": "Gesundes Garen 4 (oben)"
         }
       },
       "operating_mode": {

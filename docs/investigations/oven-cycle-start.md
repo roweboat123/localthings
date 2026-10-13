@@ -1,6 +1,6 @@
 # Starting an oven or microwave cycle
 
-A cook start has been measured working on two boards: an NV7000BS wall
+A single-write OCF cook start has been measured working on an NV7000BS wall
 oven and #473's NE63A6111SS range. The cook parameters and the run command
 go to the device collection in a single write, not to each resource
 separately, which is the one shape none of the attempts below used.
@@ -8,7 +8,8 @@ separately, which is the one shape none of the attempts below used.
 LocalThings now starts a cook this way (`registry/capabilities/cook.py`),
 only in a mode the board's own `modeSpec` declares `Start&Setting`, that
 the cavity's live `supportedModes` lists, and within that mode's limits.
-A board with no `modeSpec` gets no start.
+A board with no `modeSpec` uses its live modes and the family's temperature
+limits. The legacy HTTPS oven needs the separate sequence below.
 
 This file keeps the earlier results, because they still bound what the
 answer can be, and revises what they mean. The probe ladder at the end is
@@ -129,6 +130,65 @@ That board's lower zone lists no modes of its own (`/mode/vs/1`
 `supportedModes` is only `HOMECARE_WIZARD_V2` and its `modeSpec` is
 `"[]"`); the modes it runs are the ones `/mode/vs/0`'s `modeSpec` tags
 `cavity: Lower`. See `cook.share_mode_spec`.
+
+## Legacy HTTPS Flex Duo: settings, then Run
+
+Measured 2026-10-12 on a Samsung NV51K7770SG/AA, board
+`LCD_OV_WALL_16K` (lower record `LCD_OV_WALL_16K_DIV`), software
+`20201110.0138`, firmware `17071200,17041300`, with the divider installed.
+This is the local HTTPS interface on port 8888, not the OCF boards above.
+
+A combined mode/temperature/time/Run write was refused with `4.00`
+(`Control fail`) on both cavities. Both started with this sequence:
+
+1. Write mode, temperature and duration together, **without** `Operation.state`.
+2. Wait three seconds, holding the session lock and making no intervening read.
+3. Write `Operation.state: Run` on its own to the same cavity.
+
+The lower-cavity HTTP bodies are:
+
+```json
+{"Device":{"Mode":{"modes":["LowerBake"]},"Temperatures":[{"id":"0","desired":350,"unit":"Fahrenheit"}],"Operation":{"operationTime":"00:05:00"}}}
+```
+
+After three seconds:
+
+```json
+{"Device":{"Operation":{"state":"Run"}}}
+```
+
+Both go to `PUT /devices/1`; the upper uses `/devices/0` and
+`UpperConvectionBake`. Temperature item ID stays `0` in either cavity.
+Both requests answered `2.04`. Delayed reads showed operational state
+`Run`, cavity state `Preheat`, setpoint 350 F and duration `00:05:00` on
+both cavities; the owner also confirmed the lower oven physically started.
+
+The test action used `hold_session_lock: true`, `readback: false` on both
+writes, `settle: 3` on the settings write, and `verify_after: 3`.
+It has not isolated whether the delay, absence of intervening reads, or
+both are necessary. `LegacyHttpTransport._start_oven` preserves the measured
+sequence within one transport write. A settings refusal prevents Run;
+a Run refusal is returned to the caller. Settings-only writes and bare
+Run probes remain single writes. Other transport families are unchanged.
+
+| Cavity and mode | Smart Control | Result |
+|---|---|---|
+| Lower, `LowerBake`, 350 F, five minutes | On | Run / Preheat |
+| Upper, `UpperConvectionBake`, 350 F, five minutes | On | Run / Preheat |
+| Lower, same sequence, dial Off | Off | Settings accepted; Run refused with `4.00`; stayed Ready |
+| Lower, same sequence, dial Bake awaiting Start | Off | Settings accepted; Run refused with `4.00`; stayed Ready |
+
+`Operation.state: Ready` stopped manually started cooks in both cavities
+with Smart Control off. Immediate readback could still show Run; a read
+three seconds later showed Ready and zero remaining time. The owner
+confirmed both physical stops. `Operation.power` is separate: the owner
+and [the earlier report in #572](https://github.com/mbillow/localthings/issues/572#issuecomment-6003702886)
+observed no effect from the Power switch. This family now exposes the
+reported power as status rather than a cooking control.
+
+No divider-out, timer-free, or other-mode starts were hardware-tested in
+this session. The numbered Healthy Cook labels remain numbered; no mapping
+from those protocol codes to particular recipes has been established.
 
 ## What is measured
 

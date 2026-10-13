@@ -390,6 +390,7 @@ OVEN_OPERATIONAL_STATE = Capability(
         ),
         NumberDesc(
             key="cook_time",
+            mode="box",
             field="x.com.samsung.da.operationTime",
             unit="min",
             native_min=0,

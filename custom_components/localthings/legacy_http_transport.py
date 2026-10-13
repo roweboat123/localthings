@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .legacy_http import (
+    LCD_OV_WALL,
     TP6X_RAC,
     Resource,
     StagedKey,
@@ -90,6 +91,7 @@ _AUTH_HEADER = "Authorization"
 # How long a start is given to take before its state is read back. The
 # composed start has been measured loading the programme without running it.
 _START_SETTLE_S = 3.0
+_OVEN_START_SETTLE_S = 3.0
 
 _RUN = {"Device": {"Operation": {"state": "Run"}}}
 # What the stop button sends; see _already_ready.
@@ -354,6 +356,8 @@ class LegacyHttpTransport:
             # chose, so a patch this family has no resource for is refused.
             _LOGGER.warning("%s: no 8888 resource for %s; write dropped", self._host, href)
             return 0x84, None
+        if self._table is LCD_OV_WALL and is_start(aggregate) and "Mode" in aggregate["Device"]:
+            return self._start_oven(index, aggregate, timeout)
         sendable, staged = split_start_only(aggregate, self._table)
         if any(prefix == _COURSE_PREFIX for _, _, prefix in staged):
             # A new course brings its own settings, on the panel as well, so
@@ -446,6 +450,27 @@ class LegacyHttpTransport:
     def _idle(self, index: int) -> bool:
         operation = self._state_at(index).last_bodies.get("Operation") or {}
         return operation.get("state") == "Ready"
+
+    def _start_oven(self, index: int, aggregate: dict[str, Any], timeout: float) -> tuple[int, Any]:
+        """The NV51K7770SG takes settings without Run, then Run after 3 s.
+
+        Keep both writes inside the caller's session lock, with no intervening
+        read: that sequence started both divided cavities on hardware.
+        """
+        deadline = time.monotonic() + timeout
+        device = dict(aggregate["Device"])
+        operation = {key: value for key, value in device["Operation"].items() if key != "state"}
+        if operation:
+            device["Operation"] = operation
+        else:
+            del device["Operation"]
+        path = _device_path(index)
+        status, response = self._request("PUT", path, body={"Device": device}, timeout=timeout)
+        if not 200 <= status < 300:
+            return http_status_to_coap(status), response
+        time.sleep(_OVEN_START_SETTLE_S)
+        status, response = self._request("PUT", path, body=_RUN, timeout=_remaining(deadline))
+        return http_status_to_coap(status), response
 
     def _already_ready(self, index: int, timeout: float) -> bool:
         """Whether a fresh read says the appliance is idle.

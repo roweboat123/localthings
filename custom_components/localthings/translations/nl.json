@@ -650,7 +650,20 @@
           "steam_roast": "Stoombraden",
           "upper_steam_bake": "Stoombakken (boven)",
           "descale": "Ontkalken",
-          "drain": "Water aftappen"
+          "drain": "Water aftappen",
+          "lower_convection_roast": "Heteluchtbraden (onder)",
+          "autocook": "Automatisch koken",
+          "pyro_free": "Pyro Free",
+          "healthycook1": "Gezond koken 1",
+          "healthycook2": "Gezond koken 2",
+          "healthycook3": "Gezond koken 3",
+          "healthycook4": "Gezond koken 4",
+          "healthycook5": "Gezond koken 5",
+          "healthycook6": "Gezond koken 6",
+          "upper_healthycook1": "Gezond koken 1 (boven)",
+          "upper_healthycook2": "Gezond koken 2 (boven)",
+          "upper_healthycook3": "Gezond koken 3 (boven)",
+          "upper_healthycook4": "Gezond koken 4 (boven)"
         }
       },
       "operating_mode": {

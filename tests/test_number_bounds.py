@@ -2,8 +2,11 @@
 
 from typing import cast
 
+from homeassistant.components.number import NumberMode
+
 from custom_components.localthings.coordinator import LocalThingsCoordinator
 from custom_components.localthings.number import LocalThingsNumber
+from custom_components.localthings.registry.capabilities.oven import OVEN_OPERATIONAL_STATE
 from custom_components.localthings.registry.capability import Capability
 from custom_components.localthings.registry.discovery import BoundEntity
 from custom_components.localthings.registry.entities import NumberDesc
@@ -43,6 +46,7 @@ def test_bounds_fn_reads_a_sibling_href_and_overrides_static_bounds():
     )
     entity = _number(desc, {"/temperatures/vs/0": {}, "/spec/vs/0": {"min": 40, "max": 230}})
 
+    assert entity.mode == NumberMode.SLIDER
     assert (entity.native_min_value, entity.native_max_value, entity.native_step) == (
         40.0,
         230.0,
@@ -66,3 +70,12 @@ def test_bounds_fn_returning_none_falls_through_to_static_bounds():
         10.0,
         1.0,
     )
+
+
+def test_cook_time_uses_numeric_entry_without_narrowing_the_range():
+    desc = next(e for e in OVEN_OPERATIONAL_STATE.entities if e.key == "cook_time")
+    entity = _number(desc, {})
+
+    assert entity.mode == NumberMode.BOX
+    assert entity.native_unit_of_measurement == "min"
+    assert (entity.native_min_value, entity.native_max_value, entity.native_step) == (0, 1439, 1)
