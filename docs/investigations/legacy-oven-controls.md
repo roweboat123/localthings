@@ -49,6 +49,8 @@ Each cavity has its own device, so Cooking mode labels omit redundant
 Upper/Lower qualifiers. Recipe labels include the category, for example
 "Healthy Cook Baked Potato"; Samsung's cavity-specific command codes remain
 unchanged.
+The owner confirmed that the revised labels display as intended after the
+`d819528` update.
 Other boards keep numbered Healthy Cook labels. Whole-oven Healthycook1–6
 and Gourmet Cook have not been mapped by these divided-cavity captures.
 The existing LowerConvectionRoast fallback remains from the panel report
@@ -78,6 +80,15 @@ need their own evidence before extending their controls.
 
 ## Cook time display
 
+The owner then reported repeated "Choose a cooking mode first" errors when
+entering Cook time before selecting a mode. The errors listed raw Samsung
+mode codes. Idle Cook time can now be held before a mode is chosen, if an
+available mode accepts it; the first mode selection revalidates and retains
+that duration. Later mode changes still restore defaults. Start still
+requires a valid mode and Smart Control. Validation errors resolve mode
+names through the same catalog as Cooking mode, in Home Assistant's configured
+language. Tests reproduce the original failures; hardware retesting is pending.
+
 Cook time uses the standard Home Assistant numeric box and duration unit
 setting. Minutes remain the default. The entity converts its value, bounds,
 step and writes together when a user chooses hours in entity settings;
@@ -95,8 +106,8 @@ hour fractions can need more characters to retain one-minute precision.
 
 ## Remaining hardware checks
 
-Verify the revised recipe names in both mode lists, native Cook time unit
-setting, idle value persistence, normal Start/Stop and Smart Control behavior.
+Verify time entry before mode selection, native Cook time unit setting,
+idle value persistence, normal Start/Stop and Smart Control behavior.
 Check a short timed cook and
 when its countdown begins. Divider-out, untimed starts and running changes
 remain distinct tests; the panel captures and development checks do not

@@ -24,11 +24,13 @@ from homeassistant.exceptions import (
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.translation import async_get_translations
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from smartthings_local.errors import EndpointError, PeerInitiatedHandshakeError
 from smartthings_local.ocf.state_cache import StateCache
 
 from . import cloudcourse, probing
+from .catalog import translated_state_label
 from .cloudcourse import CloudCourses
 from .cloudcourse import persist as cloud_persist
 from .const import (
@@ -2450,7 +2452,7 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if cook_param is not None and self._holds_cook(bound_entity.subdevice):
             # Nothing reaches the appliance, so Remote Control is only
             # checked at the start.
-            self._hold_cook(bound_entity.subdevice, desc, cook_param, payload)
+            await self._async_hold_cook(bound_entity.subdevice, desc, cook_param, payload)
             return
         write_fn = getattr(desc, "write_fn", None)
         if write_fn is None:
@@ -2791,7 +2793,40 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         resources = self._cavity_resources(subdevice)
         return cook.is_idle(resources) and bool(cook.startable_modes(resources))
 
-    def _hold_cook(self, subdevice: Subdevice, desc: Any, param: str, payload: Any) -> None:
+    async def _async_cook_error(
+        self, error: cook.CookStartError, subdevice: Subdevice, resources: dict
+    ) -> ServiceValidationError:
+        placeholders = dict(error.placeholders)
+        mode_entity = next(
+            (
+                b
+                for b in self.bound
+                if b.subdevice == subdevice and b.desc.cook_param == cook.PARAM_MODE
+            ),
+            None,
+        )
+        if mode_entity is not None and {"mode", "startable"} & placeholders.keys():
+            tk = mode_entity.desc.translation_key
+            key = tk(resources) if callable(tk) else tk or mode_entity.desc.key
+            if key is not None:
+                strings = await async_get_translations(
+                    self.hass, self.hass.config.language, "entity", {DOMAIN}
+                )
+                for field in ("mode", "startable"):
+                    if field in placeholders:
+                        placeholders[field] = ", ".join(
+                            translated_state_label("select", key, value, strings)
+                            for value in placeholders[field].split(", ")
+                        )
+        return ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key=error.key,
+            translation_placeholders=placeholders,
+        )
+
+    async def _async_hold_cook(
+        self, subdevice: Subdevice, desc: Any, param: str, payload: Any
+    ) -> None:
         validate_fn = getattr(desc, "validate_fn", None)
         resources = self._cavity_resources(subdevice)
         if validate_fn is not None and (error := validate_fn(payload, {}, resources)):
@@ -2801,11 +2836,7 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             self._held_cooks.setdefault(subdevice, cook.HeldCook()).hold(param, value, resources)
         except cook.CookStartError as err:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key=err.key,
-                translation_placeholders=err.placeholders,
-            ) from err
+            raise await self._async_cook_error(err, subdevice, resources) from err
         self._log.info("holding %s=%r until the cook starts", param, value)
         self._canonical_cache.clear()
         self.async_set_updated_data(flatten(self.bound, self.entity_resources()))
@@ -2848,11 +2879,7 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             else:
                 plan = cook.plan_start(resources, mode, temperature, duration)
         except cook.CookStartError as err:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key=err.key,
-                translation_placeholders=err.placeholders,
-            ) from err
+            raise await self._async_cook_error(err, subdevice, resources) from err
         path = list(subdevice.seed_path)
         # Inner hrefs as this cavity's reads and writes already spell them,
         # which started the NV7B6665IAA's lower zone (#597).

@@ -768,6 +768,91 @@ async def test_both_discovered_setpoints_expose_numeric_box_attributes(hass: Hom
         assert entity.native_unit_of_measurement == "°F"
 
 
+@pytest.mark.parametrize("index", [0, 1])
+@pytest.mark.parametrize("minutes", [0, 5, 599])
+async def test_cook_time_before_mode_is_held_and_survives_the_first_mode_selection(
+    hass: HomeAssistant, index, minutes
+):
+    coordinator = await _discovered(hass)
+    cavity = _lower(coordinator) if index else MAIN
+    bound = {b.desc.key: b for b in coordinator.bound if b.subdevice == cavity}
+    timer = LocalThingsNumber(coordinator, bound["cook_time"])
+    select = LocalThingsSelect(coordinator, bound["oven_mode"])
+    resources = coordinator._cavity_resources(cavity)
+    _FakeConnection.log.clear()
+
+    await timer.async_set_native_value(minutes)
+
+    assert timer.native_value == minutes
+    assert select.current_option == "no_operation"
+    held = coordinator._held_cooks[cavity]
+    assert held.values == {cook.PARAM_DURATION: minutes * 60}
+    with pytest.raises(cook.CookStartError, match="cook_mode_required"):
+        held.plan(resources)
+    for href, rep in resources.items():
+        coordinator._observe.apply(cavity.to_actual(href), rep, source="poll")
+    assert coordinator.entity_resources()[cavity.to_actual(cook.OPERATION_HREF)][
+        PREFIX + "operationTime"
+    ] == cook.format_hms(minutes * 60)
+
+    mode = "UpperConvectionBake" if index == 0 else "LowerBake"
+    await coordinator.async_send_command(bound["oven_mode"], mode)
+    await coordinator.async_send_command(bound["oven_setpoint"], 350)
+
+    assert timer.native_value == minutes
+    assert held.plan(resources) == cook.CookPlan(mode, 350, "Fahrenheit", minutes * 60)
+    assert not _requests()
+    assert coordinator._held_cooks.get(MAIN if index else _lower(coordinator)) is None
+
+
+@pytest.mark.parametrize(
+    "language,label", [("en", "Healthy Cook Baked Potato"), ("de", "Gesundes Garen Ofenkartoffel")]
+)
+@pytest.mark.parametrize("action", ["held_setpoint", "start"])
+async def test_cook_errors_use_the_cavitys_translated_recipe_label(
+    hass, enable_custom_integrations, language, label, action
+):
+    hass.config.language = language
+    coordinator = await _discovered(hass)
+    cavity = _lower(coordinator)
+    bound = {b.desc.key: b for b in coordinator.bound if b.subdevice == cavity}
+    coordinator._observe.apply(
+        "/remotectrl/vs/1", {PREFIX + "remoteControlEnabled": True}, source="poll"
+    )
+    _FakeConnection.log.clear()
+
+    if action == "held_setpoint":
+        await coordinator.async_send_command(bound["oven_mode"], "LowerHealthycook1")
+    with pytest.raises(ServiceValidationError) as err:
+        if action == "start":
+            await coordinator.async_start_cooking(cavity, mode="LowerHealthycook1", temperature=485)
+        else:
+            await coordinator.async_send_command(bound["oven_setpoint"], 485)
+
+    assert err.value.translation_key == "cook_temperature_out_of_range"
+    assert err.value.translation_placeholders == {"mode": label, "min": "175°F", "max": "480°F"}
+    assert not _requests()
+
+
+async def test_missing_mode_error_lists_friendly_names_without_starting(hass):
+    coordinator = await _discovered(hass)
+    cavity = _lower(coordinator)
+    coordinator._observe.apply(
+        "/remotectrl/vs/1", {PREFIX + "remoteControlEnabled": True}, source="poll"
+    )
+    _FakeConnection.log.clear()
+
+    with pytest.raises(ServiceValidationError) as err:
+        await coordinator.async_start_cooking(cavity)
+
+    assert err.value.translation_key == "cook_mode_required"
+    assert err.value.translation_placeholders == {
+        "startable": "Bake, Convection bake, Convection roast, Healthy Cook Baked Potato, "
+        "Healthy Cook Grilled Chicken, Healthy Cook Salmon Steak, Healthy Cook White Fish Fillet"
+    }
+    assert not _requests()
+
+
 @pytest.mark.parametrize("index,prefix", [(0, "Upper"), (1, "Lower")])
 @pytest.mark.parametrize("recipe,temperature", [(1, 375), (2, 375), (3, 375), (4, 400)])
 async def test_verified_recipe_selection_holds_its_raw_code_and_preset(

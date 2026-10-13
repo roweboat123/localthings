@@ -659,10 +659,9 @@ class HeldCook:
     kept here rather than written (the board discards them from `Ready`)
     until a start sends them.
 
-    Same rules as the 8888 washer's held course (#519): a new mode brings
-    its own defaults, so it drops a held setpoint and time; and everything
-    is dropped once the oven leaves `Ready` or its own mode, setpoint or
-    time changes, since the panel has been used.
+    A mode change brings its own defaults. A time entered before the first
+    mode is kept if that mode accepts it. Panel changes or leaving `Ready`
+    discard held choices.
     """
 
     def __init__(self) -> None:
@@ -680,17 +679,34 @@ class HeldCook:
         # Checked as the start would be: against the held mode (else the
         # board's default) and whatever else is already held.
         if param == PARAM_MODE:
-            plan_start(resources, mode=value, complete=False)
+            duration = self.values.get(PARAM_DURATION) if PARAM_MODE not in self.values else None
+            plan = plan_start(resources, mode=value, duration=duration, complete=False)
             held = {PARAM_MODE: value}
+            if duration is not None:
+                held[PARAM_DURATION] = plan.duration
         else:
             held = {**self.values, param: value}
-            plan = plan_start(
-                resources,
-                mode=held.get(PARAM_MODE),
-                temperature=held.get(PARAM_TEMPERATURE),
-                duration=held.get(PARAM_DURATION),
-                complete=False,
-            )
+            try:
+                plan = plan_start(
+                    resources,
+                    mode=held.get(PARAM_MODE),
+                    temperature=held.get(PARAM_TEMPERATURE),
+                    duration=held.get(PARAM_DURATION),
+                    complete=False,
+                )
+            except CookStartError as err:
+                if err.key != "cook_mode_required" or param != PARAM_DURATION:
+                    raise
+                # A time can be staged without choosing a mode, provided
+                # at least one available mode accepts it. Start still needs a mode.
+                for candidate in startable_modes(resources):
+                    try:
+                        plan = plan_start(resources, mode=candidate, duration=value, complete=False)
+                    except CookStartError:
+                        continue
+                    break
+                else:
+                    raise
             held = {
                 **held,
                 param: plan.temperature if param == PARAM_TEMPERATURE else plan.duration,
