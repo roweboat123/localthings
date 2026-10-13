@@ -1,9 +1,9 @@
 # NV51K7770S control follow-up
 
-The October 13, 2026 hardware check confirmed numeric Cook time and the
-lower shared-door display. Setpoint still appeared as a slider, and the
-obsolete Power switch remained unavailable in Controls. Normal Start/Stop
-through the revised entities has not yet been verified.
+The October 13, 2026 hardware checks confirmed numeric Cook time and the
+lower shared-door display. After the combined update, the owner also
+confirmed numeric Setpoint entry and removal of the obsolete Power control.
+Normal Start/Stop through the revised entities has not yet been verified.
 
 ## Power and Setpoint
 
@@ -19,7 +19,10 @@ contains it. This establishes a source-installation mismatch; a screenshot
 or browser refresh cannot establish that the corrected code was loaded.
 Install the complete integration from an immutable tested revision and
 check the installed files before restarting and inspecting live attributes.
-The previously recorded installed revision is therefore unverified.
+The previously recorded installed revision is therefore unverified. After
+the combined update was supplied, the owner confirmed that Setpoint displays
+as numeric entry and the Power control is gone. This confirms those UI fixes;
+the exact installed commit and physical cooking controls remain unverified.
 
 ## Verified Healthy Cook mappings
 
@@ -42,6 +45,10 @@ LCD_OV_WALL_16K fallback now includes all four lower recipe codes. Removing
 the divider still suppresses independent lower operation.
 
 The recipe translations and defaults are scoped to the measured board.
+Each cavity has its own device, so Cooking mode labels omit redundant
+Upper/Lower qualifiers. Recipe labels include the category, for example
+"Healthy Cook Baked Potato"; Samsung's cavity-specific command codes remain
+unchanged.
 Other boards keep numbered Healthy Cook labels. Whole-oven Healthycook1–6
 and Gourmet Cook have not been mapped by these divided-cavity captures.
 The existing LowerConvectionRoast fallback remains from the panel report
@@ -88,9 +95,9 @@ hour fractions can need more characters to retain one-minute precision.
 
 ## Remaining hardware checks
 
-After the combined installation, verify the Setpoint box, recipe names in
-both mode lists, native Cook time unit setting, idle value persistence,
-normal Start/Stop and Smart Control behavior. Check a short timed cook and
+Verify the revised recipe names in both mode lists, native Cook time unit
+setting, idle value persistence, normal Start/Stop and Smart Control behavior.
+Check a short timed cook and
 when its countdown begins. Divider-out, untimed starts and running changes
 remain distinct tests; the panel captures and development checks do not
 establish physical command acceptance.
