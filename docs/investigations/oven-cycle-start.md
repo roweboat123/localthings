@@ -138,6 +138,11 @@ Measured 2026-10-12 on a Samsung NV51K7770SG/AA, board
 `20201110.0138`, firmware `17071200,17041300`, with the divider installed.
 This is the local HTTPS interface on port 8888, not the OCF boards above.
 
+This follows the settings-first test proposed by the maintainer in
+[#572](https://github.com/mbillow/localthings/issues/572#issuecomment-6092402107).
+The existing Start cooking button performs the sequence internally with
+one press; the user does not need separate settings and start actions.
+
 A combined mode/temperature/time/Run write was refused with `4.00`
 (`Control fail`) on both cavities. Both started with this sequence:
 
