@@ -26,6 +26,9 @@ class _FakeCoordinator:
     def canonical_resources(self, _subdevice):
         return self.last_resources
 
+    def cook_time_is_unset(self, _subdevice):
+        return False
+
 
 def _number(desc, resources):
     href = "/temperatures/vs/0"

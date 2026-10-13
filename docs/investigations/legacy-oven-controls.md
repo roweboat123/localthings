@@ -5,6 +5,9 @@ lower shared-door display. After the combined update, the owner also
 confirmed numeric Setpoint entry and removal of the obsolete Power control.
 After the `27242d6` update instructions, the owner confirmed that normal
 Start and Stop work for both upper and lower cavities without errors.
+The owner subsequently confirmed that removing the divider exposes the
+whole-oven modes on Upper and no modes on Lower, and that Smart Control
+works with the divider removed.
 
 ## Power and Setpoint
 
@@ -94,6 +97,14 @@ that time-first entry causes no errors and five minutes remains after
 selecting Bake and waiting about a minute on the lower cavity. A remaining
 validation error's translated text has not yet been captured on the live UI.
 
+The owner requested an empty Cook time box instead of an idle zero, which
+can turn an intended 5 into 50 while typing. For the measured board, the
+number entity now presents an unset idle zero as an empty value. Explicitly
+entered zero and running values stay visible. This changes only the entity
+display; raw timer data, sensor values and command payloads are unchanged.
+Tests cover both divided cavities and the whole oven. Live confirmation of
+the empty box remains pending.
+
 Cook time uses the standard Home Assistant numeric box and duration unit
 setting. Minutes remain the default. The entity converts its value, bounds,
 step and writes together when a user chooses hours in entity settings;
@@ -111,10 +122,11 @@ hour fractions can need more characters to retain one-minute precision.
 
 ## Remaining hardware checks
 
-Normal Start and Stop are confirmed on both divided cavities. Further
-checks cover the native Cook time unit setting, countdown start and timer
-completion, Smart Control off/door-reset behavior through the normal
-controls, divider-out operation, untimed starts and running adjustments.
+Normal Start and Stop are confirmed on both divided cavities, and the owner
+reports Smart Control working with the divider removed. Further checks
+cover the empty idle Cook time box, native Cook time unit setting, countdown
+start and timer completion, Smart Control off/door-reset behavior through
+the normal controls, untimed starts and running adjustments.
 The basic Start/Stop confirmation does not establish every recipe or
 simultaneous-cavity setting combination.
 

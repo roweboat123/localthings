@@ -806,6 +806,88 @@ async def test_cook_time_before_mode_is_held_and_survives_the_first_mode_selecti
 
 
 @pytest.mark.parametrize(
+    "index,divided,mode",
+    [(0, True, "UpperConvectionBake"), (1, True, "LowerBake"), (0, False, "Bake")],
+)
+async def test_idle_cook_time_starts_blank_and_keeps_explicit_values(hass, index, divided, mode):
+    coordinator = await _discovered(hass, _routes(divided=divided))
+    cavity = _lower(coordinator) if index else MAIN
+    bound = {b.desc.key: b for b in coordinator.bound if b.subdevice == cavity}
+    timer = LocalThingsNumber(coordinator, bound["cook_time"])
+    resources = coordinator._cavity_resources(cavity)
+    coordinator.async_set_updated_data(flatten(coordinator.bound, coordinator.entity_resources()))
+    _FakeConnection.log.clear()
+
+    assert coordinator.data[timer._state_key] == 0
+    assert timer.native_value is None
+    assert timer.native_min_value == 0
+    assert timer.native_max_value == 599
+    assert coordinator._held_cooks.get(cavity) is None
+
+    await coordinator.async_send_command(bound["oven_mode"], mode)
+    assert timer.native_value is None
+    await coordinator.async_send_command(bound["oven_setpoint"], 350)
+    assert timer.native_value is None
+    assert coordinator._held_cooks[cavity].plan(resources).duration is None
+
+    await timer.async_set_native_value(5)
+    assert timer.native_value == 5
+    await timer.async_set_native_value(0)
+    assert timer.native_value == 0
+    assert coordinator._held_cooks[cavity].plan(resources).duration == 0
+    assert (
+        coordinator.resource(cavity.to_actual(cook.OPERATION_HREF))[PREFIX + "operationTime"]
+        == "00:00:00"
+    )
+    assert not _requests()
+
+
+async def test_running_zero_cook_time_stays_visible_and_returns_to_blank_when_idle(hass):
+    running = {
+        **LOWER,
+        "Mode": {**LOWER["Mode"], "modes": ["LowerBake"]},
+        "Operation": {**LOWER["Operation"], "state": "Run", "operationTime": "00:00:00"},
+    }
+    coordinator = await _discovered(hass, _routes(lower=running))
+    cavity = _lower(coordinator)
+    bound = next(
+        b for b in coordinator.bound if b.subdevice == cavity and b.desc.key == "cook_time"
+    )
+    timer = LocalThingsNumber(coordinator, bound)
+    coordinator.async_set_updated_data(flatten(coordinator.bound, coordinator.entity_resources()))
+
+    assert timer.native_value == 0
+
+    coordinator._observe.apply(
+        "/mode/vs/1",
+        {**coordinator.resource("/mode/vs/1"), PREFIX + "modes": ["NoOperation"]},
+        source="poll",
+    )
+    coordinator._observe.apply(
+        "/operational/state/vs/1",
+        {**coordinator.resource("/operational/state/vs/1"), PREFIX + "state": "Ready"},
+        source="poll",
+    )
+    coordinator._observe.apply("/oven/vs/1", {PREFIX + "state": "Ready"}, source="poll")
+    coordinator.async_set_updated_data(flatten(coordinator.bound, coordinator.entity_resources()))
+    assert timer.native_value is None
+
+
+async def test_other_oven_boards_keep_their_idle_zero_cook_time(hass):
+    coordinator = await _discovered(hass)
+    coordinator._observe.apply(
+        "/information/vs/0",
+        {**coordinator.resource("/information/vs/0"), PREFIX + "modelNum": "LCD_OV_WALL_20K"},
+        source="poll",
+    )
+    bound = next(b for b in coordinator.bound if b.subdevice == MAIN and b.desc.key == "cook_time")
+    timer = LocalThingsNumber(coordinator, bound)
+    coordinator.async_set_updated_data(flatten(coordinator.bound, coordinator.entity_resources()))
+
+    assert timer.native_value == 0
+
+
+@pytest.mark.parametrize(
     "language,label", [("en", "Healthy Cook Baked Potato"), ("de", "Gesundes Garen Ofenkartoffel")]
 )
 @pytest.mark.parametrize("action", ["held_setpoint", "start"])

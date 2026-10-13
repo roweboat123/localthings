@@ -2754,6 +2754,18 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         input. Held choices are not in it."""
         return canonical_view(subdevice, self._cook_view(self.last_resources), self.subdevices)
 
+    def cook_time_is_unset(self, subdevice: Subdevice) -> bool:
+        """Distinguish this wall oven's idle zero from an explicitly held timer."""
+        resources = self._cavity_resources(subdevice)
+        if not cook.is_lcd_wall_16k(resources) or not cook.is_idle(resources):
+            return False
+        held = self._held_cooks.get(subdevice)
+        view = held.overlay(resources) if held is not None else resources
+        if held is not None and cook.PARAM_DURATION in held.values:
+            return False
+        duration = (view.get(cook.OPERATION_HREF) or {}).get("x.com.samsung.da.operationTime")
+        return cook.parse_hms(duration) == 0
+
     def _with_held_cooks(self, snapshot: dict[str, dict]) -> dict[str, dict]:
         """Each idle cavity's held choices, written over its own actual
         hrefs in `snapshot` (a copy this method may change)."""

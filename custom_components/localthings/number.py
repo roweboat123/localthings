@@ -134,6 +134,12 @@ class LocalThingsNumber(LocalThingsEntity, NumberEntity):
     @property
     def native_value(self):
         value = (self.coordinator.data or {}).get(self._state_key)
+        if (
+            value == 0
+            and self._is_cook_duration()
+            and self.coordinator.cook_time_is_unset(self._bound.subdevice)
+        ):
+            return None
         return self._from_minutes(value) if value is not None else None
 
     async def async_set_native_value(self, value: float) -> None:
