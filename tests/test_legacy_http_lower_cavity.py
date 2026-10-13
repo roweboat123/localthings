@@ -16,12 +16,19 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers import entity_registry as er
+from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.localthings import _drop_power_switches_superseded_by_sensors
+from custom_components.localthings.binary_sensor import LocalThingsBinarySensor
+from custom_components.localthings.const import DOMAIN
 from custom_components.localthings.entity import _is_included
 from custom_components.localthings.legacy_http_transport import (
     LegacyHttpTransport,
     _with_record_description,
 )
+from custom_components.localthings.number import LocalThingsNumber
 from custom_components.localthings.registry.adapter import flatten
 from custom_components.localthings.registry.batch import parse_device0_batch
 from custom_components.localthings.registry.by_type import oven, resolve
@@ -648,6 +655,108 @@ async def test_legacy_oven_power_is_status_only_on_both_cavities(hass: HomeAssis
         assert len(power) == 1
         assert isinstance(power[0].desc, BinarySensorDesc)
         assert not isinstance(power[0].desc, SwitchDesc)
+
+
+async def test_power_cleanup_removes_both_old_controls_and_preserves_other_entities(
+    hass: HomeAssistant,
+):
+    coordinator = await _discovered(hass)
+    registry = er.async_get(hass)
+    old_controls = []
+    keep = []
+    for bound in coordinator.bound:
+        if (
+            isinstance(bound.desc, BinarySensorDesc)
+            and bound.desc.key == "power_switch"
+            and _is_included(bound, coordinator)
+        ):
+            unique_id = LocalThingsBinarySensor(coordinator, bound).unique_id
+            assert unique_id is not None
+            old = registry.async_get_or_create(
+                "switch", DOMAIN, unique_id, config_entry=coordinator._entry
+            )
+            old_controls.append(
+                registry.async_update_entity(
+                    old.entity_id, new_entity_id=f"switch.renamed_power_{len(old_controls)}"
+                )
+            )
+            keep.append(
+                registry.async_get_or_create(
+                    "binary_sensor", DOMAIN, unique_id, config_entry=coordinator._entry
+                )
+            )
+    assert len(old_controls) == 2
+    keep.append(
+        registry.async_get_or_create(
+            "switch", DOMAIN, "TEST_UNRELATED", config_entry=coordinator._entry
+        )
+    )
+    other_entry = MockConfigEntry(domain=DOMAIN)
+    other_entry.add_to_hass(hass)
+    keep.append(
+        registry.async_get_or_create(
+            "switch", DOMAIN, "TEST_OTHER_power_switch", config_entry=other_entry
+        )
+    )
+
+    for _ in range(2):
+        _drop_power_switches_superseded_by_sensors(hass, coordinator._entry, coordinator)
+        assert all(registry.async_get(row.entity_id) is None for row in old_controls)
+        assert all(registry.async_get(row.entity_id) is not None for row in keep)
+
+
+@pytest.mark.parametrize("readonly", [False, True])
+async def test_power_cleanup_requires_status_support_and_the_owning_entry(
+    hass: HomeAssistant, readonly
+):
+    coordinator = await _discovered(hass)
+    if not readonly:
+        for index in (0, 1):
+            coordinator._observe.apply(
+                f"/information/vs/{index}",
+                {PREFIX + "modelNum": "OTHER_OVEN"},
+                source="poll",
+            )
+    power = next(
+        b
+        for b in coordinator.bound
+        if b.subdevice == MAIN
+        and isinstance(b.desc, BinarySensorDesc)
+        and b.desc.key == "power_switch"
+    )
+    unique_id = LocalThingsBinarySensor(coordinator, power).unique_id
+    assert unique_id is not None
+    other_entry = MockConfigEntry(domain=DOMAIN)
+    other_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    old = registry.async_get_or_create(
+        "switch",
+        DOMAIN,
+        unique_id,
+        config_entry=other_entry if readonly else coordinator._entry,
+    )
+
+    _drop_power_switches_superseded_by_sensors(hass, coordinator._entry, coordinator)
+
+    assert registry.async_get(old.entity_id) is not None
+
+
+async def test_both_discovered_setpoints_expose_numeric_box_attributes(hass: HomeAssistant):
+    hass.config.units = US_CUSTOMARY_SYSTEM
+    coordinator = await _discovered(hass)
+    for cavity in (MAIN, _lower(coordinator)):
+        bound = next(
+            b for b in coordinator.bound if b.subdevice == cavity and b.desc.key == "oven_setpoint"
+        )
+        entity = LocalThingsNumber(coordinator, bound)
+        entity.hass = hass
+        assert entity.capability_attributes == {
+            "mode": "box",
+            "min": 175.0,
+            "max": 550.0,
+            "step": 5.0,
+        }
+        assert entity.native_unit_of_measurement == "°F"
 
 
 @pytest.mark.parametrize("index,mode", [(0, "UpperConvectionBake"), (1, "LowerBake")])
