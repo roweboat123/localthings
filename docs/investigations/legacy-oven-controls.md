@@ -102,8 +102,10 @@ can turn an intended 5 into 50 while typing. For the measured board, the
 number entity now presents an unset idle zero as an empty value. Explicitly
 entered zero and running values stay visible. This changes only the entity
 display; raw timer data, sensor values and command payloads are unchanged.
-Tests cover both divided cavities and the whole oven. Live confirmation of
-the empty box remains pending.
+Tests cover both divided cavities and the whole oven. After the `c4ecc7b`
+installation instructions, the owner confirmed that the Cook time box works
+as intended. The owner did not specify separate per-cavity checks for this
+presentation change.
 
 Cook time uses the standard Home Assistant numeric box and duration unit
 setting. Minutes remain the default. The entity converts its value, bounds,
@@ -120,12 +122,37 @@ claim an inline unit picker or a hard three-character typing limit. The
 599-minute maximum bounds valid minute values to three integer digits;
 hour fractions can need more characters to retain one-minute precision.
 
+## Low-temperature reporting
+
+On October 13, both cavities showed Unknown while their live resources
+reported Ready / NoOperation, current 175°F and desired 0. The owner said
+the oven was still warm at that point, then returned after cooling and
+confirmed that it was fully cold. The subsequent upper-cavity reads were:
+
+| Condition | Operation / oven state | Current | Desired |
+| --- | --- | --- | --- |
+| Fully cooled, idle | Ready / Ready | 175°F | 0 |
+| Requested immediate read after panel start of UpperConvectionBake | Run / Preheat | 175°F | 325°F |
+
+The legacy decoder passes the current temperature through unchanged. The
+existing sensor filter suppresses values at or below 175°F when desired is
+unset, but lets the reported value through during a cook. That filter
+predates these changes and accounts for the idle Unknown display.
+
+The cold idle value is not an actual room-temperature measurement. Its
+appearance during initial preheat also supports a 175°F reporting floor
+in this interface. No independent thermometer reading or exact interval
+from Start was supplied, so this does not establish the physical sensor's
+lower limit or rule out other diagnostic data. Earlier cooking captures
+returned varying values above 175°F. The lower cavity has not separately
+been read after confirmed full cooling. No temperature behavior is changed.
+
 ## Remaining hardware checks
 
 Normal Start and Stop are confirmed on both divided cavities, and the owner
 reports Smart Control working with the divider removed. Further checks
-cover the empty idle Cook time box, native Cook time unit setting, countdown
-start and timer completion, Smart Control off/door-reset behavior through
+cover the native Cook time unit setting, countdown start and timer
+completion, Smart Control off/door-reset behavior through
 the normal controls, untimed starts and running adjustments.
 The basic Start/Stop confirmation does not establish every recipe or
 simultaneous-cavity setting combination.
