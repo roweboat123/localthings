@@ -37,8 +37,9 @@ ALL_ENDPOINTS = ENDPOINTS + tuple(
 )
 # The uploaded Samsung oven plug-in defines this path; board support is unverified.
 LIGHT_ENDPOINTS = ("/devices/0/light", "/devices/1/light")
-# Older Samsung SSDP announcements point here; this oven's support is unverified.
+# Confirmed by this oven's 2026-10-14 capability capture.
 CAPABILITY_ENDPOINTS = ("/capability",)
+SUBSCRIPTION_ENDPOINTS = ("/subscriptions",)
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 REDACTED = "**REDACTED**"
 
@@ -102,6 +103,11 @@ def scrub(value, data: dict, redact_resources):
                     "host",
                     "di",
                     "pi",
+                    "notificationuri",
+                    "subscriptionuri",
+                    "subscriptionid",
+                    "callbackuri",
+                    "callbackurl",
                 }
                 identifying |= tail == "id" and not str(child).isdigit()
                 result[key] = REDACTED if identifying else walk(child)
@@ -114,6 +120,7 @@ def scrub(value, data: dict, redact_resources):
             item = re.sub(
                 r"\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b", REDACTED, item
             )
+            item = re.sub(r"(/subscriptions/)[^/\s?#]+", r"\1" + REDACTED, item)
             return re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", REDACTED, item)
         return item
 
@@ -152,7 +159,7 @@ def capability_xml(raw: bytes) -> dict:
 
 def read_native(host: str, context, token: str, path: str) -> dict:
     # Fixed GET paths only: never follow links or send a control payload.
-    if path not in ALL_ENDPOINTS + LIGHT_ENDPOINTS + CAPABILITY_ENDPOINTS:
+    if path not in ALL_ENDPOINTS + LIGHT_ENDPOINTS + CAPABILITY_ENDPOINTS + SUBSCRIPTION_ENDPOINTS:
         raise ValueError("Endpoint is not in the capture list.")
     connection = http.client.HTTPSConnection(host, 8888, context=context, timeout=8)
     try:
@@ -191,8 +198,9 @@ def capture(
     all_resources: bool = False,
     light_resource: bool = False,
     capability: bool = False,
+    subscriptions: bool = False,
 ) -> dict:
-    if sum((all_resources, light_resource, capability)) > 1:
+    if sum((all_resources, light_resource, capability, subscriptions)) > 1:
         raise ValueError("Choose only one capture scope.")
     endpoints = ALL_ENDPOINTS if all_resources else ENDPOINTS
     scope = "all_resources" if all_resources else "baseline"
@@ -202,6 +210,9 @@ def capture(
     if capability:
         endpoints = CAPABILITY_ENDPOINTS
         scope = "capability"
+    if subscriptions:
+        endpoints = SUBSCRIPTION_ENDPOINTS
+        scope = "subscriptions"
     records = []
     for path in endpoints:
         print(f"Reading {path} ...", file=sys.stderr, flush=True)
@@ -239,10 +250,17 @@ def main(argv=None) -> int:
     scope.add_argument(
         "--capability", action="store_true", help="Read only /capability, accepting JSON or XML"
     )
+    scope.add_argument(
+        "--subscriptions", action="store_true", help="Read only the advertised /subscriptions list"
+    )
     args = parser.parse_args(argv)
-    if args.label is None and not args.capability:
-        parser.error("A physical light-state label is required unless --capability is selected.")
+    if args.label is None and not (args.capability or args.subscriptions):
+        parser.error(
+            "A light-state label is required unless --capability or --subscriptions is used."
+        )
     prefix = "oven-capability" if args.capability else f"oven-light-{args.label}"
+    if args.subscriptions:
+        prefix = "oven-subscriptions"
     output = args.config_dir / f"{prefix}-{datetime.now(UTC):%Y%m%dT%H%M%S%fZ}.json"
     try:
         data = select_entry(args.config_dir, args.entry_id)
@@ -257,6 +275,7 @@ def main(argv=None) -> int:
             all_resources=args.all_resources,
             light_resource=args.light_resource,
             capability=args.capability,
+            subscriptions=args.subscriptions,
         )
         with output.open("x", encoding="utf-8") as stream:
             output.chmod(0o600)

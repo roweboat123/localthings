@@ -20,7 +20,9 @@ DATA = {
 }
 
 
-@pytest.mark.parametrize("scope", ["baseline", "all_resources", "light_resource", "capability"])
+@pytest.mark.parametrize(
+    "scope", ["baseline", "all_resources", "light_resource", "capability", "subscriptions"]
+)
 def test_capture_preserves_native_scalars_and_uses_only_known_gets(monkeypatch, capsys, scope):
     connections = []
 
@@ -45,6 +47,7 @@ def test_capture_preserves_native_scalars_and_uses_only_known_gets(monkeypatch, 
         all_resources=scope == "all_resources",
         light_resource=scope == "light_resource",
         capability=scope == "capability",
+        subscriptions=scope == "subscriptions",
     )
 
     endpoints = {
@@ -52,6 +55,7 @@ def test_capture_preserves_native_scalars_and_uses_only_known_gets(monkeypatch, 
         "all_resources": capture.ALL_ENDPOINTS,
         "light_resource": ("/devices/0/light", "/devices/1/light"),
         "capability": ("/capability",),
+        "subscriptions": ("/subscriptions",),
     }[scope]
     assert report["scope"] == scope
     assert len(connections) == len(endpoints)
@@ -82,6 +86,9 @@ def test_light_probe_retains_missing_resource_response(monkeypatch):
         ("all_resources", "light_resource"),
         ("all_resources", "capability"),
         ("light_resource", "capability"),
+        ("all_resources", "subscriptions"),
+        ("light_resource", "subscriptions"),
+        ("capability", "subscriptions"),
     ],
 )
 def test_conflicting_capture_scopes_do_not_send_requests(monkeypatch, first, second):
@@ -165,7 +172,8 @@ def test_capability_keeps_error_and_does_not_follow_redirect(monkeypatch):
     connection.request.assert_called_once()
 
 
-def test_cli_capability_saves_report_without_light_label(monkeypatch, tmp_path, capsys):
+@pytest.mark.parametrize("scope", ["capability", "subscriptions"])
+def test_cli_discovery_saves_report_without_light_label(monkeypatch, tmp_path, capsys, scope):
     monkeypatch.setattr(capture, "select_entry", Mock(return_value=DATA))
     tls = Mock()
     redactor = Mock(redact_resources=redact_resources)
@@ -180,14 +188,49 @@ def test_cli_capability_saves_report_without_light_label(monkeypatch, tmp_path, 
             }
         ),
     )
-    assert capture.main(["--capability", "--config-dir", str(tmp_path)]) == 1
-    reports = list(tmp_path.glob("oven-capability-*.json"))
+    assert capture.main(["--" + scope, "--config-dir", str(tmp_path)]) == 1
+    reports = list(tmp_path.glob(f"oven-{scope}-*.json"))
     assert len(reports) == 1
     report = json.loads(reports[0].read_text())
-    assert report["scope"] == "capability"
+    assert report["scope"] == scope
     assert report["light"] is None
     assert reports[0].stat().st_mode & 0o777 == 0o600
     assert "Saved:" in capsys.readouterr().err
+
+
+def test_subscription_capture_redacts_callback_and_ids_but_keeps_resources(monkeypatch):
+    connection = Mock()
+    response = connection.getresponse.return_value
+    response.status = 200
+    response.read.return_value = json.dumps(
+        {
+            "Subscriptions": [
+                {
+                    "id": "opaque-subscriber-id",
+                    "href": "/subscriptions/opaque-subscriber-id",
+                    "notificationURI": "https://192.0.2.90:8765/notifications?key=private-callback",
+                    "uuid": "private-phone-id",
+                    "resourceURIs": ["/devices", "/devices/0/operation"],
+                    "duration": 600,
+                    "timeout": 60,
+                }
+            ]
+        }
+    ).encode()
+    monkeypatch.setattr(capture.http.client, "HTTPSConnection", Mock(return_value=connection))
+    report = capture.capture(DATA, object(), redact_resources, None, subscriptions=True)
+    text = json.dumps(report)
+    for private in ("opaque-subscriber-id", "192.0.2.90", "private-callback", "private-phone-id"):
+        assert private not in text
+    subscription = report["responses"][0]["body"]["Subscriptions"][0]
+    assert subscription["resourceURIs"] == ["/devices", "/devices/0/operation"]
+    assert subscription["duration"] == 600
+    assert subscription["timeout"] == 60
+    connection.request.assert_called_once_with(
+        "GET",
+        "/subscriptions",
+        headers={"Authorization": "Bearer private-device-token", "Accept": "*/*"},
+    )
 
 
 def test_cli_still_requires_label_for_existing_scopes(monkeypatch):
