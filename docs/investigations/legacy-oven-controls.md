@@ -281,8 +281,8 @@ not been independently tested. All ten language catalogs include the name.
 The captured open/closed pairs are retained as a scrubbed fixture. Tests
 exercise discovery with and without the divider, position changes while
 the main door stays open, unknown readings on an existing entity, absent
-Lower/lamp entities, and zero appliance writes. Installation and sensor
-behavior on hardware remain to be confirmed.
+Lower/lamp entities, and zero appliance writes. After installing revision
+`0d34b4d`, the owner confirmed the Reservoir sensor works.
 
 With the door and reservoir closed, fresh upper-cavity reads with the
 interior light off and on were identical. A lower-cavity read also exposed
@@ -306,6 +306,23 @@ read. Downloading diagnostics alone does not force a refresh. Future raw
 comparisons should first read the intended `/device/<index>` and then
 download diagnostics. The diagnostics also omit most aggregate-level
 scalars through `_resource_bodies()`. No diagnostics behavior changed here.
+
+`legacy_oven_capture.py` is a standalone read-only follow-up for this gap.
+Run it in the HA terminal with `off` or `on` describing the observed light
+state. It reads the existing LCD_OV_WALL_16K entry's credentials locally,
+uses the installed TLS and redaction helpers, and issues only seven fixed
+GETs: `/devices`, and each cavity's aggregate, mode and configuration
+endpoints. It does not follow links, guess control endpoints, or send
+appliance writes. Unknown fields and aggregate scalars are retained except
+identifying values. Non-JSON and oversized bodies are omitted. Credentials
+are never included in the report; output is redacted and saved to a new
+timestamped JSON file under `/config`, as well as printed for copying.
+
+For the comparison, keep the dial Off, main door closed, reservoir closed
+and divider unchanged. Capture with the light off, then toggle only the
+physical light button and capture with it on. No integration restart is
+needed. This native-response comparison is pending; the helper passing
+software tests does not establish a light field or command.
 
 ## Entering settings in any order
 
