@@ -122,8 +122,8 @@ HTTPS callbacks with both length framing and chunked bodies, and a client that
 waits for `100 Continue`. Framing follows
 [RFC 9112](https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3).
 
-For the live oven's requests without Content-Length or Transfer-Encoding, an
-explicit diagnostic exception probes for nonstandard body bytes for at most
+For requests whose parsed headers lack Content-Length and Transfer-Encoding,
+an explicit diagnostic exception probes for body bytes for at most
 1.5 seconds. It uses the buffered input stream, includes fragmented arrivals,
 and stops on a complete JSON object or array, peer closure, read error, byte
 limit or deadline. The report records `body_read.mode`, its termination reason
@@ -160,7 +160,7 @@ The original run requested duration 180. The revised reader above requests
 registration and an incoming HTTPS request, not the callback's contents or
 lamp-state support. Retrying with the framing fix is justified.
 
-### Second appliance run: door-correlated requests have no length headers
+### Second appliance run: door-correlated requests have no parsed length headers
 
 `oven-events-20261014T195945703717Z.json` completed all four prompts:
 
@@ -180,6 +180,42 @@ contents remain unknown and lamp-state support remains unverified. The bounded
 unframed probe above addresses this specific capture gap. It does not assume
 the callbacks contain JSON or a lamp field. The phone APK is not the oven's
 firmware and does not establish how this model frames outgoing callbacks.
+
+### Third appliance run: complete door events recovered, no Lamp events
+
+`oven-events-20261014T201607321784Z.json` completed all four prompts and recovered
+both notification bodies using the bounded probe:
+
+| Received (UTC) | Resource | Door ID | `openState` | Body bytes |
+| --- | --- | --- | --- | --- |
+| 20:16:40.977 | `/devices/0/doors` | `0` | `Open` | 302 |
+| 20:16:54.793 | `/devices/0/doors` | `0` | `Close` | 241 |
+
+Both bodies have a `Notification` root and one `Events` entry with `event:
+Notified`, `eventTime`, `resourceURI`, UUID and subscription URI. The open event
+also contains `openElapsedTime: 00:00:00` and `openTime`. There are no lamp fields
+in either event and no callbacks during the earlier manual Lamp-on and
+Lamp-off steps. Door event timestamps match the corresponding appliance-local
+times; the Enter confirmations follow the callbacks by about three seconds.
+
+Both requests report two parsed header fields,
+`MissingHeaderBodySeparatorDefect` and 79 bytes of header-parser payload.
+Consequently, missing *parsed* length headers do not establish that those
+headers were absent from the wire. The exact malformed header text is unknown
+because the helper deliberately excludes it. The fallback terminated with
+`complete_json` for both callbacks, with zero TLS failures, request failures or
+dropped events.
+
+Registration returned 201, the following GET confirmed ownership, DELETE
+returned 204 and the final subscription list was empty. Cleanup was confirmed.
+
+This establishes working local HTTP subscription delivery and door-state
+payloads on this oven. The tested `/devices` subscription revealed no lamp
+state, adding to the earlier unchanged GET captures. It does not prove that
+every firmware interface lacks a lamp command. Door state alone would not be
+an accurate lamp sensor because the manual Lamp changes produced no feedback
+in this test. Repeating this same notification sequence has no identified
+remaining capture defect to resolve.
 
 Other avenues remain a bounded time-series capture while operating Lamp
 manually, or a network capture at the router or access point. Correlated
