@@ -11,8 +11,9 @@ The 2026-10-14 capture from this oven returned HTTP 200 and:
 {"Capability":{"DevicesLink":{"href":"/devices"},"SubscriptionsLink":{"href":"/subscriptions"}}}
 ```
 
-This establishes that the oven advertises `/subscriptions`; it does not establish
-working subscriptions or lamp events. The legacy transport's lack of CoAP
+This initially established that the oven advertises `/subscriptions`; the
+registration and callback test below adds further evidence. Lamp events remain
+unverified. The legacy transport's lack of CoAP
 OBSERVE support does not rule out this separate HTTP notification mechanism.
 
 Run the standalone helper from the same Home Assistant terminal used for the
@@ -58,13 +59,11 @@ unsupported. A rejection would need to be interpreted with its status and body.
 The app's `SubscriptionJs` declares `notificationURI`, `resourceURIs`, `uuid`,
 `duration` and `timeout`, plus inherited `id` and `description`. The registration
 code repeats every 600,000 ms; the effective device lease is not established.
-No event listener has been tested on the oven yet, and the GET-only helper
-has sent no callback or subscription write.
+The GET-only helper has sent no callback or subscription write.
 
 The follow-up capture at 2026-10-14 19:33 UTC returned HTTP 200 with
 `{"Subscriptions": []}`. The list is readable on this oven and no registrations
-were returned. Subscription creation and notification delivery remain unverified
-on the appliance.
+were returned. Subscription creation and callback results are recorded below.
 
 ## Temporary notification capture
 
@@ -88,17 +87,17 @@ address. It reads the subscription list first and stops if it is unavailable
 or nonempty. It then sends exactly one POST to `/subscriptions` with:
 
 ```json
-{"Subscription":{"uuid":"<fresh UUID>","notificationURI":"https://<local address>:8889/notifications","resourceURIs":["/devices"],"duration":180}}
+{"Subscription":{"uuid":"<fresh UUID>","notificationURI":"https://<local address>:8889/notifications","resourceURIs":["/devices"],"duration":420}}
 ```
 
 The `Subscription` root is confirmed by the APK's Jackson `JsonRootName`
 annotation and `UtilForJson.obj2Json()` root wrapping. The resource and callback
 format come from `SubscriptionRegisterer`. The `duration` field exists in the
-app's schema; requesting 180 is an experimental bounded lease request. Its
+app's schema; requesting 420 is an experimental bounded lease request. Its
 units and enforcement on this firmware are unverified, so cleanup does not
 rely on expiration.
 
-Observation ends after the prompts or at most 150 seconds after registration
+Observation ends after the prompts or at most 360 seconds after registration
 checks. The script attempts DELETE only for a validated ID returned by its own
 successful POST, or a list entry matching both its fresh UUID and callback.
 It reconciles a timed-out POST too, then checks the list again and reports
@@ -110,13 +109,40 @@ The helper never sends cooking, configuration, or lamp-control requests.
 Reports are saved as `oven-events-<timestamp>.json` with private file permissions.
 They retain JSON notification bodies without resource mapping, redact identities
 and credentials, and count connections, TLS failures, request failures and
-dropped bodies. Headers and unparsed bodies are excluded. The current listener
-supports Content-Length framing; unsupported framing is recorded as an error,
+dropped bodies. Raw headers, trailers and unparsed bodies are excluded. The
+listener supports Content-Length, chunked transfer coding, empty requests and
+HTTP/1.1 `Expect: 100-continue`. It records safe framing metadata (counts,
+validated lengths, coding category and flags) so rejection reasons remain
+distinguishable. Unsupported or conflicting framing is recorded as an error,
 not interpreted as an absence of events. A maximum of 100 records and 8 MiB of
 body data bounds the report. No returned URL is followed.
 
-The callback server and cleanup paths have automated local tests. These tests
-do not establish compatibility with the oven or discover lamp support.
+The callback server and cleanup paths have automated local tests, including
+HTTPS callbacks with both length framing and chunked bodies, and a client that
+waits for `100 Continue`. Framing follows
+[RFC 9112](https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3).
+
+### First appliance run: registration and TLS work, body capture needs repair
+
+`oven-events-20261014T194748189265Z.json` records the first live attempt:
+
+- POST `/subscriptions` returned 201 with no body. The following GET returned
+  the new registration, with resource `/devices` and a matching UUID and callback.
+- One connection from the oven completed TLS and reached POST `/notifications`
+  at 19:49:45 UTC. The old reader rejected it as `invalid_content_length`.
+- The old error combined several possibilities: absent, zero, invalid or
+  repeated Content-Length, and chunked requests without Content-Length. No
+  framing metadata was saved, so this capture cannot identify which occurred.
+- Lamp-on, lamp-off and door-open confirmations were recorded. The 150-second
+  observation limit expired before the final door-close confirmation. The
+  callback's cause is unknown because action times were user confirmations.
+- DELETE returned 204, and the final GET returned an empty list, confirming
+  removal of the temporary registration.
+
+The original run requested duration 180. The revised reader above requests
+420 and allows six minutes for the four prompts. This result proves successful
+registration and an incoming HTTPS request, not the callback's contents or
+lamp-state support. Retrying with the framing fix is justified.
 
 Other avenues remain a bounded time-series capture while operating Lamp
 manually, or a network capture at the router or access point. Correlated

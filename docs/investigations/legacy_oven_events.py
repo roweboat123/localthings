@@ -21,11 +21,89 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 CALLBACK_PORT = 8889
-CAPTURE_SECONDS = 150
-REQUESTED_DURATION = 180
+CAPTURE_SECONDS = 360
+REQUESTED_DURATION = 420
 MAX_BODY = 2 * 1024 * 1024
 MAX_EVENTS = 100
 MAX_TOTAL_BODY = 8 * 1024 * 1024
+MAX_FRAMING_LINE = 8192
+MAX_TRAILER_BYTES = 16384
+
+
+def body_metadata(headers) -> dict:
+    """Export framing facts, never arbitrary header values or trailer contents."""
+    lengths = headers.get_all("Content-Length", [])
+    values = [part.strip() for value in lengths for part in value.split(",")]
+    valid = bool(values) and all(re.fullmatch(r"[0-9]{1,10}", part) for part in values)
+    numbers = {int(part) for part in values} if valid else set()
+    valid = valid and len(numbers) == 1
+    transfers = headers.get_all("Transfer-Encoding", [])
+    codings = [part.strip().lower() for value in transfers for part in value.split(",")]
+    return {
+        "content_length_fields": len(lengths),
+        "content_length_valid": valid,
+        "declared_length": next(iter(numbers)) if valid else None,
+        "transfer_encoding": "chunked"
+        if codings == ["chunked"]
+        else "other"
+        if transfers
+        else "none",
+        "expect_continue": headers.get("Expect", "").strip().lower() == "100-continue",
+        "content_type_is_json": headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+        == "application/json",
+    }
+
+
+def read_callback_body(stream, metadata) -> bytes:
+    """Decode bounded HTTP framing; requests without either length field are empty."""
+
+    def exact(size):
+        value = stream.read(size)
+        if len(value) != size:
+            raise ValueError("incomplete_body")
+        return value
+
+    def line():
+        value = stream.readline(MAX_FRAMING_LINE + 1)
+        if len(value) > MAX_FRAMING_LINE or not value.endswith(b"\r\n"):
+            raise ValueError("invalid_framing_line")
+        return value
+
+    transfer = metadata["transfer_encoding"]
+    if transfer != "none":
+        if transfer != "chunked":
+            raise ValueError("unsupported_transfer_encoding")
+        if metadata["content_length_fields"]:
+            raise ValueError("ambiguous_body_framing")
+        body = bytearray()
+        for _ in range(8192):
+            token = line()[:-2].split(b";", 1)[0]
+            if not re.fullmatch(rb"[0-9a-fA-F]{1,16}", token):
+                raise ValueError("invalid_chunk_size")
+            size = int(token, 16)
+            if len(body) + size > MAX_BODY:
+                raise ValueError("body_too_large")
+            if size == 0:
+                trailer_bytes = 0
+                while True:
+                    trailer = line()
+                    trailer_bytes += len(trailer)
+                    if trailer_bytes > MAX_TRAILER_BYTES:
+                        raise ValueError("trailers_too_large")
+                    if trailer == b"\r\n":
+                        return bytes(body)
+            body.extend(exact(size))
+            if exact(2) != b"\r\n":
+                raise ValueError("invalid_chunk_terminator")
+        raise ValueError("too_many_chunks")
+    if not metadata["content_length_fields"]:
+        return b""
+    if not metadata["content_length_valid"]:
+        raise ValueError("invalid_content_length")
+    length = metadata["declared_length"]
+    if length > MAX_BODY:
+        raise ValueError("body_too_large")
+    return exact(length)
 
 
 def load_capture():
@@ -102,6 +180,7 @@ class NotificationHandler(BaseHTTPRequestHandler):
     """Keep the body, never headers or unparsed text that could carry credentials."""
 
     server: NotificationListener
+    protocol_version = "HTTP/1.1"
 
     def log_message(self, format, *args):
         pass
@@ -114,31 +193,25 @@ class NotificationHandler(BaseHTTPRequestHandler):
         if self.path != "/notifications":
             self.reply(404)
             return
-        error = None
-        if self.headers.get("Transfer-Encoding"):
-            error = "unsupported_transfer_encoding"
-        lengths = self.headers.get_all("Content-Length", [])
-        length = int(lengths[0]) if len(lengths) == 1 and lengths[0].isdigit() else -1
-        if not 0 < length <= MAX_BODY:
-            error = "invalid_content_length"
-        if error:
-            server.record({"error": error})
+        metadata = body_metadata(self.headers)
+        record = {"received_at": stamp(), "framing": metadata}
+        try:
+            raw = read_callback_body(self.rfile, metadata)
+        except (ValueError, OSError) as error:
+            detail = str(error) if isinstance(error, ValueError) else type(error).__name__
+            server.record({**record, "error": detail})
             self.reply(400)
             return
-        raw = self.rfile.read(length)
-        if len(raw) != length:
-            server.record({"error": "incomplete_body", "bytes": len(raw)})
-            self.reply(400)
-            return
+        length = len(raw)
         server.total_bytes += length
         if server.total_bytes > MAX_TOTAL_BODY:
             server.dropped += 1
             self.reply(200)
             return
         try:
-            server.record({"body": json.loads(raw)})
+            server.record({**record, "body": json.loads(raw) if raw else None, "bytes": length})
         except (ValueError, UnicodeDecodeError, RecursionError):
-            server.record({"error": "non_json_notification", "bytes": length})
+            server.record({**record, "error": "non_json_notification", "bytes": length})
         self.reply(200)
 
     def reply(self, code):
@@ -216,7 +289,11 @@ def local_address_for(host: str) -> str:
 
 
 def guide(report, cancelled, deadline):
-    print("Listening. Follow each prompt; press Enter AFTER the action.", flush=True)
+    print(
+        "Listening. You have up to six minutes for all four steps.\n"
+        "Follow each prompt; press Enter AFTER the action.",
+        flush=True,
+    )
     for label, action in (
         ("lamp_on_door_closed", "Press Lamp to turn the light ON, keeping the door closed."),
         ("lamp_off_door_closed", "Press Lamp to turn the light OFF, keeping the door closed."),
@@ -245,7 +322,13 @@ def guide(report, cancelled, deadline):
 def run_capture(
     data, tls, scrub, cancelled, *, observe=guide, listener_factory=NotificationListener
 ):
-    report: dict = {"format_version": 1, "scope": "notifications", "requests": [], "markers": []}
+    report: dict = {
+        "format_version": 1,
+        "scope": "notifications",
+        "capture_limit_seconds": CAPTURE_SECONDS,
+        "requests": [],
+        "markers": [],
+    }
     context = tls.client_context(data["leaf_cert_pem"], data["leaf_key_pem"])
     peer = socket.gethostbyname(data["host"])
     address = local_address_for(peer)

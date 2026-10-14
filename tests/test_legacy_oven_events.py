@@ -1,9 +1,12 @@
 """Bounded notification capture owns its subscription and preserves raw events."""
 
 import http.client
+import io
 import json
+import socket
 import threading
 from datetime import UTC, datetime, timedelta
+from email.message import Message
 from unittest.mock import Mock
 
 import pytest
@@ -220,8 +223,9 @@ def tls_material():
     )
 
 
+@pytest.mark.parametrize("chunked", [False, True])
 def test_https_callback_retains_unmapped_event_and_discards_credentials(
-    socket_enabled, tls_material
+    socket_enabled, tls_material, chunked
 ):
     cert, key = tls_material
     listener = events.NotificationListener(
@@ -235,19 +239,21 @@ def test_https_callback_retains_unmapped_event_and_discards_credentials(
             context=legacy_http_tls.client_context(cert, key),
             timeout=3,
         )
+        body_bytes = json.dumps(
+            {
+                "Notification": {
+                    "subscriptionURI": "/subscriptions/test-id",
+                    "Events": [
+                        {"unknownLampField": True, "authToken": "secret-event-token", "id": "0"}
+                    ],
+                }
+            }
+        ).encode()
         conn.request(
             "POST",
             "/notifications",
-            body=json.dumps(
-                {
-                    "Notification": {
-                        "subscriptionURI": "/subscriptions/test-id",
-                        "Events": [
-                            {"unknownLampField": True, "authToken": "secret-event-token", "id": "0"}
-                        ],
-                    }
-                }
-            ),
+            body=[body_bytes[:10], body_bytes[10:]] if chunked else body_bytes,
+            encode_chunked=chunked,
             headers={"Authorization": "Bearer private-header", "Content-Type": "application/json"},
         )
         response = conn.getresponse()
@@ -265,6 +271,7 @@ def test_https_callback_retains_unmapped_event_and_discards_credentials(
         assert private not in encoded
     assert listener.connections == 1
     assert listener.tls_failures == 0
+    assert listener.events[0]["framing"]["transfer_encoding"] == ("chunked" if chunked else "none")
     assert listener.thread is not None
     assert not listener.thread.is_alive()
 
@@ -272,8 +279,6 @@ def test_https_callback_retains_unmapped_event_and_discards_credentials(
 def test_wrong_peer_is_rejected_before_tls(socket_enabled):
     context = Mock()
     listener = events.NotificationListener(("127.0.0.1", 0), "192.0.2.8", context, scrub)
-    import socket
-
     try:
         with socket.create_connection(("127.0.0.1", listener.server_port)), pytest.raises(OSError):
             listener.get_request()
@@ -284,3 +289,99 @@ def test_wrong_peer_is_rejected_before_tls(socket_enabled):
 
 def test_standalone_helper_dependency_loads_without_home_assistant():
     assert callable(events.load_capture().select_entry)
+
+
+def framing(headers):
+    message = Message()
+    for key, value in headers:
+        message[key] = value
+    return events.body_metadata(message)
+
+
+@pytest.mark.parametrize(
+    ("headers", "wire", "expected"),
+    [
+        ([], b"", b""),
+        ([("Content-Length", "0")], b"", b""),
+        ([("Content-Length", " 2 ")], b"{}", b"{}"),
+        ([("Content-Length", "2"), ("Content-Length", "2")], b"{}", b"{}"),
+        ([("Content-Length", "2, 2")], b"{}", b"{}"),
+        (
+            [("Transfer-Encoding", "CHUNKED")],
+            b"1;private-extension=secret\r\n{\r\n1\r\n}\r\n0\r\n"
+            b"Authorization: private-trailer\r\n\r\n",
+            b"{}",
+        ),
+        ([("Transfer-Encoding", "chunked")], b"0\r\n\r\n", b""),
+    ],
+)
+def test_valid_callback_framing_and_empty_messages_are_read(headers, wire, expected):
+    assert events.read_callback_body(io.BytesIO(wire), framing(headers)) == expected
+
+
+@pytest.mark.parametrize(
+    ("headers", "wire", "error"),
+    [
+        ([("Content-Length", "2, 3")], b"{}", "invalid_content_length"),
+        ([("Content-Length", "private-invalid-value")], b"", "invalid_content_length"),
+        ([("Content-Length", "4")], b"{}", "incomplete_body"),
+        ([("Content-Length", str(events.MAX_BODY + 1))], b"", "body_too_large"),
+        (
+            [("Transfer-Encoding", "private-unsupported-coding")],
+            b"",
+            "unsupported_transfer_encoding",
+        ),
+        (
+            [("Transfer-Encoding", "chunked"), ("Content-Length", "2")],
+            b"",
+            "ambiguous_body_framing",
+        ),
+        ([("Transfer-Encoding", "chunked")], b"private-invalid-size\r\n", "invalid_chunk_size"),
+        ([("Transfer-Encoding", "chunked")], b"1\r\n{xx", "invalid_chunk_terminator"),
+        ([("Transfer-Encoding", "chunked")], b"2\r\n{", "incomplete_body"),
+        ([("Transfer-Encoding", "chunked")], b"0\r\n", "invalid_framing_line"),
+        ([("Transfer-Encoding", "chunked")], b"300000\r\n", "body_too_large"),
+        (
+            [("Transfer-Encoding", "chunked")],
+            b"a" * (events.MAX_FRAMING_LINE + 1),
+            "invalid_framing_line",
+        ),
+        (
+            [("Transfer-Encoding", "chunked")],
+            b"0\r\n" + (b"X: " + b"a" * 8000 + b"\r\n") * 3,
+            "trailers_too_large",
+        ),
+    ],
+)
+def test_invalid_framing_has_specific_safe_errors(headers, wire, error):
+    metadata = framing(headers)
+    with pytest.raises(ValueError, match="^" + error + "$"):
+        events.read_callback_body(io.BytesIO(wire), metadata)
+    assert "private-" not in json.dumps(metadata)
+
+
+def test_http_expect_continue_completes_before_sender_transmits_body(socket_enabled, tls_material):
+    cert, key = tls_material
+    listener = events.NotificationListener(
+        ("127.0.0.1", 0), "127.0.0.1", legacy_http_tls.server_context(cert, key), scrub
+    )
+    listener.start()
+    try:
+        context = legacy_http_tls.client_context(cert, key)
+        with (
+            socket.create_connection(("127.0.0.1", listener.server_port), timeout=3) as raw,
+            context.wrap_socket(raw) as conn,
+        ):
+            conn.sendall(
+                b"POST /notifications HTTP/1.1\r\nHost: localhost\r\n"
+                b"Expect: 100-continue\r\nContent-Length: 2\r\n\r\n"
+            )
+            with conn.makefile("rb") as stream:
+                assert stream.readline().startswith(b"HTTP/1.1 100 ")
+                assert stream.readline() == b"\r\n"
+                conn.sendall(b"{}")
+                assert stream.readline().startswith(b"HTTP/1.1 200 ")
+    finally:
+        listener.stop()
+    assert listener.events[0]["body"] == {}
+    assert listener.events[0]["framing"]["expect_continue"] is True
