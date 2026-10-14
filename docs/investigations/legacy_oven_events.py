@@ -28,6 +28,7 @@ MAX_EVENTS = 100
 MAX_TOTAL_BODY = 8 * 1024 * 1024
 MAX_FRAMING_LINE = 8192
 MAX_TRAILER_BYTES = 16384
+UNFRAMED_PROBE_SECONDS = 1.5
 
 
 def body_metadata(headers) -> dict:
@@ -39,7 +40,13 @@ def body_metadata(headers) -> dict:
     valid = valid and len(numbers) == 1
     transfers = headers.get_all("Transfer-Encoding", [])
     codings = [part.strip().lower() for value in transfers for part in value.split(",")]
+    payload = headers.get_payload()
     return {
+        "header_fields": len(headers),
+        "header_parse_defects": sorted({type(defect).__name__ for defect in headers.defects}),
+        "header_payload_bytes": len(payload.encode("iso-8859-1", errors="replace"))
+        if isinstance(payload, str)
+        else 0,
         "content_length_fields": len(lengths),
         "content_length_valid": valid,
         "declared_length": next(iter(numbers)) if valid else None,
@@ -104,6 +111,49 @@ def read_callback_body(stream, metadata) -> bytes:
     if length > MAX_BODY:
         raise ValueError("body_too_large")
     return exact(length)
+
+
+def probe_unframed_body(stream, connection) -> tuple[bytes, str]:
+    """Check for nonstandard body bytes without waiting indefinitely for an HTTP boundary."""
+    deadline = time.monotonic() + UNFRAMED_PROBE_SECONDS
+    previous_timeout = connection.gettimeout()
+    body = bytearray()
+    try:
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                return bytes(body), "time_limit"
+            connection.settimeout(remaining)
+            try:
+                # read1 includes bytes buffered while parsing headers; recv would miss them.
+                piece = stream.read1(min(65536, MAX_BODY + 1 - len(body)))
+            except TimeoutError:
+                return bytes(body), "time_limit"
+            except OSError:
+                return bytes(body), "read_error"
+            if not piece:
+                return bytes(body), "peer_closed"
+            body.extend(piece)
+            if len(body) > MAX_BODY:
+                return bytes(body), "size_limit"
+            try:
+                parsed = json.loads(body)
+            except (ValueError, UnicodeDecodeError, RecursionError):
+                continue
+            if isinstance(parsed, (dict, list)):
+                return bytes(body), "complete_json"
+    finally:
+        connection.settimeout(previous_timeout)
+
+
+def body_prefix_kind(raw: bytes) -> str:
+    """Describe an unparsed body's shape without exposing any of its text."""
+    prefix = raw.lstrip()[:1]
+    if prefix in (b"{", b"["):
+        return "json_container"
+    if prefix == b"<":
+        return "markup"
+    return "other" if prefix else "empty_or_whitespace"
 
 
 def load_capture():
@@ -194,9 +244,18 @@ class NotificationHandler(BaseHTTPRequestHandler):
             self.reply(404)
             return
         metadata = body_metadata(self.headers)
-        record = {"received_at": stamp(), "framing": metadata}
+        unframed = not metadata["content_length_fields"] and metadata["transfer_encoding"] == "none"
+        record = {
+            "received_at": stamp(),
+            "framing": metadata,
+            "body_read": {"mode": "unframed_probe" if unframed else "http_framing"},
+        }
         try:
-            raw = read_callback_body(self.rfile, metadata)
+            if unframed:
+                raw, ending = probe_unframed_body(self.rfile, self.connection)
+                record["body_read"]["termination"] = ending
+            else:
+                raw = read_callback_body(self.rfile, metadata)
         except (ValueError, OSError) as error:
             detail = str(error) if isinstance(error, ValueError) else type(error).__name__
             server.record({**record, "error": detail})
@@ -204,6 +263,10 @@ class NotificationHandler(BaseHTTPRequestHandler):
             return
         length = len(raw)
         server.total_bytes += length
+        if length > MAX_BODY:
+            server.record({**record, "error": "body_too_large", "bytes": length})
+            self.reply(413)
+            return
         if server.total_bytes > MAX_TOTAL_BODY:
             server.dropped += 1
             self.reply(200)
@@ -211,7 +274,14 @@ class NotificationHandler(BaseHTTPRequestHandler):
         try:
             server.record({**record, "body": json.loads(raw) if raw else None, "bytes": length})
         except (ValueError, UnicodeDecodeError, RecursionError):
-            server.record({**record, "error": "non_json_notification", "bytes": length})
+            server.record(
+                {
+                    **record,
+                    "error": "non_json_notification",
+                    "bytes": length,
+                    "body_prefix_kind": body_prefix_kind(raw),
+                }
+            )
         self.reply(200)
 
     def reply(self, code):

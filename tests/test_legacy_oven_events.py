@@ -5,6 +5,7 @@ import io
 import json
 import socket
 import threading
+import time
 from datetime import UTC, datetime, timedelta
 from email.message import Message
 from unittest.mock import Mock
@@ -385,3 +386,104 @@ def test_http_expect_continue_completes_before_sender_transmits_body(socket_enab
         listener.stop()
     assert listener.events[0]["body"] == {}
     assert listener.events[0]["framing"]["expect_continue"] is True
+
+
+@pytest.mark.parametrize(
+    ("wire_headers", "pieces", "termination"),
+    [
+        (b"Host: localhost\r\n", [b'{"unknownLampField":true}'], "complete_json"),
+        (
+            b"Host: localhost\r\n",
+            [b'{"unknownLamp', b'Field":true,"authToken":"private-body-token"}'],
+            "complete_json",
+        ),
+        (b"Host: localhost\r\n", [], "time_limit"),
+        (b"Host: localhost\r\n", [b'{"authToken":"private-body-token"'], "time_limit"),
+        (b"Host: localhost\r\n", [b"private-unparsed-content"], "time_limit"),
+        (
+            b"Bad header : private-malformed-value\r\n",
+            [b'{"unknownLampField":true}'],
+            "complete_json",
+        ),
+    ],
+)
+def test_https_unframed_probe_reads_buffered_and_delayed_bytes_without_leaking_raw_text(
+    socket_enabled, tls_material, monkeypatch, wire_headers, pieces, termination
+):
+    monkeypatch.setattr(events, "UNFRAMED_PROBE_SECONDS", 0.25)
+    cert, key = tls_material
+    listener = events.NotificationListener(
+        ("127.0.0.1", 0), "127.0.0.1", legacy_http_tls.server_context(cert, key), scrub
+    )
+    listener.start()
+    try:
+        context = legacy_http_tls.client_context(cert, key)
+        with (
+            socket.create_connection(("127.0.0.1", listener.server_port), timeout=2) as raw,
+            context.wrap_socket(raw) as conn,
+        ):
+            conn.sendall(
+                b"POST /notifications HTTP/1.1\r\n"
+                + wire_headers
+                + b"\r\n"
+                + (pieces[0] if pieces else b"")
+            )
+            for piece in pieces[1:]:
+                time.sleep(0.025)
+                conn.sendall(piece)
+            response = http.client.HTTPResponse(conn)
+            response.begin()
+            assert response.status == 200
+            assert response.read() == b""
+    finally:
+        listener.stop()
+    assert len(listener.events) == 1
+    event = listener.events[0]
+    assert event["body_read"] == {"mode": "unframed_probe", "termination": termination}
+    assert event["bytes"] == sum(map(len, pieces))
+    assert event["framing"]["content_length_fields"] == 0
+    if termination == "complete_json":
+        assert event["body"]["unknownLampField"] is True
+    elif not pieces:
+        assert event["body"] is None
+    else:
+        assert event["error"] == "non_json_notification"
+        assert event["body_prefix_kind"] == (
+            "json_container" if pieces[0].startswith(b"{") else "other"
+        )
+    if wire_headers.startswith(b"Bad"):
+        assert event["framing"]["header_parse_defects"] == ["MissingHeaderBodySeparatorDefect"]
+        assert event["framing"]["header_payload_bytes"] > 0
+    assert "private-" not in json.dumps(event)
+    assert listener.request_failures == 0
+    assert listener.thread is not None
+    assert not listener.thread.is_alive()
+
+
+def test_unframed_probe_bounds_slow_trickle_by_total_time(monkeypatch):
+    monkeypatch.setattr(
+        events, "time", Mock(monotonic=Mock(side_effect=[10, 10, 10.6, 11.2, 11.8]))
+    )
+    stream = Mock()
+    stream.read1.return_value = b"{"
+    connection = Mock()
+    connection.gettimeout.return_value = 3
+    assert events.probe_unframed_body(stream, connection) == (b"{{{", "time_limit")
+    assert stream.read1.call_count == 3
+    connection.settimeout.assert_called_with(3)
+
+
+def test_unframed_probe_limits_body_bytes_and_retains_partial_data_on_read_error(monkeypatch):
+    monkeypatch.setattr(events, "MAX_BODY", 16)
+    connection = Mock()
+    assert events.probe_unframed_body(io.BytesIO(b"x" * 50), connection) == (
+        b"x" * 17,
+        "size_limit",
+    )
+    stream = Mock()
+    stream.read1.side_effect = [b'{"partial":', OSError("private-error-detail")]
+    assert events.probe_unframed_body(stream, connection) == (b'{"partial":', "read_error")
+    assert events.probe_unframed_body(io.BytesIO(b"partial"), connection) == (
+        b"partial",
+        "peer_closed",
+    )

@@ -112,8 +112,8 @@ and credentials, and count connections, TLS failures, request failures and
 dropped bodies. Raw headers, trailers and unparsed bodies are excluded. The
 listener supports Content-Length, chunked transfer coding, empty requests and
 HTTP/1.1 `Expect: 100-continue`. It records safe framing metadata (counts,
-validated lengths, coding category and flags) so rejection reasons remain
-distinguishable. Unsupported or conflicting framing is recorded as an error,
+validated lengths, coding category, parser defect types and flags) so rejection
+reasons remain distinguishable. Unsupported or conflicting framing is recorded as an error,
 not interpreted as an absence of events. A maximum of 100 records and 8 MiB of
 body data bounds the report. No returned URL is followed.
 
@@ -121,6 +121,22 @@ The callback server and cleanup paths have automated local tests, including
 HTTPS callbacks with both length framing and chunked bodies, and a client that
 waits for `100 Continue`. Framing follows
 [RFC 9112](https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3).
+
+For the live oven's requests without Content-Length or Transfer-Encoding, an
+explicit diagnostic exception probes for nonstandard body bytes for at most
+1.5 seconds. It uses the buffered input stream, includes fragmented arrivals,
+and stops on a complete JSON object or array, peer closure, read error, byte
+limit or deadline. The report records `body_read.mode`, its termination reason
+and the observed byte count. A zero count means no body bytes were observed
+within that probe, not proof that the oven can never send any. Standard framed
+requests retain their existing decoder. Raw unparsed content stays excluded;
+only its byte count and prefix category are exported. Header parser defects
+and the size of any text rejected by that parser are reported without its text.
+
+Local HTTPS tests cover coalesced headers and body, fragmented unframed JSON,
+an empty request whose sender waits for a response, malformed headers, and
+partial or non-JSON bodies. Separate tests enforce the absolute probe deadline
+and byte limit and preserve partial byte counts after read errors.
 
 ### First appliance run: registration and TLS work, body capture needs repair
 
@@ -143,6 +159,27 @@ The original run requested duration 180. The revised reader above requests
 420 and allows six minutes for the four prompts. This result proves successful
 registration and an incoming HTTPS request, not the callback's contents or
 lamp-state support. Retrying with the framing fix is justified.
+
+### Second appliance run: door-correlated requests have no length headers
+
+`oven-events-20261014T195945703717Z.json` completed all four prompts:
+
+- Registration again returned 201, and the following GET confirmed ownership.
+- Two HTTPS POST callbacks arrived at 20:01:44.635 and 20:01:55.146 UTC,
+  respectively about 1.35 and 2.10 seconds before the door-open and door-close
+  confirmations. There were no callbacks during the earlier Lamp-only steps.
+- Both parsed requests lacked Content-Length and Transfer-Encoding. Neither
+  advertised an application/json content type. TLS and request failures were zero.
+- The reader returned an empty byte string immediately for absent length
+  framing, as standard HTTP requires. Its recorded `body: null` and `bytes: 0`
+  therefore did not establish whether nonstandard body bytes were on the wire.
+- DELETE returned 204 and the final list was empty; cleanup was confirmed.
+
+These timings suggest door-triggered notifications on `/devices`, but their
+contents remain unknown and lamp-state support remains unverified. The bounded
+unframed probe above addresses this specific capture gap. It does not assume
+the callbacks contain JSON or a lamp field. The phone APK is not the oven's
+firmware and does not establish how this model frames outgoing callbacks.
 
 Other avenues remain a bounded time-series capture while operating Lamp
 manually, or a network capture at the router or access point. Correlated
