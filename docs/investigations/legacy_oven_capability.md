@@ -58,8 +58,65 @@ unsupported. A rejection would need to be interpreted with its status and body.
 The app's `SubscriptionJs` declares `notificationURI`, `resourceURIs`, `uuid`,
 `duration` and `timeout`, plus inherited `id` and `description`. The registration
 code repeats every 600,000 ms; the effective device lease is not established.
-No event listener has been tested yet, and no callback or subscription write
-has been sent by this helper.
+No event listener has been tested on the oven yet, and the GET-only helper
+has sent no callback or subscription write.
+
+The follow-up capture at 2026-10-14 19:33 UTC returned HTTP 200 with
+`{"Subscriptions": []}`. The list is readable on this oven and no registrations
+were returned. Subscription creation and notification delivery remain unverified
+on the appliance.
+
+## Temporary notification capture
+
+`legacy_oven_events.py` is a separate interactive experiment. Keep
+`legacy_oven_capture.py` beside it; the latter remains a GET-only helper.
+
+```sh
+python3 /config/legacy_oven_events.py
+```
+
+Start with the oven idle and cool, the door closed and the lamp off. After
+registration, follow the terminal prompts to switch Lamp on, switch it off,
+open the door, and close the door, pressing Enter after each action. The marker
+times are user confirmations, not precise button-press timestamps. The door
+steps provide a comparison event: without any confirmed notification delivery,
+silence during Lamp changes cannot establish that lamp events are absent.
+
+The script binds a local HTTPS listener on port 8889 using the installed
+LocalThings certificate and accepts connections only from the selected oven's
+address. It reads the subscription list first and stops if it is unavailable
+or nonempty. It then sends exactly one POST to `/subscriptions` with:
+
+```json
+{"Subscription":{"uuid":"<fresh UUID>","notificationURI":"https://<local address>:8889/notifications","resourceURIs":["/devices"],"duration":180}}
+```
+
+The `Subscription` root is confirmed by the APK's Jackson `JsonRootName`
+annotation and `UtilForJson.obj2Json()` root wrapping. The resource and callback
+format come from `SubscriptionRegisterer`. The `duration` field exists in the
+app's schema; requesting 180 is an experimental bounded lease request. Its
+units and enforcement on this firmware are unverified, so cleanup does not
+rely on expiration.
+
+Observation ends after the prompts or at most 150 seconds after registration
+checks. The script attempts DELETE only for a validated ID returned by its own
+successful POST, or a list entry matching both its fresh UUID and callback.
+It reconciles a timed-out POST too, then checks the list again and reports
+cleanup as confirmed absent, still present, or unverified. Ctrl+C and normal
+termination signals enter this cleanup path. A hard process kill or power loss
+can prevent cleanup; an unexplained nonempty list stops a subsequent run.
+The helper never sends cooking, configuration, or lamp-control requests.
+
+Reports are saved as `oven-events-<timestamp>.json` with private file permissions.
+They retain JSON notification bodies without resource mapping, redact identities
+and credentials, and count connections, TLS failures, request failures and
+dropped bodies. Headers and unparsed bodies are excluded. The current listener
+supports Content-Length framing; unsupported framing is recorded as an error,
+not interpreted as an absence of events. A maximum of 100 records and 8 MiB of
+body data bounds the report. No returned URL is followed.
+
+The callback server and cleanup paths have automated local tests. These tests
+do not establish compatibility with the oven or discover lamp support.
 
 Other avenues remain a bounded time-series capture while operating Lamp
 manually, or a network capture at the router or access point. Correlated
