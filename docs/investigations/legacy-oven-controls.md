@@ -334,15 +334,48 @@ Configuration responses exposed a changing light field. This closes those
 specific mapping/filtering gaps, not the possibility of an unobserved or
 write-only command.
 
-The next capture adds `--all-resources`, which reads the seven remaining
+The `--all-resources` capture reads the seven remaining
 resource names advertised by both device records: Oven, Operation,
 Temperatures, Doors, Information, Diagnosis and Alarms. Their endpoint
 spellings come from the existing LCD_OV_WALL mapping. This makes 21 fixed
 GETs in total; it does not guess lamp endpoints or request diagnosis start.
-The expanded light-on capture is pending. The existing app offers no light
-control, and no verified command for this model was found in the checked
-implementations. Other oven families' UpperLamp writes are not proof that
-this legacy board accepts them.
+The expanded on capture at 12:48:36 and off capture at 12:53:36 on October
+14 returned HTTP 200 for every request. Recursive comparison found no
+response differences after excluding timestamps. This checks every field
+and value, including unfamiliar names, rather than only light keywords.
+Both records were idle with the door closed and Remote Control false.
+No changing field in these responses can currently supply a light sensor.
+The owner subsequently clarified that the oven is not paired with
+SmartThings, so its cloud capability list cannot presently be inspected.
+Other oven families' UpperLamp writes are not proof of legacy-board support.
+
+### App-defined light resource
+
+Static inspection of the owner-supplied Samsung oven plug-in APK found a
+concrete additional read path. The package is `com.samsung.smarthome.oven`,
+version `v1.1040.8.0`, version code 9. Its SHA-256 is
+`6325172bcb173b43549cf07bcc71cdcace797c0c410c753c79cd2fa702135e52`.
+The APK was parsed, not installed or executed, and is not included here.
+
+In `com.sec.smarthome.framework.service.device.DeviceCommunicatorJs`,
+`getDeviceLightById(id)` constructs `/devices/` + id + `/light` and calls
+the shared GET method. `putDeviceLightById(id, light)` constructs the same
+path for PUT. `protocol.device.function.LightJs` defines `lightPower`
+using `OnType`, plus dimming, color and pattern fields. This is shared
+Samsung device-framework code; its presence does not establish that the
+measured oven implements the endpoint. The inspected oven state model and
+command enum do not expose a light field/command, and no oven-control call
+to the light read/write methods was found.
+
+The helper's separate `--light-resource` scope makes only two GETs:
+`/devices/0/light` and `/devices/1/light`. It is mutually exclusive with
+`--all-resources`; the baseline and expanded scopes keep their original
+paths. Responses retain their HTTP status, including an absent-resource
+response, while preserving the existing redaction and size limits. No PUT
+or other appliance write is made. Board support and physical on/off state
+correlation remain untested. A returned object must be compared against
+the actual light before adding an entity; an empty/default object alone
+would not establish usable support.
 
 ## Entering settings in any order
 

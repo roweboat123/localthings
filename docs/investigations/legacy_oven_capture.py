@@ -34,6 +34,8 @@ ALL_ENDPOINTS = ENDPOINTS + tuple(
         "alarms",
     )
 )
+# The uploaded Samsung oven plug-in defines this path; board support is unverified.
+LIGHT_ENDPOINTS = ("/devices/0/light", "/devices/1/light")
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 REDACTED = "**REDACTED**"
 
@@ -105,7 +107,7 @@ def scrub(value, data: dict, redact_resources):
 
 def read_native(host: str, context, token: str, path: str) -> dict:
     # Fixed GET paths only: never follow links or send a control payload.
-    if path not in ALL_ENDPOINTS:
+    if path not in ALL_ENDPOINTS + LIGHT_ENDPOINTS:
         raise ValueError("Endpoint is not in the capture list.")
     connection = http.client.HTTPSConnection(host, 8888, context=context, timeout=8)
     try:
@@ -131,10 +133,23 @@ def read_native(host: str, context, token: str, path: str) -> dict:
 
 
 def capture(
-    data: dict, context, redact_resources, label: str, *, all_resources: bool = False
+    data: dict,
+    context,
+    redact_resources,
+    label: str,
+    *,
+    all_resources: bool = False,
+    light_resource: bool = False,
 ) -> dict:
+    if all_resources and light_resource:
+        raise ValueError("Choose only one capture scope.")
+    endpoints = ALL_ENDPOINTS if all_resources else ENDPOINTS
+    scope = "all_resources" if all_resources else "baseline"
+    if light_resource:
+        endpoints = LIGHT_ENDPOINTS
+        scope = "light_resource"
     records = []
-    for path in ALL_ENDPOINTS if all_resources else ENDPOINTS:
+    for path in endpoints:
         print(f"Reading {path} ...", file=sys.stderr, flush=True)
         result = read_native(data["host"], context, data["device_token"], path)
         records.append(
@@ -147,7 +162,7 @@ def capture(
     return {
         "format_version": 1,
         "light": label,
-        "scope": "all_resources" if all_resources else "baseline",
+        "scope": scope,
         "method": "GET",
         "responses": records,
     }
@@ -158,8 +173,12 @@ def main(argv=None) -> int:
     parser.add_argument("label", choices=("off", "on"), help="Observed physical light state")
     parser.add_argument("--config-dir", type=Path, default=Path("/config"))
     parser.add_argument("--entry-id")
-    parser.add_argument(
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument(
         "--all-resources", action="store_true", help="Also read every remaining advertised resource"
+    )
+    scope.add_argument(
+        "--light-resource", action="store_true", help="Read only the two app-defined light paths"
     )
     args = parser.parse_args(argv)
     output = args.config_dir / f"oven-light-{args.label}-{datetime.now(UTC):%Y%m%dT%H%M%S%fZ}.json"
@@ -169,7 +188,12 @@ def main(argv=None) -> int:
         redactor = load_support(args.config_dir, "registry/redact.py")
         context = tls.client_context(data["leaf_cert_pem"], data["leaf_key_pem"])
         report = capture(
-            data, context, redactor.redact_resources, args.label, all_resources=args.all_resources
+            data,
+            context,
+            redactor.redact_resources,
+            args.label,
+            all_resources=args.all_resources,
+            light_resource=args.light_resource,
         )
         with output.open("x", encoding="utf-8") as stream:
             output.chmod(0o600)

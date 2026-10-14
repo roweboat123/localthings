@@ -20,10 +20,8 @@ DATA = {
 }
 
 
-@pytest.mark.parametrize("all_resources", [False, True])
-def test_capture_preserves_native_scalars_and_uses_only_known_gets(
-    monkeypatch, capsys, all_resources
-):
+@pytest.mark.parametrize("scope", ["baseline", "all_resources", "light_resource"])
+def test_capture_preserves_native_scalars_and_uses_only_known_gets(monkeypatch, capsys, scope):
     connections = []
 
     def connect(host, port, **kwargs):
@@ -39,9 +37,21 @@ def test_capture_preserves_native_scalars_and_uses_only_known_gets(
         return connection
 
     monkeypatch.setattr(capture.http.client, "HTTPSConnection", connect)
-    report = capture.capture(DATA, object(), redact_resources, "on", all_resources=all_resources)
+    report = capture.capture(
+        DATA,
+        object(),
+        redact_resources,
+        "on",
+        all_resources=scope == "all_resources",
+        light_resource=scope == "light_resource",
+    )
 
-    endpoints = capture.ALL_ENDPOINTS if all_resources else capture.ENDPOINTS
+    endpoints = {
+        "baseline": capture.ENDPOINTS,
+        "all_resources": capture.ALL_ENDPOINTS,
+        "light_resource": ("/devices/0/light", "/devices/1/light"),
+    }[scope]
+    assert report["scope"] == scope
     assert len(connections) == len(endpoints)
     for path, connection, record in zip(endpoints, connections, report["responses"], strict=True):
         connection.request.assert_called_once_with(
@@ -52,6 +62,29 @@ def test_capture_preserves_native_scalars_and_uses_only_known_gets(
         assert record["body"]["Device"]["name"] == capture.REDACTED
         assert record["body"]["Device"]["id"] == capture.REDACTED
     assert "private-device-token" not in json.dumps(report) + capsys.readouterr().err
+
+
+def test_light_probe_retains_missing_resource_response(monkeypatch):
+    connection = Mock()
+    connection.getresponse.return_value.status = 404
+    connection.getresponse.return_value.read.return_value = b'{"error": "Not Found"}'
+    monkeypatch.setattr(capture.http.client, "HTTPSConnection", Mock(return_value=connection))
+    report = capture.capture(DATA, object(), redact_resources, "off", light_resource=True)
+    assert [record["http_status"] for record in report["responses"]] == [404, 404]
+    assert all(record["body"] == {"error": "Not Found"} for record in report["responses"])
+
+
+def test_conflicting_capture_scopes_do_not_send_requests(monkeypatch):
+    connect = Mock()
+    monkeypatch.setattr(capture.http.client, "HTTPSConnection", connect)
+    with pytest.raises(ValueError):
+        capture.capture(
+            DATA, object(), redact_resources, "off", all_resources=True, light_resource=True
+        )
+    with pytest.raises(SystemExit) as error:
+        capture.main(["off", "--all-resources", "--light-resource"])
+    assert error.value.code == 2
+    connect.assert_not_called()
 
 
 @pytest.mark.parametrize(
