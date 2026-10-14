@@ -20,7 +20,10 @@ DATA = {
 }
 
 
-def test_capture_preserves_native_scalars_and_uses_only_known_gets(monkeypatch, capsys):
+@pytest.mark.parametrize("all_resources", [False, True])
+def test_capture_preserves_native_scalars_and_uses_only_known_gets(
+    monkeypatch, capsys, all_resources
+):
     connections = []
 
     def connect(host, port, **kwargs):
@@ -36,12 +39,11 @@ def test_capture_preserves_native_scalars_and_uses_only_known_gets(monkeypatch, 
         return connection
 
     monkeypatch.setattr(capture.http.client, "HTTPSConnection", connect)
-    report = capture.capture(DATA, object(), redact_resources, "on")
+    report = capture.capture(DATA, object(), redact_resources, "on", all_resources=all_resources)
 
-    assert len(connections) == len(capture.ENDPOINTS)
-    for path, connection, record in zip(
-        capture.ENDPOINTS, connections, report["responses"], strict=True
-    ):
+    endpoints = capture.ALL_ENDPOINTS if all_resources else capture.ENDPOINTS
+    assert len(connections) == len(endpoints)
+    for path, connection, record in zip(endpoints, connections, report["responses"], strict=True):
         connection.request.assert_called_once_with(
             "GET", path, headers={"Authorization": "Bearer private-device-token", "Accept": "*/*"}
         )
@@ -53,7 +55,7 @@ def test_capture_preserves_native_scalars_and_uses_only_known_gets(monkeypatch, 
 
 
 @pytest.mark.parametrize(
-    "path", ["/devices/0/lamp", "https://example.com/", "/devices/0/operation"]
+    "path", ["/devices/0/lamp", "https://example.com/", "/devices/0/operation/start"]
 )
 def test_capture_will_not_probe_unlisted_endpoints(monkeypatch, path):
     connect = Mock()

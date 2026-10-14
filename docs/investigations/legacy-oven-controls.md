@@ -321,8 +321,28 @@ timestamped JSON file under `/config`, as well as printed for copying.
 For the comparison, keep the dial Off, main door closed, reservoir closed
 and divider unchanged. Capture with the light off, then toggle only the
 physical light button and capture with it on. No integration restart is
-needed. This native-response comparison is pending; the helper passing
-software tests does not establish a light field or command.
+needed.
+
+The native captures at 12:21:50 (light off) and 12:36:33 (light on) on
+October 14 both returned HTTP 200 for all seven endpoints. Comparing
+parsed responses by path, excluding only capture timestamps, found zero
+differences. Both cavities remained Ready / NoOperation with zero desired
+temperature and timers; the shared door was closed, reservoir switches
+indicated closed, and both Configuration endpoints reported Remote Control
+false. Neither the retained aggregate scalars nor the direct Mode and
+Configuration responses exposed a changing light field. This closes those
+specific mapping/filtering gaps, not the possibility of an unobserved or
+write-only command.
+
+The next capture adds `--all-resources`, which reads the seven remaining
+resource names advertised by both device records: Oven, Operation,
+Temperatures, Doors, Information, Diagnosis and Alarms. Their endpoint
+spellings come from the existing LCD_OV_WALL mapping. This makes 21 fixed
+GETs in total; it does not guess lamp endpoints or request diagnosis start.
+The expanded light-on capture is pending. The existing app offers no light
+control, and no verified command for this model was found in the checked
+implementations. Other oven families' UpperLamp writes are not proof that
+this legacy board accepts them.
 
 ## Entering settings in any order
 

@@ -20,6 +20,20 @@ ENDPOINTS = (
     "/devices/1/mode",
     "/devices/1/configuration",
 )
+# These wrappers are in both captured resources lists and the legacy map.
+ALL_ENDPOINTS = ENDPOINTS + tuple(
+    f"/devices/{index}/{resource}"
+    for index in (0, 1)
+    for resource in (
+        "oven",
+        "operation",
+        "temperatures",
+        "doors",
+        "information",
+        "diagnosis",
+        "alarms",
+    )
+)
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 REDACTED = "**REDACTED**"
 
@@ -91,7 +105,7 @@ def scrub(value, data: dict, redact_resources):
 
 def read_native(host: str, context, token: str, path: str) -> dict:
     # Fixed GET paths only: never follow links or send a control payload.
-    if path not in ENDPOINTS:
+    if path not in ALL_ENDPOINTS:
         raise ValueError("Endpoint is not in the capture list.")
     connection = http.client.HTTPSConnection(host, 8888, context=context, timeout=8)
     try:
@@ -116,9 +130,11 @@ def read_native(host: str, context, token: str, path: str) -> dict:
         connection.close()
 
 
-def capture(data: dict, context, redact_resources, label: str) -> dict:
+def capture(
+    data: dict, context, redact_resources, label: str, *, all_resources: bool = False
+) -> dict:
     records = []
-    for path in ENDPOINTS:
+    for path in ALL_ENDPOINTS if all_resources else ENDPOINTS:
         print(f"Reading {path} ...", file=sys.stderr, flush=True)
         result = read_native(data["host"], context, data["device_token"], path)
         records.append(
@@ -128,7 +144,13 @@ def capture(data: dict, context, redact_resources, label: str) -> dict:
                 **scrub(result, data, redact_resources),
             }
         )
-    return {"format_version": 1, "light": label, "method": "GET", "responses": records}
+    return {
+        "format_version": 1,
+        "light": label,
+        "scope": "all_resources" if all_resources else "baseline",
+        "method": "GET",
+        "responses": records,
+    }
 
 
 def main(argv=None) -> int:
@@ -136,6 +158,9 @@ def main(argv=None) -> int:
     parser.add_argument("label", choices=("off", "on"), help="Observed physical light state")
     parser.add_argument("--config-dir", type=Path, default=Path("/config"))
     parser.add_argument("--entry-id")
+    parser.add_argument(
+        "--all-resources", action="store_true", help="Also read every remaining advertised resource"
+    )
     args = parser.parse_args(argv)
     output = args.config_dir / f"oven-light-{args.label}-{datetime.now(UTC):%Y%m%dT%H%M%S%fZ}.json"
     try:
@@ -143,7 +168,9 @@ def main(argv=None) -> int:
         tls = load_support(args.config_dir, "legacy_http_tls.py")
         redactor = load_support(args.config_dir, "registry/redact.py")
         context = tls.client_context(data["leaf_cert_pem"], data["leaf_key_pem"])
-        report = capture(data, context, redactor.redact_resources, args.label)
+        report = capture(
+            data, context, redactor.redact_resources, args.label, all_resources=args.all_resources
+        )
         with output.open("x", encoding="utf-8") as stream:
             output.chmod(0o600)
             json.dump(report, stream, indent=2, ensure_ascii=False)
