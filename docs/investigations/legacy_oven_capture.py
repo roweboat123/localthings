@@ -8,6 +8,7 @@ import importlib.util
 import json
 import re
 import sys
+import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -36,6 +37,8 @@ ALL_ENDPOINTS = ENDPOINTS + tuple(
 )
 # The uploaded Samsung oven plug-in defines this path; board support is unverified.
 LIGHT_ENDPOINTS = ("/devices/0/light", "/devices/1/light")
+# Older Samsung SSDP announcements point here; this oven's support is unverified.
+CAPABILITY_ENDPOINTS = ("/capability",)
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 REDACTED = "**REDACTED**"
 
@@ -90,7 +93,16 @@ def scrub(value, data: dict, redact_resources):
             result = {}
             for key, child in item.items():
                 tail = key.lower().rsplit(".", 1)[-1]
-                identifying = tail in {"name", "description", "ip", "host", "di", "pi"}
+                identifying = tail in {
+                    "name",
+                    "friendlyname",
+                    "description",
+                    "ip",
+                    "ipaddress",
+                    "host",
+                    "di",
+                    "pi",
+                }
                 identifying |= tail == "id" and not str(child).isdigit()
                 result[key] = REDACTED if identifying else walk(child)
             return result
@@ -99,15 +111,48 @@ def scrub(value, data: dict, redact_resources):
         if isinstance(item, str):
             for secret in secrets:
                 item = item.replace(secret, REDACTED)
+            item = re.sub(
+                r"\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b", REDACTED, item
+            )
             return re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", REDACTED, item)
         return item
 
     return walk(redact_resources(value))
 
 
+def capability_xml(raw: bytes) -> dict:
+    """Expose XML fields to the same redactor as JSON; never resolve document entities."""
+    text = raw.decode("utf-8-sig")
+    if re.search(r"<!\s*(?:DOCTYPE|ENTITY)\b", text, re.IGNORECASE):
+        raise ValueError("XML declarations are not supported.")
+    root = ET.fromstring(text)
+
+    def local_name(tag: str) -> str:
+        return tag.rsplit("}", 1)[-1]
+
+    if local_name(root.tag).lower() in {"html", "head", "body", "script"}:
+        raise ValueError("HTML is not a capability document.")
+
+    def fields(element):
+        children = list(element)
+        value = (element.text or "").strip()
+        if not children and not element.attrib:
+            return value
+        result: dict = {}
+        if element.attrib:
+            result["@attributes"] = {local_name(k): v for k, v in element.attrib.items()}
+        if value:
+            result["#text"] = value
+        for child in children:
+            result.setdefault(local_name(child.tag), []).append(fields(child))
+        return result
+
+    return {local_name(root.tag): fields(root)}
+
+
 def read_native(host: str, context, token: str, path: str) -> dict:
     # Fixed GET paths only: never follow links or send a control payload.
-    if path not in ALL_ENDPOINTS + LIGHT_ENDPOINTS:
+    if path not in ALL_ENDPOINTS + LIGHT_ENDPOINTS + CAPABILITY_ENDPOINTS:
         raise ValueError("Endpoint is not in the capture list.")
     connection = http.client.HTTPSConnection(host, 8888, context=context, timeout=8)
     try:
@@ -124,6 +169,11 @@ def read_native(host: str, context, token: str, path: str) -> dict:
         try:
             return {**result, "body": json.loads(raw)}
         except (ValueError, UnicodeDecodeError):
+            if path in CAPABILITY_ENDPOINTS and response.status == 200:
+                try:
+                    return {**result, "body_format": "xml", "body": capability_xml(raw)}
+                except (ValueError, ET.ParseError, RecursionError):
+                    return {**result, "error": "unparsed_capability_response", "bytes": len(raw)}
             # An HTML error may echo request information; do not export it.
             return {**result, "error": "non_json_response", "bytes": len(raw)}
     except (OSError, http.client.HTTPException) as error:
@@ -136,18 +186,22 @@ def capture(
     data: dict,
     context,
     redact_resources,
-    label: str,
+    label: str | None,
     *,
     all_resources: bool = False,
     light_resource: bool = False,
+    capability: bool = False,
 ) -> dict:
-    if all_resources and light_resource:
+    if sum((all_resources, light_resource, capability)) > 1:
         raise ValueError("Choose only one capture scope.")
     endpoints = ALL_ENDPOINTS if all_resources else ENDPOINTS
     scope = "all_resources" if all_resources else "baseline"
     if light_resource:
         endpoints = LIGHT_ENDPOINTS
         scope = "light_resource"
+    if capability:
+        endpoints = CAPABILITY_ENDPOINTS
+        scope = "capability"
     records = []
     for path in endpoints:
         print(f"Reading {path} ...", file=sys.stderr, flush=True)
@@ -170,7 +224,9 @@ def capture(
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("label", choices=("off", "on"), help="Observed physical light state")
+    parser.add_argument(
+        "label", nargs="?", choices=("off", "on"), help="Observed physical light state"
+    )
     parser.add_argument("--config-dir", type=Path, default=Path("/config"))
     parser.add_argument("--entry-id")
     scope = parser.add_mutually_exclusive_group()
@@ -180,8 +236,14 @@ def main(argv=None) -> int:
     scope.add_argument(
         "--light-resource", action="store_true", help="Read only the two app-defined light paths"
     )
+    scope.add_argument(
+        "--capability", action="store_true", help="Read only /capability, accepting JSON or XML"
+    )
     args = parser.parse_args(argv)
-    output = args.config_dir / f"oven-light-{args.label}-{datetime.now(UTC):%Y%m%dT%H%M%S%fZ}.json"
+    if args.label is None and not args.capability:
+        parser.error("A physical light-state label is required unless --capability is selected.")
+    prefix = "oven-capability" if args.capability else f"oven-light-{args.label}"
+    output = args.config_dir / f"{prefix}-{datetime.now(UTC):%Y%m%dT%H%M%S%fZ}.json"
     try:
         data = select_entry(args.config_dir, args.entry_id)
         tls = load_support(args.config_dir, "legacy_http_tls.py")
@@ -194,6 +256,7 @@ def main(argv=None) -> int:
             args.label,
             all_resources=args.all_resources,
             light_resource=args.light_resource,
+            capability=args.capability,
         )
         with output.open("x", encoding="utf-8") as stream:
             output.chmod(0o600)
