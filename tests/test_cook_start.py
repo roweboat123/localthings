@@ -362,6 +362,52 @@ class TestHeld:
 
         assert held.values == {}
 
+    def test_temperature_before_mode_is_rechecked_without_losing_the_value(self):
+        resources = _idle("range_ne6516a")
+        resources["/mode/vs/0"].pop("x.com.samsung.da.defaultMode", None)
+        held = cook.HeldCook()
+        held.hold(cook.PARAM_TEMPERATURE, 200, resources)
+
+        with pytest.raises(cook.CookStartError, match="cook_temperature_out_of_range"):
+            held.hold(cook.PARAM_MODE, "AirFryer", resources)
+
+        assert held.values == {cook.PARAM_TEMPERATURE: 200}
+        held.hold(cook.PARAM_MODE, "Bake", resources)
+        assert held.plan(resources).temperature == 200
+
+    def test_temperature_before_mode_waits_for_the_selected_modes_rounding(self):
+        resources = _idle("range_ne6516a")
+        resources["/mode/vs/0"].pop("x.com.samsung.da.defaultMode", None)
+        specs = json.loads(resources["/mode/vs/0"][cook.MODE_SPEC])
+        for spec in specs:
+            if spec["mode"] == "AirFryer":
+                spec["tempIntervalF"] = "10"
+        resources["/mode/vs/0"][cook.MODE_SPEC] = json.dumps(specs)
+        held = cook.HeldCook()
+
+        held.hold(cook.PARAM_TEMPERATURE, 356, resources)
+        assert held.values == {cook.PARAM_TEMPERATURE: 356}
+        held.hold(cook.PARAM_MODE, "AirFryer", resources)
+        assert held.plan(resources).temperature == 360
+
+    def test_pre_mode_settings_need_one_mode_that_accepts_the_whole_combination(self):
+        resources = _idle("range_ne6516a")
+        resources["/mode/vs/0"].pop("x.com.samsung.da.defaultMode", None)
+        resources["/mode/vs/0"]["x.com.samsung.da.supportedModes"] = ["Bake", "AirFryer"]
+        specs = json.loads(resources["/mode/vs/0"][cook.MODE_SPEC])
+        for spec in specs:
+            if spec["mode"] == "Bake":
+                spec["timeMax"] = "00:05:00"
+                spec["timeDefault"] = "00:05:00"
+        resources["/mode/vs/0"][cook.MODE_SPEC] = json.dumps(specs)
+        held = cook.HeldCook()
+        held.hold(cook.PARAM_DURATION, 600, resources)
+
+        with pytest.raises(cook.CookStartError):
+            held.hold(cook.PARAM_TEMPERATURE, 200, resources)
+
+        assert held.values == {cook.PARAM_DURATION: 600}
+
     def test_a_setpoint_alone_uses_the_default_mode(self):
         resources = _idle("range_ne63a6111ss")
         held = cook.HeldCook()

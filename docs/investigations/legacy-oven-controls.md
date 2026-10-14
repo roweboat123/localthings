@@ -160,6 +160,15 @@ that HA disabled Smart Control. A fresh true baseline and the successful
 with remote control still true. The owner confirmed normal panel behavior.
 The original unexpected transition has not been reproduced or explained.
 
+The owner clarified that the illuminated selection around the physical dial
+moved from Smart Control to Bake while the dial itself stayed untouched,
+and emphasized the risk of heating outside Smart Control. This remains a
+potential safety issue, not a resolved display quirk. Code review found
+that normal Start checks cached remote-control status before sending the
+settings, then sends Run three seconds later without another authorization
+read. That is a gap to investigate, not proof that the oven's flag was false
+during the reported event. Further remote heating tests are paused.
+
 The later log and screenshot expose a separate settings bug:
 
 - At 21:20:11, Start used LowerBake at 350°F with duration omitted. The
@@ -190,6 +199,37 @@ physical heating or panel behavior. The omitted-duration refusal remains
 open; this patch does not substitute zero or relax the Smart Control gate.
 Light and reservoir controls are deferred until this investigation is done.
 
+## Entering settings in any order
+
+The owner then captured "Choose a cooking mode first" while preparing
+settings with No operation selected. The earlier fix allowed time-first
+entry but still rejected a temperature before a mode. Pending temperature
+and time can now both be entered before selecting the first mode, provided
+one available mode accepts the combination. No mode is implicitly selected
+on this board and preparation sends no appliance commands. The first mode
+selection revalidates both values and retains them. Temperature rounding
+waits for the selected mode's own step; unrelated recipe defaults are not
+copied from a candidate mode. Start still requires a complete valid plan
+and the existing remote-control gate.
+
+Regression tests cover all six entry orders on Upper, Lower and the whole
+oven, retention across unchanged polls, unchanged raw readings and zero
+appliance writes during preparation. Further tests cover rejection of an
+incompatible first mode without losing the pending values, mode-specific
+rounding and incompatible pre-mode combinations.
+
+A second screenshot shows a blank Setpoint and `number/set_value: expected
+float at 'value'`. This is a separate native Home Assistant input problem.
+The [number row][number-row] forwards its changed input string to the
+service, while the [number service schema][number-schema] requires a float
+before calling the integration. An empty-string submission therefore fails
+before LocalThings receives it. The native field should not submit a blank
+edit as a numeric setting. This integration patch does not change that
+frontend behavior, replace the native controls or weaken the global schema;
+the empty-field issue remains open. The exact on-device frontend version
+has not been captured; the reviewed sources match the development Core
+2026.9.4 environment and its frontend dependency.
+
 ## Remaining hardware checks
 
 Normal Start and Stop are confirmed on both divided cavities, and the owner
@@ -202,3 +242,5 @@ The basic Start/Stop confirmation does not establish every recipe or
 simultaneous-cavity setting combination.
 
 [manual]: https://images.thdstatic.com/catalog/pdfImages/99/9900cc56-8433-4e1b-ba18-4271b575791d.pdf
+[number-row]: https://github.com/home-assistant/frontend/blob/20260826.7/src/panels/lovelace/entity-rows/hui-number-entity-row.ts
+[number-schema]: https://github.com/home-assistant/core/blob/2026.9.4/homeassistant/components/number/__init__.py

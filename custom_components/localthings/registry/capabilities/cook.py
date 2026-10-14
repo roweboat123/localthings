@@ -659,8 +659,8 @@ class HeldCook:
     kept here rather than written (the board discards them from `Ready`)
     until a start sends them.
 
-    A mode change brings its own defaults. A time entered before the first
-    mode is kept if that mode accepts it. Panel changes or leaving `Ready`
+    A mode change brings its own defaults. Values entered before the first
+    mode are kept if that mode accepts them. Panel changes or leaving `Ready`
     discard held choices.
     """
 
@@ -680,13 +680,9 @@ class HeldCook:
         # board's default) and whatever else is already held.
         if param == PARAM_MODE:
             # Selecting the same mode again must not erase the pending recipe.
-            same_mode = self.values.get(PARAM_MODE) == value
-            temperature = self.values.get(PARAM_TEMPERATURE) if same_mode else None
-            duration = (
-                self.values.get(PARAM_DURATION)
-                if same_mode or PARAM_MODE not in self.values
-                else None
-            )
+            keep_values = PARAM_MODE not in self.values or self.values.get(PARAM_MODE) == value
+            temperature = self.values.get(PARAM_TEMPERATURE) if keep_values else None
+            duration = self.values.get(PARAM_DURATION) if keep_values else None
             plan = plan_start(
                 resources, mode=value, temperature=temperature, duration=duration, complete=False
             )
@@ -706,22 +702,34 @@ class HeldCook:
                     complete=False,
                 )
             except CookStartError as err:
-                if err.key != "cook_mode_required" or param != PARAM_DURATION:
+                if err.key != "cook_mode_required" or param not in (
+                    PARAM_TEMPERATURE,
+                    PARAM_DURATION,
+                ):
                     raise
-                # A time can be staged without choosing a mode, provided
-                # at least one available mode accepts it. Start still needs a mode.
+                # Preparing settings must not require a mode or select one.
+                # At least one available mode must accept the pending combination.
                 for candidate in startable_modes(resources):
                     try:
-                        plan = plan_start(resources, mode=candidate, duration=value, complete=False)
+                        plan_start(
+                            resources,
+                            mode=candidate,
+                            temperature=held.get(PARAM_TEMPERATURE),
+                            duration=held.get(PARAM_DURATION),
+                            complete=False,
+                        )
                     except CookStartError:
                         continue
                     break
                 else:
                     raise
-            held = {
-                **held,
-                param: plan.temperature if param == PARAM_TEMPERATURE else plan.duration,
-            }
+                # Keep the requested value until the chosen mode determines
+                # rounding; the candidate is only evidence that it can be held.
+            else:
+                held = {
+                    **held,
+                    param: plan.temperature if param == PARAM_TEMPERATURE else plan.duration,
+                }
         if not self.values:
             self._base = _device_values(resources)
         self.values = held

@@ -9,6 +9,7 @@ existing subdevice machinery does the rest. Nothing here is per family.
 from __future__ import annotations
 
 import json
+from itertools import permutations
 from pathlib import Path
 from typing import cast
 from unittest.mock import AsyncMock, Mock
@@ -803,6 +804,49 @@ async def test_cook_time_before_mode_is_held_and_survives_the_first_mode_selecti
     assert held.plan(resources) == cook.CookPlan(mode, 350, "Fahrenheit", minutes * 60)
     assert not _requests()
     assert coordinator._held_cooks.get(MAIN if index else _lower(coordinator)) is None
+
+
+@pytest.mark.parametrize("order", list(permutations(("oven_mode", "oven_setpoint", "cook_time"))))
+@pytest.mark.parametrize(
+    "index,divided,mode",
+    [(0, True, "UpperConvectionBake"), (1, True, "LowerBake"), (0, False, "Bake")],
+)
+async def test_idle_settings_can_be_entered_in_any_order(hass, order, index, divided, mode):
+    coordinator = await _discovered(hass, _routes(divided=divided))
+    cavity = _lower(coordinator) if index else MAIN
+    bound = {b.desc.key: b for b in coordinator.bound if b.subdevice == cavity}
+    target = LocalThingsNumber(coordinator, bound["oven_setpoint"])
+    timer = LocalThingsNumber(coordinator, bound["cook_time"])
+    select = LocalThingsSelect(coordinator, bound["oven_mode"])
+    resources = coordinator._cavity_resources(cavity)
+    _FakeConnection.log.clear()
+    values = {"oven_mode": mode, "oven_setpoint": 350, "cook_time": 5}
+    entered = set()
+
+    for key in order:
+        await coordinator.async_send_command(bound[key], values[key])
+        entered.add(key)
+        if "oven_setpoint" in entered:
+            assert target.native_value == 350
+        if "cook_time" in entered:
+            assert timer.native_value == 5
+        if "oven_mode" not in entered:
+            assert select.current_option == "no_operation"
+            with pytest.raises(cook.CookStartError, match="cook_mode_required"):
+                coordinator._held_cooks[cavity].plan(resources)
+
+    assert coordinator._held_cooks[cavity].plan(resources) == cook.CookPlan(
+        mode, 350, "Fahrenheit", 300
+    )
+    for href, rep in resources.items():
+        coordinator._observe.apply(cavity.to_actual(href), rep, source="poll")
+    coordinator.async_set_updated_data(flatten(coordinator.bound, coordinator.entity_resources()))
+    assert target.native_value == 350
+    assert timer.native_value == 5
+    assert coordinator.resource(cavity.to_actual(cook.MODE_HREF))[PREFIX + "modes"] == [
+        "NoOperation"
+    ]
+    assert not _requests()
 
 
 @pytest.mark.parametrize(
