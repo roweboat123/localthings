@@ -410,17 +410,19 @@ class TestWrites:
         )
 
         assert code == 0x44
-        method, path, body, _ = _FakeConnection.log[0]
+        assert _FakeConnection.log[0][:3] == ("GET", "/devices/1/configuration", None)
+        method, path, body, _ = _FakeConnection.log[1]
         assert (method, path) == ("PUT", "/devices/1")
         assert body is not None
         assert body["Device"]["Mode"] == {"modes": ["LowerBake"]}
         assert "Operation" not in body["Device"]
-        assert _FakeConnection.log[1][:3] == (
+        assert _FakeConnection.log[2][:3] == ("GET", "/devices/1/configuration", None)
+        assert _FakeConnection.log[3][:3] == (
             "PUT",
             "/devices/1",
             {"Device": {"Operation": {"state": "Run"}}},
         )
-        assert len(_FakeConnection.log) == 2
+        assert len(_FakeConnection.log) == 4
 
     def test_a_batch_naming_the_other_cavity_is_refused(self):
         batch = [{"href": "/operational/state/vs/0", "rep": {PREFIX + "state": "Run"}}]
@@ -480,7 +482,11 @@ class TestWrites:
         self, index, mode, failed_step, monkeypatch
     ):
         transport = _transport()
-        responses = [(204, None)] * failed_step + [(400, "Control fail, <Operation.state=Run>")]
+        permission = (200, {"Configuration": {"remoteControlEnabled": True}})
+        responses = [permission, (204, None)] * failed_step + [
+            permission,
+            (400, "Control fail, <Operation.state=Run>"),
+        ]
         request = Mock(side_effect=responses)
         monkeypatch.setattr(transport, "_request", request)
         batch = cook.CookPlan(mode, 350, "Fahrenheit", 300).batch(
@@ -491,8 +497,8 @@ class TestWrites:
 
         assert code == 0x80
         assert response == "Control fail, <Operation.state=Run>"
-        assert request.call_count == failed_step + 1
-        assert "state" not in request.call_args_list[0].kwargs["body"]["Device"]["Operation"]
+        assert request.call_count == (failed_step + 1) * 2
+        assert "state" not in request.call_args_list[1].kwargs["body"]["Device"]["Operation"]
 
     @pytest.mark.parametrize("index", [0, 1])
     def test_settings_alone_do_not_start_a_cook(self, index):
@@ -910,6 +916,7 @@ async def test_same_mode_reselection_preserves_settings_after_a_refused_start(ha
         await coordinator.async_send_command(bound["start_cooking"], "")
     assert err.value.translation_key == "command_refused"
     assert [entry[:3] for entry in _FakeConnection.log] == [
+        ("GET", path + "/configuration", None),
         (
             "PUT",
             path,
@@ -920,6 +927,7 @@ async def test_same_mode_reselection_preserves_settings_after_a_refused_start(ha
                 }
             },
         ),
+        ("GET", path + "/configuration", None),
         ("PUT", path, {"Device": {"Operation": {"state": "Run"}}}),
     ]
 
@@ -928,9 +936,10 @@ async def test_same_mode_reselection_preserves_settings_after_a_refused_start(ha
 
     assert target.native_value == 350
     assert timer.native_value == 5
-    assert _requests() == [("PUT", path), ("PUT", path)]
+    assert _requests() == [("GET", path + "/configuration"), ("PUT", path)] * 2
     await coordinator.async_send_command(bound["start_cooking"], "")
-    assert [entry[:3] for entry in _FakeConnection.log[2:]] == [
+    assert [entry[:3] for entry in _FakeConnection.log[4:]] == [
+        ("GET", path + "/configuration", None),
         (
             "PUT",
             path,
@@ -942,6 +951,7 @@ async def test_same_mode_reselection_preserves_settings_after_a_refused_start(ha
                 }
             },
         ),
+        ("GET", path + "/configuration", None),
         ("PUT", path, {"Device": {"Operation": {"state": "Run"}}}),
     ]
 
@@ -1196,7 +1206,10 @@ async def test_normal_start_keeps_the_lock_through_both_writes(
     def settle(seconds):
         assert seconds == 3.0
         assert coordinator._session_lock.locked()
-        assert _requests() == [("PUT", f"/devices/{index}")]
+        assert _requests() == [
+            ("GET", f"/devices/{index}/configuration"),
+            ("PUT", f"/devices/{index}"),
+        ]
 
     sleep = Mock(side_effect=settle)
     monkeypatch.setattr("custom_components.localthings.legacy_http_transport.time.sleep", sleep)
@@ -1208,6 +1221,7 @@ async def test_normal_start_keeps_the_lock_through_both_writes(
 
     sleep.assert_called_once_with(3.0)
     assert [entry[:3] for entry in _FakeConnection.log] == [
+        ("GET", f"/devices/{index}/configuration", None),
         (
             "PUT",
             f"/devices/{index}",
@@ -1219,6 +1233,7 @@ async def test_normal_start_keeps_the_lock_through_both_writes(
                 }
             },
         ),
+        ("GET", f"/devices/{index}/configuration", None),
         ("PUT", f"/devices/{index}", {"Device": {"Operation": {"state": "Run"}}}),
     ]
     assert not coordinator._session_lock.locked()

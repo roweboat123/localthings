@@ -2634,9 +2634,10 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         body: dict | list,
         write_href: str,
         on_retry: Callable[[], None] | None = None,
+        *,
+        retry_on_disconnect: bool = True,
     ) -> None:
-        """PUT `body`, reconnecting and retrying once on a dead session.
-        Raises HomeAssistantError if the retry fails too."""
+        """PUT `body`, optionally reconnecting and retrying on a dead session."""
 
         def _do_put():
             if self._session is None:
@@ -2655,7 +2656,7 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             try:
                 code, response = await self.hass.async_add_executor_job(_do_put)
             except Exception as e:
-                self._log.warning("command failed for %s, reconnecting: %s", write_href, e)
+                self._log.warning("command failed for %s: %s", write_href, e)
                 await self.hass.async_add_executor_job(self._close_session)
                 # The session is dead the moment it's closed, so any OBSERVE
                 # subscriptions on it are too -- downgrade here, before the
@@ -2666,6 +2667,14 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if self._observe.mode == MODE_OBSERVE:
                     self._observe.downgrade_to_poll()
                     self._resubscribe_due = True
+                if not retry_on_disconnect:
+                    # A lost response does not prove that Start was lost;
+                    # replaying it could start or reconfigure an active cook.
+                    raise HomeAssistantError(
+                        translation_domain=DOMAIN,
+                        translation_key="cook_start_unconfirmed",
+                        translation_placeholders={"error": str(e)},
+                    ) from e
                 await asyncio.sleep(self._RECONNECT_PAUSE_S)
                 try:
                     code, response = await self.hass.async_add_executor_job(_do_put)
@@ -2900,7 +2909,7 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # No readback after the write: smartthings-local found the
         # fetch-back itself is what reverts some boards, and neither
         # measured start had one.
-        await self._async_put(path, body, "/" + "/".join(path))
+        await self._async_put(path, body, "/" + "/".join(path), retry_on_disconnect=False)
         held.clear()
         self._canonical_cache.clear()
         await self.async_request_refresh()

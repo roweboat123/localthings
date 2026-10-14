@@ -717,7 +717,7 @@ class TestWallOvenStart:
         device.connect()
         return device
 
-    def test_a_start_loads_settings_then_runs_without_a_read_between(self, oven, monkeypatch):
+    def test_a_start_checks_permission_before_settings_and_run(self, oven, monkeypatch):
         _, seed = oven.read(["device", "0"], timeout=10.0)
         resources = {e["href"]: e["rep"] for e in seed}
         batch = cook.plan_start(resources, "UpperConvectionBake", 350, 5400).batch()
@@ -725,8 +725,8 @@ class TestWallOvenStart:
 
         def settle(seconds):
             assert seconds == 3.0
-            assert len(_FakeConnection.log) == 1
-            settings = _FakeConnection.log[0][2]
+            assert len(_FakeConnection.log) == 2
+            settings = _FakeConnection.log[1][2]
             assert settings is not None
             operation = settings["Device"]["Operation"]
             assert operation == {"operationTime": "01:30:00"}
@@ -739,6 +739,7 @@ class TestWallOvenStart:
 
         assert code == 0x44
         assert [entry[:3] for entry in _FakeConnection.log] == [
+            ("GET", "/devices/0/configuration", None),
             (
                 "PUT",
                 "/devices/0",
@@ -750,6 +751,7 @@ class TestWallOvenStart:
                     }
                 },
             ),
+            ("GET", "/devices/0/configuration", None),
             ("PUT", "/devices/0", {"Device": {"Operation": {"state": "Run"}}}),
         ]
 

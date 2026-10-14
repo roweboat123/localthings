@@ -452,12 +452,11 @@ class LegacyHttpTransport:
         return operation.get("state") == "Ready"
 
     def _start_oven(self, index: int, aggregate: dict[str, Any], timeout: float) -> tuple[int, Any]:
-        """The NV51K7770SG takes settings without Run, then Run after 3 s.
-
-        Keep both writes inside the caller's session lock, with no intervening
-        read: that sequence started both divided cavities on hardware.
-        """
+        """Load settings, wait 3 s, then Run, with fresh permission for each write."""
         deadline = time.monotonic() + timeout
+        blocked = self._oven_start_permission(index, "before settings", _remaining(deadline))
+        if blocked is not None:
+            return blocked
         device = dict(aggregate["Device"])
         operation = {key: value for key, value in device["Operation"].items() if key != "state"}
         if operation:
@@ -465,12 +464,41 @@ class LegacyHttpTransport:
         else:
             del device["Operation"]
         path = _device_path(index)
-        status, response = self._request("PUT", path, body={"Device": device}, timeout=timeout)
+        status, response = self._request(
+            "PUT", path, body={"Device": device}, timeout=_remaining(deadline)
+        )
+        _LOGGER.debug("%s: oven %s settings response: HTTP %s", self._host, index, status)
         if not 200 <= status < 300:
             return http_status_to_coap(status), response
         time.sleep(_OVEN_START_SETTLE_S)
+        blocked = self._oven_start_permission(index, "before Run", _remaining(deadline))
+        if blocked is not None:
+            return blocked
         status, response = self._request("PUT", path, body=_RUN, timeout=_remaining(deadline))
+        _LOGGER.debug("%s: oven %s Run response: HTTP %s", self._host, index, status)
         return http_status_to_coap(status), response
+
+    def _oven_start_permission(
+        self, index: int, phase: str, timeout: float
+    ) -> tuple[int, str] | None:
+        """A staged oven start requires explicit, current permission from its own cavity."""
+        status, body = self._request("GET", f"{_device_path(index)}/configuration", timeout=timeout)
+        if status != 200:
+            code = http_status_to_coap(status) if status >= 400 else 0xA2
+            return (
+                code,
+                f"Smart Control could not be verified {phase} (HTTP {status}); start stopped",
+            )
+        configuration = body.get("Configuration") if isinstance(body, dict) else None
+        enabled = (
+            configuration.get("remoteControlEnabled") if isinstance(configuration, dict) else None
+        )
+        _LOGGER.debug("%s: oven %s Smart Control %s: %r", self._host, index, phase, enabled)
+        if enabled is True or (isinstance(enabled, str) and enabled.lower() == "true"):
+            return None
+        if enabled is False or (isinstance(enabled, str) and enabled.lower() == "false"):
+            return 0x83, f"Smart Control is off {phase}; start stopped"
+        return 0xA2, f"Smart Control status is missing or invalid {phase}; start stopped"
 
     def _already_ready(self, index: int, timeout: float) -> bool:
         """Whether a fresh read says the appliance is idle.

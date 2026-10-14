@@ -160,14 +160,39 @@ that HA disabled Smart Control. A fresh true baseline and the successful
 with remote control still true. The owner confirmed normal panel behavior.
 The original unexpected transition has not been reproduced or explained.
 
-The owner clarified that the illuminated selection around the physical dial
-moved from Smart Control to Bake while the dial itself stayed untouched,
-and emphasized the risk of heating outside Smart Control. This remains a
-potential safety issue, not a resolved display quirk. Code review found
-that normal Start checks cached remote-control status before sending the
-settings, then sends Run three seconds later without another authorization
-read. That is a gap to investigate, not proof that the oven's flag was false
-during the reported event. Further remote heating tests are paused.
+The owner clarified that pressing HA's Start cooking caused the oven to
+enter Bake and physically heat while its display requested Smart Control
+activation. The illuminated selection moved to Bake with the physical dial
+untouched. This was not merely an indicator change. It happened once and
+could not be reproduced in subsequent attempts. This remains a potential
+safety issue; there is no contemporaneous authorization capture establishing
+when the oven's internal flag changed.
+
+Code review found that normal Start checked cached remote-control status
+before acquiring the session lock, then sent settings and Run three seconds
+apart without another authorization read. The generic command retry could
+also replay the whole sequence after a lost response. Neither finding
+establishes the cause of the reported event.
+
+The updated legacy sequence reads the target cavity's own configuration
+immediately before settings and again after the three-second wait, before
+Run. Each read must explicitly report Smart Control enabled. Off, missing,
+malformed or failed responses prevent the next write; cached state and the
+write-override option cannot waive these checks. Both checks and writes
+remain inside the caller's session lock and share the original timeout
+budget. Cooking starts on all transports are no longer automatically
+replayed after a transport exception; the error tells the user to check the
+appliance before trying again. Stop and ordinary-command retry behavior are
+unchanged. Debug logging identifies the authorization phase and each write's
+HTTP response without adding new settings to the command.
+
+These safeguards are verified with simulated responses, not on hardware.
+The new intervening configuration read changes the previously measured
+sequence, so successful starts still need separate hardware confirmation.
+Three seconds is a tested delay, not a measured minimum. A read and write
+are not atomic at the appliance, and these checks cannot guarantee its
+firmware honors permission or explain the original incident. Further remote
+heating tests remain paused during the investigation.
 
 The later log and screenshot expose a separate settings bug:
 
