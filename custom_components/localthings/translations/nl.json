@@ -58,6 +58,9 @@
       "device_active": {
         "name": "Apparaat actief"
       },
+      "reservoir_open": {
+        "name": "Waterreservoir"
+      },
       "door_open": {
         "name": "Deur"
       },

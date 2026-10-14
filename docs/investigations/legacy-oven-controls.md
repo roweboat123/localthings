@@ -268,6 +268,22 @@ The two switches establish position feedback independently of the main
 door. They do not identify a writable reservoir command. Motion and
 missing or contradictory switch combinations have not been captured.
 
+A read-only Reservoir binary sensor now uses these two position switches.
+It belongs to the cavity whose own mode options contain both tokens:
+Upper on this FlexDuo, with or without the divider, and no duplicate on
+Lower. The native opening device class displays Open or Closed. Missing,
+malformed or contradictory readings produce Unknown, including conflicting
+duplicates; no state is inferred from the main door. The same capability
+also binds on the existing TP2X_KS wall-oven and NW9300MD oven-cavity
+fixtures, which report both tokens. Their physical position mapping has
+not been independently tested. All ten language catalogs include the name.
+
+The captured open/closed pairs are retained as a scrubbed fixture. Tests
+exercise discovery with and without the divider, position changes while
+the main door stays open, unknown readings on an existing entity, absent
+Lower/lamp entities, and zero appliance writes. Installation and sensor
+behavior on hardware remain to be confirmed.
+
 With the door and reservoir closed, fresh upper-cavity reads with the
 interior light off and on were identical. A lower-cavity read also exposed
 no lamp field. Diagnostics taken after those direct reads contained no lamp
@@ -275,7 +291,11 @@ option, wrapper or field in the retained raw resource bodies for either
 cavity, and no unmapped resource wrappers. This establishes absence from
 the captured status data, not that remote light control is impossible.
 Neither light nor reservoir write commands have been identified or tested;
-no new entities were added from these observations.
+the new sensor adds observation only. The owner also confirmed neither
+control is offered in their SmartThings app. Further discovery could
+inspect the native HTTP responses before mapping/filtering, any separately
+advertised commands, or model-specific app/firmware code. No guessed lamp
+or reservoir writes are justified by the present evidence.
 
 The initial diagnostic comparisons exposed a freshness limitation:
 `LegacyHttpTransport.read()` does not update `last_bodies` for individual

@@ -58,6 +58,9 @@
       "device_active": {
         "name": "Zariadenie aktívne"
       },
+      "reservoir_open": {
+        "name": "Nádržka"
+      },
       "door_open": {
         "name": "Dvierka"
       },

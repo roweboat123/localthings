@@ -58,6 +58,9 @@
       "device_active": {
         "name": "기기 작동 중"
       },
+      "reservoir_open": {
+        "name": "물통"
+      },
       "door_open": {
         "name": "문"
       },

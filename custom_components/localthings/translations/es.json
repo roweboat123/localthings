@@ -427,6 +427,9 @@
       "device_active": {
         "name": "Dispositivo activo"
       },
+      "reservoir_open": {
+        "name": "Depósito de agua"
+      },
       "door_open": {
         "name": "Puerta"
       },

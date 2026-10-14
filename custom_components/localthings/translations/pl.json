@@ -58,6 +58,9 @@
       "device_active": {
         "name": "Urządzenie aktywne"
       },
+      "reservoir_open": {
+        "name": "Zbiornik wody"
+      },
       "door_open": {
         "name": "Drzwi"
       },

@@ -58,6 +58,9 @@
       "device_active": {
         "name": "Device active"
       },
+      "reservoir_open": {
+        "name": "Reservoir"
+      },
       "door_open": {
         "name": "Door"
       },

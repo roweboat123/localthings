@@ -609,6 +609,58 @@ async def test_the_lower_cavity_becomes_its_own_device(hass: HomeAssistant):
     assert any(b.subdevice == lower and b.desc is STOP_BUTTON for b in coordinator.bound)
 
 
+@pytest.mark.parametrize("divided", [False, True])
+async def test_reservoir_belongs_to_upper_and_tracks_position_independently_of_door(
+    hass: HomeAssistant, divided
+):
+    coordinator = await _discovered(hass, _routes(divided=divided))
+    reservoirs = [
+        b
+        for b in coordinator.bound
+        if b.desc.key == "reservoir_open" and _is_included(b, coordinator)
+    ]
+    assert len(reservoirs) == 1
+    bound = reservoirs[0]
+    assert bound.subdevice == MAIN
+    assert bound.href == "/mode/vs/0"
+    entity = LocalThingsBinarySensor(coordinator, bound)
+    assert entity.device_class == "opening"
+    assert not any(b.desc.key == "lamp" and _is_included(b, coordinator) for b in coordinator.bound)
+    assert flatten(coordinator.bound, coordinator.entity_resources())["reservoir_open"] is False
+
+    fixture = json.loads(
+        (Path(__file__).parent / "fixtures" / "oven_lcd_ov_wall_16k_reservoir.json").read_text()
+    )
+    _FakeConnection.log.clear()
+    for sample in fixture["samples"]:
+        rep = {**coordinator.resource("/mode/vs/0"), PREFIX + "options": sample["options"]}
+        coordinator._observe.apply("/mode/vs/0", rep, source="poll")
+        coordinator._observe.apply(
+            "/doors/vs/0",
+            {PREFIX + "items": [{PREFIX + "id": "0", PREFIX + "openState": sample["door"]}]},
+            source="poll",
+        )
+        coordinator.async_set_updated_data(
+            flatten(coordinator.bound, coordinator.entity_resources())
+        )
+        assert entity.is_on is (sample["position"] == "open")
+        assert coordinator.data["door_open"] is True
+        assert "subdevice1_reservoir_open" not in coordinator.data
+
+    for options in (
+        [],
+        None,
+        ["waterTankInSwitch_On"],
+        ["waterTankInSwitch_On", "waterTankOutSwitch_On"],
+    ):
+        coordinator._observe.apply("/mode/vs/0", {PREFIX + "options": options}, source="poll")
+        coordinator.async_set_updated_data(
+            flatten(coordinator.bound, coordinator.entity_resources())
+        )
+        assert entity.is_on is None
+    assert not _requests()
+
+
 async def test_lower_door_tracks_shared_door_without_changing_raw_resources(hass: HomeAssistant):
     coordinator = await _discovered(hass)
     lower = _lower(coordinator)

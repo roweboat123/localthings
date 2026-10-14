@@ -58,6 +58,9 @@
       "device_active": {
         "name": "Gerät aktiv"
       },
+      "reservoir_open": {
+        "name": "Wassertank"
+      },
       "door_open": {
         "name": "Tür"
       },
