@@ -178,9 +178,10 @@ Run probes remain single writes. Other transport families are unchanged.
 
 The October 14 authorization update adds a fresh configuration read before
 each write and disables automatic replay of cooking starts after a lost
-response. That revised sequence has software coverage but is not yet
-hardware-confirmed; the original successful measurements above had no
-intervening read. See the [Smart Control follow-up](legacy-oven-controls.md#repeated-mode-selection-and-smart-control-investigation)
+response. The owner subsequently confirmed one normal lower-cavity start
+and stop; its log shows both fresh checks true and both start writes accepted.
+The revised sequence has not yet been confirmed on the upper or whole oven;
+the original successful measurements above had no intervening read. See the [Smart Control follow-up](legacy-oven-controls.md#repeated-mode-selection-and-smart-control-investigation)
 for the reported unexpected remote Bake and the remaining uncertainty.
 
 | Cavity and mode | Smart Control | Result |

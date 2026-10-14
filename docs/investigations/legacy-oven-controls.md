@@ -186,13 +186,38 @@ appliance before trying again. Stop and ordinary-command retry behavior are
 unchanged. Debug logging identifies the authorization phase and each write's
 HTTP response without adding new settings to the command.
 
-These safeguards are verified with simulated responses, not on hardware.
-The new intervening configuration read changes the previously measured
-sequence, so successful starts still need separate hardware confirmation.
-Three seconds is a tested delay, not a measured minimum. A read and write
-are not atomic at the appliance, and these checks cannot guarantee its
-firmware honors permission or explain the original incident. Further remote
-heating tests remain paused during the investigation.
+Software tests cover the safeguards' rejection and timeout paths. On
+October 14, after installing `7867769` and restarting, the owner performed
+one supervised LowerBake start at 350 F for five minutes. The log records:
+
+| Local time | Stage | Result |
+|---|---|---|
+| 09:05:23.290 | Fresh Smart Control check before settings | True |
+| 09:05:23.408 | Settings response | HTTP 204 |
+| 09:05:26.479 | Fresh Smart Control check before Run | True |
+| 09:05:26.546 | Run response | HTTP 204 |
+| 09:06:35.622 | Stop on the lower operational resource | 2.04 |
+
+The owner confirmed normal heating with the dial remaining on Smart
+Control, then normal Stop. The submitted raw reading was explicitly taken
+after Stop: both states Ready, NoOperation, time and setpoint zero, and
+remoteControlEnabled true. This verifies a successful lower-cavity start
+with the added intervening read; it is not an active-cook raw capture or a
+new confirmation for Upper or the whole oven. No start replay or refusal
+appears in this sequence.
+
+The owner also reports that either a remote or panel Stop requires Smart
+Control to be reactivated from the oven display; the dial remaining on
+Smart Control alone does not establish readiness for another remote start.
+The exact relationship between that display activation and the post-stop
+true flag was not captured. Do not infer that the flag alone establishes
+the oven's complete authorization state or automatically reactivate it.
+
+Three seconds remains a tested delay, not a measured minimum. A read and
+write are not atomic at the appliance, and these checks cannot guarantee
+its firmware honors permission or explain the original incident. Further
+heating tests are not requested; the investigation now moves to read-only
+discovery for the light and reservoir.
 
 The later log and screenshot expose a separate settings bug:
 
@@ -222,7 +247,8 @@ The logs also show accepted five-minute LowerConvectionBake (300°F) and
 UpperSteamBake (350°F) start sequences. Those entries alone do not confirm
 physical heating or panel behavior. The omitted-duration refusal remains
 open; this patch does not substitute zero or relax the Smart Control gate.
-Light and reservoir controls are deferred until this investigation is done.
+Light and reservoir controls were deferred until the guarded start sequence
+could be reviewed. Their read-only discovery follows the October 14 check.
 
 ## Entering settings in any order
 
