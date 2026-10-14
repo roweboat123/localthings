@@ -95,7 +95,8 @@ names through the same catalog as Cooking mode, in Home Assistant's configured
 language. Tests reproduce the original failures. The owner then confirmed
 that time-first entry causes no errors and five minutes remains after
 selecting Bake and waiting about a minute on the lower cavity. A remaining
-validation error's translated text has not yet been captured on the live UI.
+validation error subsequently appeared as "Bake needs a temperature" on
+the live UI, confirming its friendly mode name.
 
 The owner requested an empty Cook time box instead of an idle zero, which
 can turn an intended 5 into 50 while typing. For the measured board, the
@@ -147,13 +148,56 @@ lower limit or rule out other diagnostic data. Earlier cooking captures
 returned varying values above 175°F. The lower cavity has not separately
 been read after confirmed full cooling. No temperature behavior is changed.
 
+## Repeated mode selection and Smart Control investigation
+
+Later on October 13, the owner reported one HA start changing the physical
+display from Smart Control to Bake and prompting for Smart Control without
+the dial being touched. Both that attempt and a normal repeat heated. The
+write-override option was off. Subsequent captures with remote control false
+followed the owner manually moving the dial to Off; they do not establish
+that HA disabled Smart Control. A fresh true baseline and the successful
+21:16 LowerBake start (350°F, five minutes) were followed by Run / Preheat
+with remote control still true. The owner confirmed normal panel behavior.
+The original unexpected transition has not been reproduced or explained.
+
+The later log and screenshot expose a separate settings bug:
+
+- At 21:20:11, Start used LowerBake at 350°F with duration omitted. The
+  settings write succeeded, but Run was refused with `4.00 Control fail,
+  <Operation.state=Run>`. This does not establish why the oven refused it.
+- At 21:20:32, five minutes was held; at 21:20:33, LowerBake was selected
+  again. The old code cleared temperature and duration on every mode
+  selection, including the same mode. Start then raised "Bake needs a
+  temperature" twice, matching the screenshot despite its visible 350°F
+  and five-minute fields.
+- The entity overlay could also retain a previous cook's raw setpoint or
+  duration when the pending recipe had neither a held value nor a default.
+  Start did not use those raw values. This display mismatch is reproduced
+  in tests; no simultaneous raw snapshot establishes which values supplied
+  the screenshot's fields.
+
+Reselecting the same held mode now revalidates and preserves its settings.
+A different mode still restores its defaults. Once a mode is selected,
+unset setpoint and time fields no longer fall back to unused raw values;
+the measured board displays them as empty. Raw diagnostics and outgoing
+start semantics are unchanged. Regression tests cover both cavities,
+including a refused untimed attempt followed by a same-mode timed retry.
+The update still needs an owner check on the appliance.
+
+The logs also show accepted five-minute LowerConvectionBake (300°F) and
+UpperSteamBake (350°F) start sequences. Those entries alone do not confirm
+physical heating or panel behavior. The omitted-duration refusal remains
+open; this patch does not substitute zero or relax the Smart Control gate.
+Light and reservoir controls are deferred until this investigation is done.
+
 ## Remaining hardware checks
 
 Normal Start and Stop are confirmed on both divided cavities, and the owner
 reports Smart Control working with the divider removed. Further checks
 cover the native Cook time unit setting, countdown start and timer
 completion, Smart Control off/door-reset behavior through
-the normal controls, untimed starts and running adjustments.
+the normal controls, the unexplained panel transition, the refused untimed
+start, the repeated-mode fix and running adjustments.
 The basic Start/Stop confirmation does not establish every recipe or
 simultaneous-cavity setting combination.
 

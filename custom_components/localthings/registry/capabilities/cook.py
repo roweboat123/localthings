@@ -679,9 +679,20 @@ class HeldCook:
         # Checked as the start would be: against the held mode (else the
         # board's default) and whatever else is already held.
         if param == PARAM_MODE:
-            duration = self.values.get(PARAM_DURATION) if PARAM_MODE not in self.values else None
-            plan = plan_start(resources, mode=value, duration=duration, complete=False)
+            # Selecting the same mode again must not erase the pending recipe.
+            same_mode = self.values.get(PARAM_MODE) == value
+            temperature = self.values.get(PARAM_TEMPERATURE) if same_mode else None
+            duration = (
+                self.values.get(PARAM_DURATION)
+                if same_mode or PARAM_MODE not in self.values
+                else None
+            )
+            plan = plan_start(
+                resources, mode=value, temperature=temperature, duration=duration, complete=False
+            )
             held = {PARAM_MODE: value}
+            if temperature is not None:
+                held[PARAM_TEMPERATURE] = plan.temperature
             if duration is not None:
                 held[PARAM_DURATION] = plan.duration
         else:
@@ -740,13 +751,17 @@ class HeldCook:
         temp = spec.temps.get(unit) if spec and unit else None
         target = self.values.get(PARAM_TEMPERATURE, temp.default if temp else None)
         items = (view.get(TEMPERATURES_HREF) or {}).get(_ITEMS)
-        if target is not None and items:
+        # A previous cook's raw values are not inputs to the pending start.
+        if items and (target is not None or mode is not None):
             items = [dict(i) for i in items]
-            items[0][_DESIRED] = str(target)
+            items[0][_DESIRED] = str(target if target is not None else 0)
             view[TEMPERATURES_HREF] = {**view[TEMPERATURES_HREF], _ITEMS: items}
         seconds = self.values.get(PARAM_DURATION, spec.time_default if spec else None)
-        if seconds is not None and OPERATION_HREF in view:
-            view[OPERATION_HREF] = {**view[OPERATION_HREF], _OPERATION_TIME: format_hms(seconds)}
+        if OPERATION_HREF in view and (seconds is not None or mode is not None):
+            view[OPERATION_HREF] = {
+                **view[OPERATION_HREF],
+                _OPERATION_TIME: format_hms(seconds if seconds is not None else 0),
+            }
         return view
 
     def plan(self, resources: dict) -> CookPlan:

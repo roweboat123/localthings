@@ -842,6 +842,111 @@ async def test_idle_cook_time_starts_blank_and_keeps_explicit_values(hass, index
     assert not _requests()
 
 
+@pytest.mark.parametrize("index", [0, 1])
+async def test_same_mode_reselection_preserves_settings_after_a_refused_start(hass, index):
+    path = f"/devices/{index}"
+
+    class RefuseFirstRun(dict):
+        def get(self, key, default=None):
+            if key == ("PUT", path) and _requests().count(key) == 2:
+                return (400, {"errorDescription": "Control fail, <Operation.state=Run>"})
+            return super().get(key, default)
+
+    coordinator = await _discovered(hass, RefuseFirstRun(_routes()))
+    cavity = _lower(coordinator) if index else MAIN
+    mode = "LowerBake" if index else "UpperConvectionBake"
+    bound = {b.desc.key: b for b in coordinator.bound if b.subdevice == cavity}
+    target = LocalThingsNumber(coordinator, bound["oven_setpoint"])
+    timer = LocalThingsNumber(coordinator, bound["cook_time"])
+    _FakeConnection.log.clear()
+
+    await coordinator.async_send_command(bound["oven_mode"], mode)
+    await target.async_set_native_value(350)
+    with pytest.raises(HomeAssistantError) as err:
+        await coordinator.async_send_command(bound["start_cooking"], "")
+    assert err.value.translation_key == "command_refused"
+    assert [entry[:3] for entry in _FakeConnection.log] == [
+        (
+            "PUT",
+            path,
+            {
+                "Device": {
+                    "Mode": {"modes": [mode]},
+                    "Temperatures": [{"id": "0", "desired": 350, "unit": "Fahrenheit"}],
+                }
+            },
+        ),
+        ("PUT", path, {"Device": {"Operation": {"state": "Run"}}}),
+    ]
+
+    await timer.async_set_native_value(5)
+    await coordinator.async_send_command(bound["oven_mode"], mode)
+
+    assert target.native_value == 350
+    assert timer.native_value == 5
+    assert _requests() == [("PUT", path), ("PUT", path)]
+    await coordinator.async_send_command(bound["start_cooking"], "")
+    assert [entry[:3] for entry in _FakeConnection.log[2:]] == [
+        (
+            "PUT",
+            path,
+            {
+                "Device": {
+                    "Mode": {"modes": [mode]},
+                    "Temperatures": [{"id": "0", "desired": 350, "unit": "Fahrenheit"}],
+                    "Operation": {"operationTime": "00:05:00"},
+                }
+            },
+        ),
+        ("PUT", path, {"Device": {"Operation": {"state": "Run"}}}),
+    ]
+
+
+@pytest.mark.parametrize("index", [0, 1])
+async def test_pending_mode_does_not_display_unused_values_from_the_previous_cook(hass, index):
+    coordinator = await _discovered(hass)
+    cavity = _lower(coordinator) if index else MAIN
+    bound = {b.desc.key: b for b in coordinator.bound if b.subdevice == cavity}
+    target = LocalThingsNumber(coordinator, bound["oven_setpoint"])
+    timer = LocalThingsNumber(coordinator, bound["cook_time"])
+    temp_href = cavity.to_actual(cook.TEMPERATURES_HREF)
+    time_href = cavity.to_actual(cook.OPERATION_HREF)
+    temperatures = coordinator.resource(temp_href)
+    coordinator._observe.apply(
+        temp_href,
+        {
+            **temperatures,
+            PREFIX + "items": [{**temperatures[PREFIX + "items"][0], PREFIX + "desired": 350}],
+        },
+        source="poll",
+    )
+    coordinator._observe.apply(
+        time_href,
+        {**coordinator.resource(time_href), PREFIX + "operationTime": "00:05:00"},
+        source="poll",
+    )
+    coordinator.async_set_updated_data(flatten(coordinator.bound, coordinator.entity_resources()))
+    _FakeConnection.log.clear()
+    assert target.native_value == 350
+    assert timer.native_value == 5
+
+    recipe = "LowerHealthycook1" if index else "UpperHealthycook1"
+    await coordinator.async_send_command(bound["oven_mode"], recipe)
+    assert target.native_value == 375
+    assert timer.native_value is None
+
+    mode = "LowerBake" if index else "UpperConvectionBake"
+    await coordinator.async_send_command(bound["oven_mode"], mode)
+    assert target.native_value is None
+    assert timer.native_value is None
+    assert coordinator.resource(temp_href)[PREFIX + "items"][0][PREFIX + "desired"] == 350
+    assert coordinator.resource(time_href)[PREFIX + "operationTime"] == "00:05:00"
+    with pytest.raises(ServiceValidationError) as err:
+        await coordinator.async_send_command(bound["start_cooking"], "")
+    assert err.value.translation_key == "cook_temperature_required"
+    assert not _requests()
+
+
 async def test_running_zero_cook_time_stays_visible_and_returns_to_blank_when_idle(hass):
     running = {
         **LOWER,

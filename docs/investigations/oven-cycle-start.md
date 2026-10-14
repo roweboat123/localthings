@@ -191,9 +191,12 @@ and [the earlier report in #572](https://github.com/mbillow/localthings/issues/5
 observed no effect from the Power switch. This family now exposes the
 reported power as status rather than a cooking control.
 
-No divider-out, timer-free, or other-mode starts were hardware-tested in
-this session. The numbered Healthy Cook labels remain numbered; no mapping
-from those protocol codes to particular recipes has been established.
+Those initial raw-write tests did not cover divider-out, timer-free or
+other-mode starts. Later owner checks mapped all eight divided Healthy
+Cook codes and confirmed divider-out Smart Control operation. The later
+control log includes a refused omitted-duration start and a repeated-mode
+selection bug; see [the control follow-up](legacy-oven-controls.md) for
+the evidence, fixes and remaining hardware checks.
 
 ### Shared door and write verification
 
