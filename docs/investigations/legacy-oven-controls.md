@@ -250,6 +250,43 @@ open; this patch does not substitute zero or relax the Smart Control gate.
 Light and reservoir controls were deferred until the guarded start sequence
 could be reviewed. Their read-only discovery follows the October 14 check.
 
+## Light and reservoir discovery
+
+On October 14 the owner operated the physical buttons while the oven was
+idle and the dial was Off. The reservoir is inside the oven: opening the
+main oven door is necessary to access it. Fresh `/device/0` reads at 11:41
+and 11:42 local time confirmed the following upper-cavity option values,
+with the main door remaining open throughout the open/close comparison:
+
+| Option | Reservoir closed | Reservoir open |
+|---|---|---|
+| `waterTankInSwitch` | On | Off |
+| `waterTankOutSwitch` | Off | On |
+| `waterInlet` | Close | Close |
+
+The two switches establish position feedback independently of the main
+door. They do not identify a writable reservoir command. Motion and
+missing or contradictory switch combinations have not been captured.
+
+With the door and reservoir closed, fresh upper-cavity reads with the
+interior light off and on were identical. A lower-cavity read also exposed
+no lamp field. Diagnostics taken after those direct reads contained no lamp
+option, wrapper or field in the retained raw resource bodies for either
+cavity, and no unmapped resource wrappers. This establishes absence from
+the captured status data, not that remote light control is impossible.
+Neither light nor reservoir write commands have been identified or tested;
+no new entities were added from these observations.
+
+The initial diagnostic comparisons exposed a freshness limitation:
+`LegacyHttpTransport.read()` does not update `last_bodies` for individual
+resource reads, while `_read_seed()` replaces it after a full-device read.
+Consequently, the mapped door state was Open while the transport snapshot
+still said Close; the reservoir switches were also stale until a direct
+read. Downloading diagnostics alone does not force a refresh. Future raw
+comparisons should first read the intended `/device/<index>` and then
+download diagnostics. The diagnostics also omit most aggregate-level
+scalars through `_resource_bodies()`. No diagnostics behavior changed here.
+
 ## Entering settings in any order
 
 The owner then captured "Choose a cooking mode first" while preparing
