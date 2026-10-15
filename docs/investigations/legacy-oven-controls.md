@@ -264,6 +264,30 @@ positive-duration requirement. Samsung's NE63*871 range manual p.46 explicitly
 requires a cooking time for remote control; that different model's restriction
 does not establish the wall oven's behavior.
 
+### Untimed local Bake capture
+
+At 15:36 America/Chicago on October 15, the owner supplied diagnostics after
+the request to start an untimed Bake at the oven panel. The lower cavity's raw
+body and translated resources both report `LowerBake`, `Operation.state=Run`,
+`Oven.state=Preheat`, and `00:00:00` for both `operationTime` and `remainingTime`.
+Its setpoint is 350 F; current temperature is 244 F in the cached raw body and
+245 F in the translated resource. The upper cavity is Ready/NoOperation, the
+divider is On and the probe is disconnected.
+
+Both cavities report Smart Control false in this local-start capture. The
+earlier failed remote-start diagnostic reported it true; the local capture's
+permission state does not explain the earlier remote refusals. The target also
+differs from the 400 F remote test, so this is not a controlled comparison of
+start methods at otherwise identical settings.
+
+The appliance reports an active untimed cook using zero durations, with no
+additional untimed flag in the captured resources. This confirms the read-side
+representation, not an accepted remote-start payload. In particular, the
+reported `Oven.state=Preheat` is not evidence that it is writable. No new
+command or runtime change follows from this capture. The private source
+diagnostic's SHA-256 is
+`42ebfc363a728937d7db4049e5ebb35abdf61a557ab705c6fa23adfe6381612b`.
+
 ## Status and verification
 
 - **Power:** the LCD_OV_WALL family's ineffective switch becomes read-only status,
