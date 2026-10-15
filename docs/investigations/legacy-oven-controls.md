@@ -334,9 +334,11 @@ formatting, lint and type checks passed for candidate
 At 17:42 on October 15 the owner confirmed the requested Lower Bake running
 timer increase from two to three minutes worked with that candidate. This
 confirms a positive running duration edit using the one-field request on this
-appliance. Clearing a running timer to zero remains unverified, as do running
-edits on the upper cavity and whole-oven configuration. The result does not
-resolve starting without a cook time.
+appliance. At 17:45 the owner confirmed the sequence was two minutes, then
+three, then zero: the oven displayed time left as "None" and Bake continued.
+This confirms clearing the running cook timer without stopping Bake in that
+test. Running edits on the upper cavity and whole-oven configuration remain
+software-covered only. Neither result resolves starting without a cook time.
 
 ## Status and verification
 
