@@ -327,10 +327,16 @@ Smart Control checks are unchanged, and no start-then-clear automation is added.
 
 Regression coverage checks upper, lower and whole-oven routing, preservation
 of the other hours/minutes component, zero and positive values, unchanged
-remaining-time telemetry, and propagation of appliance refusals. Hardware
-acceptance of the one-field edit is pending. The first hardware check is a
-positive increase from two to three minutes; zero clearing should only be
-retested after a normal edit is verified.
+remaining-time telemetry, and propagation of appliance refusals. All 3,337 tests,
+formatting, lint and type checks passed for candidate
+`08794ba68ed96cd1360c29fe33c5b32f4fce02db`.
+
+At 17:42 on October 15 the owner confirmed the requested Lower Bake running
+timer increase from two to three minutes worked with that candidate. This
+confirms a positive running duration edit using the one-field request on this
+appliance. Clearing a running timer to zero remains unverified, as do running
+edits on the upper cavity and whole-oven configuration. The result does not
+resolve starting without a cook time.
 
 ## Status and verification
 
