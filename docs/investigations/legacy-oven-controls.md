@@ -340,6 +340,36 @@ This confirms clearing the running cook timer without stopping Bake in that
 test. Running edits on the upper cavity and whole-oven configuration remain
 software-covered only. Neither result resolves starting without a cook time.
 
+### Remote-cleared timer capture and next Start candidate
+
+The 18:29 America/Chicago diagnostic on October 15 reports Lower Bake at
+400 F, Operation Run, Oven Preheat and Smart Control true. Its cached raw
+device body has both `operationTime` and `remainingTime` at `00:00:00`,
+matching the earlier local untimed Bake apart from temperature and permission.
+No additional no-timer flag or literal `None` timer value appears. The lower
+canonical resource snapshot has operation time zero but remaining time five
+minutes and progress 2, whereas the raw body has progress 1. This is consistent
+with the coordinator holding the prior resource during its 43-second write
+settle guard; the dump does not establish when each cache was last updated.
+The source diagnostic's SHA-256 is
+`113c036222bdb655768ba785e65e5192a567b7c7660b0eb221bdf2922f44954b`.
+
+Before this capture, HA could not reach the oven over either ICMP or TCP 8888
+while the router still listed it connected. Toggling the oven's Wi-Fi restored
+access. The startup log shows unreachable-host failures and canceled setup,
+not a timer-command refusal; it does not establish the cause of the outage.
+
+The next isolated experiment retains zero in the settings step and additionally
+sends `{"Device":{"Operation":{"state":"Run","operationTime":"00:00:00"}}}`
+for the final Start request to `/devices/{id}`. This tests whether zero must
+accompany Run rather than only precede it. It is a protocol hypothesis, not a
+verified Samsung Start sequence. The candidate applies only to an explicitly
+zero duration on LCD_OV_WALL_16K. Blank durations, positive durations, other
+families, existing Smart Control checks, settling and at-most-once Start
+dispatch remain unchanged. It never starts a positive timer and clears it
+automatically. Hardware acceptance is pending. The owner has paused updates
+to both submitted PRs while this investigation continues.
+
 ## Status and verification
 
 - **Power:** the LCD_OV_WALL family's ineffective switch becomes read-only status,

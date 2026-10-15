@@ -474,7 +474,12 @@ class LegacyHttpTransport:
         blocked = self._oven_start_permission(index, "before Run", _remaining(deadline))
         if blocked is not None:
             return blocked
-        status, response = self._request("PUT", path, body=_RUN, timeout=_remaining(deadline))
+        run_body = _RUN
+        if self._family == "LCD_OV_WALL_16K" and operation.get("operationTime") == "00:00:00":
+            # The NV51K7770S accepts zero as no timer while running;
+            # this candidate carries that value into the Run command too.
+            run_body = {"Device": {"Operation": {"state": "Run", "operationTime": "00:00:00"}}}
+        status, response = self._request("PUT", path, body=run_body, timeout=_remaining(deadline))
         _LOGGER.debug("%s: oven %s Run response: HTTP %s", self._host, index, status)
         return http_status_to_coap(status), response
 
