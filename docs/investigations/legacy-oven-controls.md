@@ -230,8 +230,8 @@ sequence is substituted for the user's request.
 
 ### Experimental operation endpoint
 
-The same APK's `com.samsung.oven.shp.control.a` dispatches Run through
-`DeviceProviderJs.putDeviceOperationById`. `DeviceCommunicatorJs` builds
+The same APK's `com.samsung.oven.shp.control.a` has a helper that can dispatch
+Run through `DeviceProviderJs.putDeviceOperationById`. `DeviceCommunicatorJs` builds
 `/devices/{id}/operation`; `UtilForJson.obj2Json` enables root wrapping and
 `OperationJs` declares the JSON root name `Operation`. The resulting request is
 `PUT /devices/{id}/operation` with `{"Operation":{"state":"Run"}}`.
@@ -287,6 +287,24 @@ reported `Oven.state=Preheat` is not evidence that it is writable. No new
 command or runtime change follows from this capture. The private source
 diagnostic's SHA-256 is
 `42ebfc363a728937d7db4049e5ebb35abdf61a557ab705c6fa23adfe6381612b`.
+
+### App caller follow-up
+
+A further static trace of this APK found that both direct oven-activity callers
+of `a(OperationModeEnum)` are `sendCommand(DeviderEnum)` methods passing Pause.
+The helper's Run branch is therefore not evidence of a reachable fresh-start
+flow in this app. The earlier endpoint experiment tested a real serializer and
+helper, but describing it as Samsung's verified Start path overstated the
+evidence. The settings-send handlers accept blank time fields as zero; no
+positive-duration guard was found in the inspected handlers. These observations
+do not establish what the current SmartThings plug-in sends to this model.
+
+The next discriminating observation would be an untimed start attempt in
+Samsung's own app on this oven. Success would establish another remote path to
+investigate; refusal would support a restriction in Samsung's remote path,
+without proving no alternative exists. Repeating the same LocalThings zero-time
+writes would add no new evidence. No additional experimental write is proposed
+from this static trace.
 
 ## Status and verification
 
