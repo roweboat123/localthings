@@ -239,14 +239,25 @@ LocalThings' verified timed sequence instead sends the Device-wrapped Run
 command to `/devices/{id}`. This endpoint difference is evidence for a test,
 not proof that the appliance accepts an untimed cook.
 
-The isolated `investigate/oven-untimed-start` build sends explicit zero in the
-settings step and uses the app's operation endpoint for Run only on untimed
-LCD_OV_WALL_16K starts. It retains fresh Smart Control checks before both writes,
-the session lock, three-second settling time and at-most-once dispatch. It does
-not retry using the aggregate endpoint after a refusal or a lost response.
+The isolated `investigate/oven-untimed-start` build at `aaf15aa` sent explicit
+zero in the settings step and used the app's operation endpoint for Run only
+on untimed LCD_OV_WALL_16K starts. It retained fresh Smart Control checks before
+both writes, the session lock, three-second settling time and at-most-once
+dispatch. It did not retry using the aggregate endpoint after a refusal or a
+lost response.
 Positive-duration starts, Stop and other board families keep their existing
-routes. This experiment has not been applied to PR #637 or #640; hardware
-acceptance remains unverified.
+routes. At 14:54 America/Chicago on October 15, the owner reported the same
+error with this build. Changing only the Run endpoint therefore did not resolve
+the untimed Lower Bake failure. The experimental runtime and test changes were
+removed; its commit remains available as evidence. The submitted #637 and #640
+branches were not changed by this experiment.
+
+The tested cases are omitted duration and explicit zero through the aggregate
+endpoint, then explicit zero through the operation endpoint. All failed; a
+one-minute duration succeeded. No working untimed remote start is established.
+These observations suggest a firmware restriction or an unobserved protocol
+requirement, but do not distinguish between them or prove a limitation for
+other cavities, modes or oven models.
 
 Samsung's NV51K7770S manual p.37 describes remote Start but does not state a
 positive-duration requirement. Samsung's NE63*871 range manual p.46 explicitly

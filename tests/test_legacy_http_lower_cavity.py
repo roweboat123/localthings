@@ -75,8 +75,6 @@ def _routes(*, divided: bool = True, upper: dict = UPPER, lower: dict = LOWER) -
         "/devices/1/operation": (200, {"Operation": lower["Operation"]}),
         ("PUT", "/devices/0"): (204, None),
         ("PUT", "/devices/1"): (204, None),
-        ("PUT", "/devices/0/operation"): (204, None),
-        ("PUT", "/devices/1/operation"): (204, None),
     }
 
 
@@ -418,30 +416,14 @@ class TestWrites:
         assert (method, path) == ("PUT", "/devices/1")
         assert body is not None
         assert body["Device"]["Mode"] == {"modes": ["LowerBake"]}
-        assert body["Device"]["Operation"] == {"operationTime": "00:00:00"}
+        assert "Operation" not in body["Device"]
         assert _FakeConnection.log[2][:3] == ("GET", "/devices/1/configuration", None)
         assert _FakeConnection.log[3][:3] == (
             "PUT",
-            "/devices/1/operation",
-            {"Operation": {"state": "Run"}},
-        )
-        assert len(_FakeConnection.log) == 4
-
-    def test_other_wall_boards_keep_the_existing_untimed_route(self):
-        transport = _transport("LCD_OV_WALL_20K")
-        batch = cook.CookPlan("Bake", 350, "Fahrenheit", None).batch()
-
-        code, _ = transport.write(["device", "0"], batch, timeout=8.0)
-
-        assert code == 0x44
-        body = _FakeConnection.log[1][2]
-        assert body is not None
-        assert "Operation" not in body["Device"]
-        assert _FakeConnection.log[3][:3] == (
-            "PUT",
-            "/devices/0",
+            "/devices/1",
             {"Device": {"Operation": {"state": "Run"}}},
         )
+        assert len(_FakeConnection.log) == 4
 
     def test_a_batch_naming_the_other_cavity_is_refused(self):
         batch = [{"href": "/operational/state/vs/0", "rep": {PREFIX + "state": "Run"}}]
@@ -1066,7 +1048,7 @@ async def test_same_mode_reselection_preserves_settings_after_a_refused_start(ha
 
     class RefuseFirstRun(dict):
         def get(self, key, default=None):
-            if key == ("PUT", path + "/operation"):
+            if key == ("PUT", path) and _requests().count(key) == 2:
                 return (400, {"errorDescription": "Control fail, <Operation.state=Run>"})
             return super().get(key, default)
 
@@ -1092,12 +1074,11 @@ async def test_same_mode_reselection_preserves_settings_after_a_refused_start(ha
                 "Device": {
                     "Mode": {"modes": [mode]},
                     "Temperatures": [{"id": "0", "desired": 350, "unit": "Fahrenheit"}],
-                    "Operation": {"operationTime": "00:00:00"},
                 }
             },
         ),
         ("GET", path + "/configuration", None),
-        ("PUT", path + "/operation", {"Operation": {"state": "Run"}}),
+        ("PUT", path, {"Device": {"Operation": {"state": "Run"}}}),
     ]
 
     await timer.async_set_native_value(5)
@@ -1105,12 +1086,7 @@ async def test_same_mode_reselection_preserves_settings_after_a_refused_start(ha
 
     assert target.native_value == 350
     assert timer.native_value == 5
-    assert _requests() == [
-        ("GET", path + "/configuration"),
-        ("PUT", path),
-        ("GET", path + "/configuration"),
-        ("PUT", path + "/operation"),
-    ]
+    assert _requests() == [("GET", path + "/configuration"), ("PUT", path)] * 2
     await coordinator.async_send_command(bound["start_cooking"], "")
     assert [entry[:3] for entry in _FakeConnection.log[4:]] == [
         ("GET", path + "/configuration", None),
@@ -1517,16 +1493,12 @@ async def test_live_mode_spec_takes_precedence_over_legacy_limits(hass):
     assert cook.mode_specs(resources)["UpperConvectionBake"].time_max == 7200
 
 
-@pytest.mark.parametrize(
-    "index,divided,mode",
-    [(0, True, "UpperConvectionBake"), (1, True, "LowerBake"), (0, False, "Bake")],
-)
+@pytest.mark.parametrize("index,mode", [(0, "UpperConvectionBake"), (1, "LowerBake")])
 @pytest.mark.parametrize("use_button", [False, True])
-@pytest.mark.parametrize("minutes", [None, 0, 1, 5])
 async def test_normal_start_keeps_the_lock_through_both_writes(
-    hass: HomeAssistant, monkeypatch, index, divided, mode, use_button, minutes
+    hass: HomeAssistant, monkeypatch, index, mode, use_button
 ):
-    coordinator = await _discovered(hass, _routes(divided=divided))
+    coordinator = await _discovered(hass)
     cavity = _lower(coordinator) if index else MAIN
 
     def bound(key):
@@ -1535,8 +1507,7 @@ async def test_normal_start_keeps_the_lock_through_both_writes(
     if use_button:
         await coordinator.async_send_command(bound("oven_mode"), mode)
         await coordinator.async_send_command(bound("oven_setpoint"), 350)
-        if minutes is not None:
-            await coordinator.async_send_command(bound("cook_time_minutes"), minutes)
+        await coordinator.async_send_command(bound("cook_time_minutes"), 5)
     _FakeConnection.log.clear()
 
     def settle(seconds):
@@ -1553,12 +1524,7 @@ async def test_normal_start_keeps_the_lock_through_both_writes(
     if use_button:
         await coordinator.async_send_command(bound("start_cooking"), "")
     else:
-        await coordinator.async_start_cooking(
-            cavity,
-            mode=mode,
-            temperature=350,
-            duration=None if minutes is None else minutes * 60,
-        )
+        await coordinator.async_start_cooking(cavity, mode=mode, temperature=350, duration=300)
 
     sleep.assert_called_once_with(3.0)
     assert [entry[:3] for entry in _FakeConnection.log] == [
@@ -1570,18 +1536,12 @@ async def test_normal_start_keeps_the_lock_through_both_writes(
                 "Device": {
                     "Mode": {"modes": [mode]},
                     "Temperatures": [{"id": "0", "desired": 350, "unit": "Fahrenheit"}],
-                    "Operation": {"operationTime": f"00:{minutes or 0:02d}:00"},
+                    "Operation": {"operationTime": "00:05:00"},
                 }
             },
         ),
         ("GET", f"/devices/{index}/configuration", None),
-        (
-            "PUT",
-            f"/devices/{index}/operation" if not minutes else f"/devices/{index}",
-            {"Operation": {"state": "Run"}}
-            if not minutes
-            else {"Device": {"Operation": {"state": "Run"}}},
-        ),
+        ("PUT", f"/devices/{index}", {"Device": {"Operation": {"state": "Run"}}}),
     ]
     assert not coordinator._session_lock.locked()
 
