@@ -306,6 +306,32 @@ without proving no alternative exists. Repeating the same LocalThings zero-time
 writes would add no new evidence. No additional experimental write is proposed
 from this static trace.
 
+### Running cook-time edits
+
+At 15:59 on October 15 the owner reported the same untimed-start problem for
+the upper cavity and whole-oven configuration. Separately, an attempt to change
+a running Lower Bake from two minutes to zero produced
+`4.00 the format of request json is wrong` at `/operational/state/vs/1`.
+At 16:07 the owner reported that increasing the running cook's time also
+failed. The latter report does not include a separate error capture. The
+zero-edit refusal therefore does not establish that clearing a valid running
+timer is forbidden; positive edits also need investigation.
+
+The existing `_cook_time_write` sends both `operationTime` and `remainingTime`.
+Samsung's plug-in's `com.samsung.oven.shp.control.a.b(String)` duration helper
+instead creates an Operation containing only `operationTime`. The new isolated
+candidate omits `remainingTime` from LCD_OV_WALL_16K cook-time edits, retaining
+the existing aggregate endpoint and envelope so only the field set changes.
+Other board families keep their existing writes. The start sequence and its
+Smart Control checks are unchanged, and no start-then-clear automation is added.
+
+Regression coverage checks upper, lower and whole-oven routing, preservation
+of the other hours/minutes component, zero and positive values, unchanged
+remaining-time telemetry, and propagation of appliance refusals. Hardware
+acceptance of the one-field edit is pending. The first hardware check is a
+positive increase from two to three minutes; zero clearing should only be
+retested after a normal edit is verified.
+
 ## Status and verification
 
 - **Power:** the LCD_OV_WALL family's ineffective switch becomes read-only status,
