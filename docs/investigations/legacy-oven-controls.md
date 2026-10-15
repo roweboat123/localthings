@@ -202,8 +202,56 @@ LowerConvectionRoast remains the earlier #572 fallback, but its physical menu
 availability is unverified. Broil Hi/Lo remains unverified and is excluded from
 remote choices; the carried-over whole-oven Healthycook1–4 mappings still need
 their own hardware evidence.
-A recorded omitted-duration Run refusal also remains unexplained;
-omission is not silently replaced with zero.
+A recorded omitted-duration Run refusal was investigated again on October 15;
+see the untimed-start investigation below.
+
+## Untimed starts
+
+On October 15 the owner reported that Lower Bake at 400 F failed at Run with
+the cook time left blank, then confirmed that entering one minute allowed it
+to start. The preceding diagnostic showed Smart Control true, divider On,
+door Close, the probe disconnected and both cavities Ready. At 14:21
+America/Chicago, the owner also confirmed that explicitly entering zero hours
+and zero minutes fails. Both omitted and explicit-zero durations therefore
+fail for this Lower Bake case; one minute succeeds.
+
+Samsung's Oven plug-in v1.1040.8.0 converts blank hour/minute fields to zero,
+formats them as `HH:MM:00`, and includes `Operation.operationTime` in the
+settings request. This is visible in `OvenMainControlActivity.sendDataToOvenInReadyState`
+and `DBOvenMainControlActivity.sendDataToOven`, through the operation builder
+in `com.samsung.oven.shp.control.a`. The inspected APK's SHA-256 is
+`6325172bcb173b43549cf07bcc71cdcace797c0c410c753c79cd2fa702135e52`.
+
+The explicit-zero candidate was removed after the failed hardware check and
+was never published. The app's serialization is not proof that this oven's
+firmware accepts untimed starts through the same path. No alternative untimed
+command is verified, and no arbitrary duration or timed-start-then-clear
+sequence is substituted for the user's request.
+
+### Experimental operation endpoint
+
+The same APK's `com.samsung.oven.shp.control.a` dispatches Run through
+`DeviceProviderJs.putDeviceOperationById`. `DeviceCommunicatorJs` builds
+`/devices/{id}/operation`; `UtilForJson.obj2Json` enables root wrapping and
+`OperationJs` declares the JSON root name `Operation`. The resulting request is
+`PUT /devices/{id}/operation` with `{"Operation":{"state":"Run"}}`.
+LocalThings' verified timed sequence instead sends the Device-wrapped Run
+command to `/devices/{id}`. This endpoint difference is evidence for a test,
+not proof that the appliance accepts an untimed cook.
+
+The isolated `investigate/oven-untimed-start` build sends explicit zero in the
+settings step and uses the app's operation endpoint for Run only on untimed
+LCD_OV_WALL_16K starts. It retains fresh Smart Control checks before both writes,
+the session lock, three-second settling time and at-most-once dispatch. It does
+not retry using the aggregate endpoint after a refusal or a lost response.
+Positive-duration starts, Stop and other board families keep their existing
+routes. This experiment has not been applied to PR #637 or #640; hardware
+acceptance remains unverified.
+
+Samsung's NV51K7770S manual p.37 describes remote Start but does not state a
+positive-duration requirement. Samsung's NE63*871 range manual p.46 explicitly
+requires a cooking time for remote control; that different model's restriction
+does not establish the wall oven's behavior.
 
 ## Status and verification
 

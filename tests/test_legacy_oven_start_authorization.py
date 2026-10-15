@@ -21,13 +21,16 @@ from tests.test_legacy_http_lower_cavity import (
 from tests.test_legacy_http_transport import _FakeConnection
 
 
-def _batch(index):
+def _batch(index, duration=300):
     mode = "LowerBake" if index else "UpperConvectionBake"
-    return cook.CookPlan(mode, 350, "Fahrenheit", 300).batch(lambda href: href[:-1] + str(index))
+    return cook.CookPlan(mode, 350, "Fahrenheit", duration).batch(
+        lambda href: href[:-1] + str(index)
+    )
 
 
 @pytest.mark.parametrize("index", [0, 1])
 @pytest.mark.parametrize("phase", ["before settings", "before Run"])
+@pytest.mark.parametrize("duration", [None, 0, 300])
 @pytest.mark.parametrize(
     "response",
     [
@@ -42,7 +45,9 @@ def _batch(index):
         (500, None),
     ],
 )
-def test_unconfirmed_permission_never_sends_the_next_write(index, phase, response, monkeypatch):
+def test_unconfirmed_permission_never_sends_the_next_write(
+    index, phase, duration, response, monkeypatch
+):
     path = f"/devices/{index}"
 
     def disable(_seconds=None):
@@ -55,7 +60,7 @@ def test_unconfirmed_permission_never_sends_the_next_write(index, phase, respons
             "custom_components.localthings.legacy_http_transport.time.sleep", disable
         )
 
-    code, reason = _transport().write(["device", str(index)], _batch(index), timeout=8.0)
+    code, reason = _transport().write(["device", str(index)], _batch(index, duration), timeout=8.0)
 
     assert code >> 5 != 2
     assert phase in reason
@@ -69,7 +74,8 @@ def test_unconfirmed_permission_never_sends_the_next_write(index, phase, respons
 
 @pytest.mark.parametrize("index", [0, 1])
 @pytest.mark.parametrize("bypass", [False, True])
-async def test_live_off_blocks_start_even_with_stale_true_cache(hass, index, bypass):
+@pytest.mark.parametrize("duration", [None, 0, 300])
+async def test_live_off_blocks_start_even_with_stale_true_cache(hass, index, bypass, duration):
     coordinator = await _discovered(hass)
     cavity = _lower(coordinator) if index else MAIN
     assert coordinator._remote_control_enabled(cavity)
@@ -87,7 +93,7 @@ async def test_live_off_blocks_start_even_with_stale_true_cache(hass, index, byp
             cavity,
             mode="LowerBake" if index else "UpperConvectionBake",
             temperature=350,
-            duration=300,
+            duration=duration,
         )
 
     assert _requests() == [("GET", f"/devices/{index}/configuration")]
@@ -95,8 +101,9 @@ async def test_live_off_blocks_start_even_with_stale_true_cache(hass, index, byp
 
 @pytest.mark.parametrize("index", [0, 1])
 @pytest.mark.parametrize("failed_request", [1, 2, 3, 4])
+@pytest.mark.parametrize("duration", [None, 0, 300])
 async def test_start_is_not_replayed_after_a_lost_response(
-    hass, monkeypatch, index, failed_request
+    hass, monkeypatch, index, failed_request, duration
 ):
     coordinator = await _discovered(hass)
     cavity = _lower(coordinator) if index else MAIN
@@ -122,7 +129,7 @@ async def test_start_is_not_replayed_after_a_lost_response(
             cavity,
             mode="LowerBake" if index else "UpperConvectionBake",
             temperature=350,
-            duration=300,
+            duration=duration,
         )
 
     assert error.value.translation_key == "cook_start_unconfirmed"

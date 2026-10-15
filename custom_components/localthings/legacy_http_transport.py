@@ -459,6 +459,12 @@ class LegacyHttpTransport:
             return blocked
         device = dict(aggregate["Device"])
         operation = {key: value for key, value in device["Operation"].items() if key != "state"}
+        untimed = self._family == "LCD_OV_WALL_16K" and operation.get("operationTime") in (
+            None,
+            "00:00:00",
+        )
+        if untimed:
+            operation["operationTime"] = "00:00:00"
         if operation:
             device["Operation"] = operation
         else:
@@ -474,7 +480,13 @@ class LegacyHttpTransport:
         blocked = self._oven_start_permission(index, "before Run", _remaining(deadline))
         if blocked is not None:
             return blocked
-        status, response = self._request("PUT", path, body=_RUN, timeout=_remaining(deadline))
+        # Samsung's oven plug-in uses this leaf endpoint for Run. Test that
+        # route for untimed starts without changing the verified timed path.
+        run_path = f"{path}/operation" if untimed else path
+        run_body = _RUN["Device"] if untimed else _RUN
+        status, response = self._request(
+            "PUT", run_path, body=run_body, timeout=_remaining(deadline)
+        )
         _LOGGER.debug("%s: oven %s Run response: HTTP %s", self._host, index, status)
         return http_status_to_coap(status), response
 
