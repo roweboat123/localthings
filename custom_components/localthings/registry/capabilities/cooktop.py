@@ -235,10 +235,6 @@ def _legacy_radiant_sensor(desc):
         return dataclasses.replace(
             desc, translation_key="cooktop_timer_remaining", unit="min", device_class="duration"
         )
-    if desc.key == "main_timer_current":
-        return dataclasses.replace(
-            desc, unit="min", device_class="duration", entity_category="diagnostic"
-        )
     if desc.key == "main_timer_state":
         return dataclasses.replace(desc, translation_key="cooktop_timer_status")
     if desc.key == "cooktop_flex_coil":
@@ -257,7 +253,11 @@ def _legacy_radiant_sensor(desc):
 LEGACY_RADIANT_MODE = dataclasses.replace(
     COOKTOP_MODE,
     match_fn=is_legacy_radiant_cooktop,
-    entities=tuple(_legacy_radiant_sensor(desc) for desc in COOKTOP_MODE.entities),
+    entities=tuple(
+        _legacy_radiant_sensor(desc)
+        for desc in COOKTOP_MODE.entities
+        if desc.key != "main_timer_current"
+    ),
 )
 
 

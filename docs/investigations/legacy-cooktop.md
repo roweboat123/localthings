@@ -13,9 +13,12 @@ report remaining minutes on this appliance; Set does not retain the original
 duration. All burners were off during this test.
 
 Keep the existing, enabled main_timer_set entity as Timer Remaining with
-duration class and minute units. Keep main_timer_current disabled by default
-as a diagnostic reading; preserve both entity IDs. Timer Status continues
-to report the device value without deriving completion from a zero countdown.
+duration class and minute units, preserving its entity ID. Do not create a
+second entity for main_timer_current on this family; remove its old registry
+entry during setup once the replacement is available. Automations using the
+removed entity must use Timer Remaining. Both raw fields remain in diagnostic
+downloads. Timer Status continues to report the device value without deriving
+completion from a zero countdown.
 
 A diagnostic downloaded during the audible alert reported both time fields
 as zero and the state as Ready, with an empty alarm list. The user separately

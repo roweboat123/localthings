@@ -118,7 +118,7 @@ def test_legacy_mode_options_surface():
     assert state["cooktop_paused"] is False
     assert state["cooktop_sync_control"] is False
     assert state["cooktop_flex_coil"] == "0"
-    assert state["main_timer_current"] == 0
+    assert "main_timer_current" not in state
     assert state["main_timer_set"] == 0
     assert state["main_timer_state"] == "Ready"
 
@@ -208,7 +208,8 @@ def test_captured_timer_and_ring_changes(capture, minutes, timer_state, size_3, 
     bound = discover(resources, reg.capabilities, reg.pattern_capabilities)
     assert len({b.desc.key for b in bound}) == len(bound)
     state = flatten(bound, resources)
-    assert (state["main_timer_set"], state["main_timer_current"]) == (minutes, minutes)
+    assert state["main_timer_set"] == minutes
+    assert "main_timer_current" not in state
     assert state["main_timer_state"] == timer_state
     assert state["burner_3_pan_size"] == size_3
     assert state["burner_5_pan_size"] == size_5
@@ -224,7 +225,6 @@ def test_timer_units_only_for_verified_legacy_family(name):
     bound = discover(resources, reg.capabilities, reg.pattern_capabilities)
     descriptions = {b.desc.key: b.desc for b in bound}
     timer = cast(SensorDesc, descriptions["main_timer_set"])
-    duplicate = cast(SensorDesc, descriptions["main_timer_current"])
     if name == NAME:
         assert (timer.unit, timer.device_class, timer.translation_key) == (
             "min",
@@ -232,14 +232,14 @@ def test_timer_units_only_for_verified_legacy_family(name):
             "cooktop_timer_remaining",
         )
         assert timer.enabled_default is True
-        assert duplicate.entity_category == "diagnostic"
-        assert duplicate.unit == "min"
+        assert "main_timer_current" not in descriptions
     else:
+        duplicate = cast(SensorDesc, descriptions["main_timer_current"])
         assert timer.unit is None
         assert timer.device_class is None
         assert timer.translation_key is None
         assert duplicate.entity_category is None
-    assert duplicate.enabled_default is False
+        assert duplicate.enabled_default is False
 
 
 def test_unknown_ring_size_and_finished_status_are_not_discarded():
@@ -263,3 +263,4 @@ def test_legacy_mode_stub_keeps_typed_timer_sensors():
     timers = [b.desc for b in bound if b.desc.key == "main_timer_set"]
     assert len(timers) == 1
     assert cast(SensorDesc, timers[0]).unit == "min"
+    assert all(b.desc.key != "main_timer_current" for b in bound)
