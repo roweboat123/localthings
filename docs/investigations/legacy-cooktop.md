@@ -71,6 +71,19 @@ Sync Control with burners 1 and 2 and supplied a Home Assistant screenshot
 showing Sync Control On; no raw capture of that active state is available.
 FlexCoil is a separate raw field with an unverified meaning.
 
+All six captures also expose /device/1 with description TP6X_CT_16K_HOOD,
+DeviceType_NULL, BTState_Idle and Bluetooth_Off, despite no hood being paired.
+FanSpeed and both shutoff timer values are 0, Lamp and Power are Off, and
+ShutOffTimerState is Ready. Generic power/remote-control readings previously
+caused this placeholder to appear as a second cooktop with eight entities.
+
+Discovery now skips this exact empty-slot signature. Missing or different
+identity/state fields keep the existing discovery behavior. The skipped
+resources remain in diagnostic downloads, and Home Assistant can remove an
+existing placeholder device after reload using the normal Delete device action.
+The fixture legacy_cooktop_empty_hood.json retains the captured canonical
+resources without connection or account identifiers. No paired hood was tested.
+
 No new hood mapping or control is included: no compatible hood is available
 for hardware verification. The existing upstream hood resources for other
 appliances are unchanged.

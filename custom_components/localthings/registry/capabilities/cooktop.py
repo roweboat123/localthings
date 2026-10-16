@@ -222,6 +222,31 @@ def is_legacy_radiant_cooktop(rep, resources):
     return board == "TP6X_CT_16K" and (is_stub_rep(rep) or str(model).startswith("NV9300K"))
 
 
+def is_empty_legacy_hood_slot(resources):
+    """Recognize the NZ36K7570R's captured, unpaired hood placeholder."""
+    information = resources.get("/information/vs/0") or {}
+    board = str(information.get("x.com.samsung.da.modelNum", "")).split("|", 1)[0]
+    options = (resources.get("/mode/vs/0") or {}).get("x.com.samsung.da.options")
+    return (
+        board == "TP6X_CT_16K"
+        and information.get("x.com.samsung.da.description") == "TP6X_CT_16K_HOOD"
+        and (resources.get("/power/vs/0") or {}).get("x.com.samsung.da.power") == "Off"
+        and all(
+            _option_value(options, key) == value
+            for key, value in {
+                "DeviceType": "NULL",
+                "BTState": "Idle",
+                "Bluetooth": "Off",
+                "FanSpeed": "0",
+                "Lamp": "Off",
+                "ShutOffTimerSet": "0",
+                "ShutOffTimerCurrent": "0",
+                "ShutOffTimerState": "Ready",
+            }.items()
+        )
+    )
+
+
 def _ring_size(value):
     return value.lower() if value in ("Idle", "Single", "Dual", "Triple") else value
 
