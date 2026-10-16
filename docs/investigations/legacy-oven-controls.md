@@ -566,12 +566,12 @@ state-dependent restriction in the remote Start path, without exposing the
 firmware condition or ruling out every other command sequence. Starting with
 a positive timer and clearing it after Run remains the only demonstrated
 remote route to an untimed cook; that earlier manual result needs no repeat.
-No automatic workaround, runtime behavior change or submitted PR update has
-been made from these experiments.
+At this stage, no automatic workaround, runtime behavior change or submitted
+PR update had been made from these experiments.
 
 ### Automatic timer removal test build
 
-The subsequent investigation build implements the manually demonstrated
+Build `58677d3` implements the manually demonstrated
 Start-then-clear route for the exact `LCD_OV_WALL_16K` legacy transport family.
 An omitted or zero cook duration prepares one minute, then uses the existing
 three-second settings/Run sequence. After a successful Run response it reads
@@ -592,12 +592,38 @@ Software coverage exercises upper, lower and divider-removed routes through
 both the button and coordinator action; blank, zero and positive durations;
 lost responses at every stage; permission loss before clearing; delayed or
 invalid readback; timer-clear refusal; remaining-time mismatch; preservation
-of the original requested values; and shared timeout exhaustion. Hardware
-validation of the automatic sequence, including its confirmation timing, is
-still pending. Neither submitted PR contains this test build.
+of the original requested values; and shared timeout exhaustion.
 
-The build passes all 3,401 tests (65.46 seconds), formatting, lint and type
+On October 15, the owner tested build `58677d3` with Lower Bake at 400 F and
+zero hours/minutes. The oven started, briefly displayed a one-minute cook
+timer, then changed to None. This confirms the automatic Start-then-clear
+sequence on the lower cavity. Automatic untimed Start on the upper cavity
+and with the divider removed still has software coverage only. Neither
+submitted PR contains this test build.
+
+That build passes all 3,401 tests (65.46 seconds), formatting, lint and type
 checks. Its 285 focused oven and translation cases also pass independently.
+
+### Faster timing experiment
+
+The next investigation build reduces the preparation pause from three seconds
+to 0.5 seconds only for untimed `LCD_OV_WALL_16K` starts. Confirmation still
+reads immediately first; subsequent waits are 0.25, 0.25, 0.5 and 1 second.
+This keeps two seconds of total retry waiting per confirmation, with at most
+five reads instead of three. Timed starts and other families retain their
+original preparation delay. The command order, fresh permission checks,
+shared deadline, session lock and no-replay behavior are unchanged.
+
+The shorter preparation pause removes 2.5 seconds of fixed waiting; faster
+confirmation rechecks help only when the first read is stale. Neither change
+guarantees that the temporary timer will be invisible at the oven. Hardware
+confirmation of these timings is pending; the successful `58677d3` build
+remains the baseline for comparison.
+
+The timing experiment passes all 3,404 tests (61.54 seconds), formatting,
+lint and type checks. Coverage includes success at the final confirmation
+attempt, the shorter initial rechecks, deadline exhaustion, and unchanged
+preparation timing for positive durations and other legacy families.
 
 ## Status and verification
 

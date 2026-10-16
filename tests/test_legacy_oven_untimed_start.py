@@ -119,7 +119,7 @@ def test_refused_run_never_clears_a_timer(monkeypatch):
 )
 def test_unconfirmed_run_never_clears_a_timer(monkeypatch, operation):
     transport = _transport()
-    request = Mock(side_effect=[*_responses()[:4], *([operation] * 3)])
+    request = Mock(side_effect=[*_responses()[:4], *([operation] * 5)])
     monkeypatch.setattr(transport, "_request", request)
 
     with pytest.raises(UntimedStartUnconfirmed, match="after Run"):
@@ -143,7 +143,7 @@ def test_unconfirmed_run_never_clears_a_timer(monkeypatch, operation):
 )
 def test_timer_clear_must_be_verified_while_still_running(monkeypatch, operation):
     transport = _transport()
-    request = Mock(side_effect=[*_responses()[:7], *([operation] * 3)])
+    request = Mock(side_effect=[*_responses()[:7], *([operation] * 5)])
     monkeypatch.setattr(transport, "_request", request)
 
     with pytest.raises(UntimedStartUnconfirmed, match="after timer clear"):
@@ -166,13 +166,16 @@ def test_refused_timer_clear_is_reported_without_another_write(monkeypatch):
 
 
 @pytest.mark.parametrize("duration", [None, 0])
-def test_delayed_readback_can_confirm_without_repeating_writes(monkeypatch, duration):
+@pytest.mark.parametrize("stale_reads", [1, 4])
+def test_delayed_readback_can_confirm_without_repeating_writes(monkeypatch, duration, stale_reads):
     transport = _transport()
     responses = _responses()
-    responses.insert(4, _operation("Ready"))
-    responses.insert(8, _operation())
+    responses[4:4] = [_operation("Ready")] * stale_reads
+    responses[7 + stale_reads : 7 + stale_reads] = [_operation()] * stale_reads
     request = Mock(side_effect=responses)
     monkeypatch.setattr(transport, "_request", request)
+    sleep = Mock()
+    monkeypatch.setattr("custom_components.localthings.legacy_http_transport.time.sleep", sleep)
     batch = _batch(duration=duration)
     original = deepcopy(batch)
 
@@ -186,6 +189,8 @@ def test_delayed_readback_can_confirm_without_repeating_writes(monkeypatch, dura
     assert puts[0]["Operation"] == {"operationTime": "00:01:00"}
     assert puts[1] == {"Operation": {"state": "Run"}}
     assert puts[2] == {"Operation": {"operationTime": "00:00:00"}}
+    retry_delays = [0.25, 0.25, 0.5, 1.0][:stale_reads]
+    assert [call.args[0] for call in sleep.call_args_list] == [0.5, *retry_delays, *retry_delays]
 
 
 @pytest.mark.parametrize("duration", [None, 0, 60])
@@ -193,10 +198,13 @@ def test_other_legacy_oven_family_keeps_original_start(monkeypatch, duration):
     transport = _transport("LCD_OV_WALL_20K")
     request = Mock(side_effect=_responses()[:4])
     monkeypatch.setattr(transport, "_request", request)
+    sleep = Mock()
+    monkeypatch.setattr("custom_components.localthings.legacy_http_transport.time.sleep", sleep)
 
     assert transport.write(["device", "1"], _batch(duration=duration), timeout=8) == (0x44, None)
 
     assert request.call_count == 4
+    sleep.assert_called_once_with(3.0)
     settings = request.call_args_list[1].kwargs["body"]["Device"]
     if duration is None:
         assert "Operation" not in settings
@@ -204,7 +212,7 @@ def test_other_legacy_oven_family_keeps_original_start(monkeypatch, duration):
         assert settings["Operation"] == {"operationTime": cook.format_hms(duration)}
 
 
-@pytest.mark.parametrize("budget", [8.0, 10.0, 30.0])
+@pytest.mark.parametrize("budget", [7.0, 8.0, 10.0, 30.0])
 def test_confirmation_and_clear_share_the_whole_start_deadline(monkeypatch, budget):
     now = 0.0
     timeouts = []
@@ -216,6 +224,9 @@ def test_confirmation_and_clear_share_the_whole_start_deadline(monkeypatch, budg
 
     def request(_method, _path, **kwargs):
         timeouts.append(kwargs["timeout"])
+        if kwargs["timeout"] < 1:
+            sleep(kwargs["timeout"])
+            raise TimeoutError("the request budget is spent")
         sleep(1)
         return next(responses)
 
@@ -226,11 +237,11 @@ def test_confirmation_and_clear_share_the_whole_start_deadline(monkeypatch, budg
     transport = _transport()
     monkeypatch.setattr(transport, "_request", request)
 
-    if budget < 30:
+    if budget < 8.5:
         with pytest.raises(UntimedStartUnconfirmed, match="budget is spent"):
             transport.write(["device", "1"], _batch(), timeout=budget)
         assert now == budget
     else:
         assert transport.write(["device", "1"], _batch(), timeout=budget) == (0x44, None)
-        assert timeouts == [30, 29, 25, 24, 23, 22, 21, 20]
+        assert timeouts == [budget - elapsed for elapsed in (0, 1, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5)]
     assert all(timeout > 0 for timeout in timeouts)

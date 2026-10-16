@@ -92,8 +92,8 @@ _AUTH_HEADER = "Authorization"
 # composed start has been measured loading the programme without running it.
 _START_SETTLE_S = 3.0
 _OVEN_START_SETTLE_S = 3.0
-_OVEN_CONFIRM_ATTEMPTS = 3
-_OVEN_CONFIRM_INTERVAL_S = 1.0
+_OVEN_UNTIMED_START_SETTLE_S = 0.5
+_OVEN_CONFIRM_RETRY_DELAYS_S = (0.25, 0.25, 0.5, 1.0)
 
 _RUN = {"Device": {"Operation": {"state": "Run"}}}
 # What the stop button sends; see _already_ready.
@@ -480,7 +480,7 @@ class LegacyHttpTransport:
         _LOGGER.debug("%s: oven %s settings response: HTTP %s", self._host, index, status)
         if not 200 <= status < 300:
             return http_status_to_coap(status), response
-        time.sleep(_OVEN_START_SETTLE_S)
+        time.sleep(_OVEN_UNTIMED_START_SETTLE_S if untimed else _OVEN_START_SETTLE_S)
         blocked = self._oven_start_permission(index, "before Run", _remaining(deadline))
         if blocked is not None:
             return blocked
@@ -515,9 +515,9 @@ class LegacyHttpTransport:
         """A success status alone does not establish Run or that the countdown was removed."""
         phase = "after timer clear" if timer_cleared else "after Run"
         operation = None
-        for attempt in range(_OVEN_CONFIRM_ATTEMPTS):
-            if attempt:
-                time.sleep(min(_OVEN_CONFIRM_INTERVAL_S, _remaining(deadline)))
+        for delay in (0.0, *_OVEN_CONFIRM_RETRY_DELAYS_S):
+            if delay:
+                time.sleep(min(delay, _remaining(deadline)))
             status, body = self._request(
                 "GET", f"{_device_path(index)}/operation", timeout=_remaining(deadline)
             )

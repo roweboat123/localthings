@@ -1521,6 +1521,8 @@ async def test_normal_start_keeps_the_lock_through_the_complete_sequence(
 
     transport = cast(LegacyHttpTransport, coordinator._session)
     request = transport._request
+    untimed = duration in (None, 0)
+    settle_seconds = 0.5 if untimed else 3.0
 
     def locked_request(*args, **kwargs):
         assert coordinator._session_lock.locked()
@@ -1529,7 +1531,7 @@ async def test_normal_start_keeps_the_lock_through_the_complete_sequence(
     monkeypatch.setattr(coordinator._session, "_request", locked_request)
 
     def settle(seconds):
-        assert seconds == 3.0
+        assert seconds == settle_seconds
         assert coordinator._session_lock.locked()
         assert _requests() == [
             ("GET", f"/devices/{index}/configuration"),
@@ -1544,12 +1546,11 @@ async def test_normal_start_keeps_the_lock_through_the_complete_sequence(
     else:
         await coordinator.async_start_cooking(cavity, mode=mode, temperature=350, duration=duration)
 
-    sleep.assert_called_once_with(3.0)
+    sleep.assert_called_once_with(settle_seconds)
     settings = {
         "Mode": {"modes": [mode]},
         "Temperatures": [{"id": "0", "desired": 350, "unit": "Fahrenheit"}],
     }
-    untimed = duration in (None, 0)
     settings["Operation"] = {"operationTime": "00:01:00" if untimed else wire_duration}
     expected = [
         ("GET", f"/devices/{index}/configuration", None),
