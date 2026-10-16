@@ -384,6 +384,221 @@ start followed by timer clearing, or replacement refusal message is added.
 The owner has paused updates to both submitted PRs while this investigation
 continues.
 
+### Literal no-timer values
+
+The owner requested direct `null` or `None` timer tests before considering an
+automatic positive-duration start followed by clearing. A local serialization
+check confirmed that the existing `write_resource` service preserves JSON
+null, the strings `None`, `none` and `null`, and an empty string through service
+validation, legacy translation and HTTP encoding. This verifies the outgoing
+values only, not appliance support; no build change was needed.
+
+At 20:25 America/Chicago on October 15, the owner supplied the result of the
+lower-cavity null-only write, `{"Device":{"Operation":{"operationTime":null}}}`
+to `PUT /devices/1`, using `/operational/state/vs/1` through LocalThings. The
+response was `4.00`, `accepted: false`, with `the format of request json is wrong`.
+Before, immediate readback and verification after three seconds all reported
+Ready, operation and remaining times `00:00:00`, and progress 1. The response
+reported `changed: false` and `held: false`. No Run command was included.
+This rules out that null-only request on the tested endpoint.
+
+At 20:27 the owner supplied the result after replacing null with the quoted
+string `None`. The write returned canonical `5.00`, `accepted: false`, and an
+HTML body headed `502 Bad Gateway` with an nginx footer. Immediate readback
+was empty; delayed verification also returned `5.00`, an empty rep and
+`held: null`. The legacy transport maps HTTP server errors to canonical
+`5.00`. The cached Before values were Ready with both durations zero, but
+these failed reads provide no fresh state; `changed: false` does not establish
+that the appliance stayed unchanged. The result does not show acceptance of
+the string or prove whether the request caused the service failure. Further
+value writes are paused pending a read-only check of API availability.
+
+At 20:29 the owner's read-only follow-up returned `2.05`, Ready, operation and
+remaining times `00:00:00`, and progress 1. This confirms the API was responding
+again and no persistent timer change was visible in that read. The owner then
+proposed `-1`. A local serialization check preserves numeric `-1` unchanged
+in an operationTime-only request, without Run. No negative-duration sentinel
+was found in the inspected app excerpts; appliance acceptance and meaning
+remain unverified. The proposed next check is one idle numeric `-1` write
+with readback, before any further Start attempt.
+
+At 20:31 the numeric `-1` request returned `4.00`, `accepted: false`, and
+`the format of request json is wrong`. Immediate and delayed reads succeeded,
+both reporting Ready and zero durations; `changed` and `held` were false.
+Inspection of the APK's `OperationJs` class confirms operationTime is a Java
+String, with no constructor-assigned sentinel; inspected settings handlers
+format it as `%02d:%02d:00`. The numeric rejection therefore does not by itself
+establish the result for the distinct string `"-1"`, but no inspected code
+defines that string as no timer. A quoted negative value remains an
+unverified encoding, not a supported command.
+
+At 20:35 the owner's follow-up to the quoted `"-1"` test returned canonical
+`5.00`, `accepted: false`, and the same nginx `502 Bad Gateway` HTML body.
+Immediate readback was empty and verification returned `5.00` with `held:
+null`. No fresh state was obtained. Alternate-value writes were paused again
+and a read-only recovery check requested. This is not evidence that the
+negative string was accepted or that a persistent timer value was changed.
+
+### Displayed None and remote Start validation
+
+The NV51K7770S user manual, page 24, documents cancelling Cook Time by setting
+it to zero minutes. This agrees with the owner's running-timer clear and the
+raw zero-duration captures above. The inspected Samsung phone app also turns
+blank hour/minute inputs into zero, formats operationTime as `%02d:%02d:00`,
+and checks `00:00:00` when deciding whether to show countdown information in
+`OvenMainControlActivity.updateSingleUi`. Its default resource strings did
+not reveal a timer label literally named None. This is phone-app evidence,
+not the source of the physical oven's touchscreen firmware.
+
+The evidence establishes the local API's zero representation for an untimed
+cook, without revealing the oven's internal representation or complete Start
+handler. Remote Start with zero and a running timer edit to zero are distinct
+requests in distinct appliance states. A positive-duration requirement in the
+remote Start handler would explain the observed difference; a missing setup
+step or another state-dependent prerequisite could also explain it. The
+firmware condition has not been recovered, so neither explanation is proven.
+Further direct-start investigation should target that handler or an evidenced
+command sequence, rather than assume the display word is a wire value.
+
+### Start-sequence audit
+
+The owner questioned whether the initial Start sequence itself is incomplete
+for an untimed cook. The audit found that HeldCook and CookPlan preserve
+explicit zero, while an untouched duration remains omitted. The legacy
+transport sends zero as `00:00:00` in the settings request, with the selected
+mode and setpoint and no remainingTime. After three seconds and a fresh
+permission check, the normal final request contains only `state: Run`. The
+failed `fdb0dda` experiment additionally carried zero in that final request;
+neither path silently substituted a positive duration.
+
+The existing end-to-end fake-HTTP test now covers omitted duration, zero, one
+minute and five minutes via both the button and coordinator action, for upper,
+lower and whole-oven modes. It checks the actual serialized request bodies,
+cavity routes, lock, three-second settling and both permission reads. These
+24 cases plus the Start authorization checks pass (75 cases total). They
+verify LocalThings' outgoing sequence, not the appliance's internal acceptance.
+
+The settings step proceeds on an HTTP success status; it does not establish
+that the board retained all untimed settings before Run. Adding a state read
+would itself change the tested sequence, so it is not introduced as a fix.
+No confirmed serialization or routing defect was found. The proven timed
+sequence remains an unverified untimed sequence, and a missing setup step or
+different handling of zero before Run remains possible. No runtime behavior
+or submitted PR is changed by this audit.
+
+### Settings-only comparison before Run
+
+At 20:51 America/Chicago on October 15, the recovery read returned `2.05`,
+Ready, operationTime and remainingTime `00:00:00`, and progress 1.
+
+At 21:07 the owner supplied the zero-duration settings-only result. A batch to
+`/device/1` requested LowerBake, temperature item 0 at 400 Fahrenheit, and
+operationTime `00:00:00`, without a state write. Immediate readback was disabled;
+verification followed after three seconds. The action used hold_session_lock
+true; the coordinator releases that lock for the verification delay and
+reacquires it for the read. The write
+returned `2.04`, accepted true, and no response body. Verification returned
+`2.05`, LowerBake, desired 400, both times zero, Ready for both Operation and
+Oven, and remoteControlEnabled true. All three requested elements matched
+(`held: true`). No Run was sent.
+
+This confirms that mode and setpoint are visible with zero duration before
+Run; rejection of those settings is not demonstrated. Zero was already present,
+so its matching readback alone cannot prove that field was newly applied or
+that the board considers the setup eligible to start.
+
+At 21:12 the matched one-minute batch also returned `2.04` and verified with
+`2.05`, `held: true`, and all three elements matching. Mode, desired temperature,
+Ready states and remote permission matched the zero-duration result. Both
+operationTime and remainingTime now reported `00:01:00`, although the request
+only wrote operationTime. Thus a positive timer is retained before Run and the
+appliance supplies remainingTime itself. This was still a settings-only test;
+it does not establish a successful Start after the verification read.
+
+At 21:14 an operationTime-only zero batch returned `2.04` and verified with
+`2.05`. Both times were zero and the cavity remained Ready, but mode was now
+NoOperation and desired temperature 0. Remote permission remained true.
+`held: true` applied only to the requested operationTime field; it did not
+assert preservation of the earlier mode and setpoint.
+
+This observation does not isolate zero as the cause of losing the prepared
+cook. The request omitted mode and temperature, and the preceding positive
+setup was a separate action roughly two minutes earlier. A partial settings
+write or expiry of prepared settings could also explain the reset. The next
+comparison prepares LowerBake at 400 Fahrenheit for one minute, then writes
+only a two-minute timer after three seconds in the same locked sequence,
+without intervening readback or Run.
+
+At 21:17 that locked one-to-two-minute sequence returned `2.04` for both
+writes. The delayed `2.05` read reported LowerBake, desired 400 Fahrenheit,
+operationTime and remainingTime `00:02:00`, Ready for Operation and Oven,
+and remoteControlEnabled true. A timer-only positive update therefore can
+preserve the prepared mode and setpoint. The matched one-to-zero sequence
+with the same three-second pacing is next; the earlier separate-action zero
+test still does not isolate the effect of zero from the longer pause.
+
+At 21:19 the matched one-to-zero sequence also returned `2.04` for both
+writes. Verification reported `2.05`, LowerBake, desired 400 Fahrenheit,
+both times `00:00:00`, both states Ready, and remoteControlEnabled true.
+This establishes a positive-to-zero timer change before Run that preserves
+the prepared mode and setpoint. The earlier NoOperation/zero-setpoint result
+did not reproduce with this pacing; zero alone is not established as a
+command that cancels the prepared cook. Expiry or an intervening event remains
+possible, without a demonstrated cause for the earlier reset.
+
+At 21:30 the owner reported the heating test: one-minute preparation, a
+three-second wait, operationTime cleared to zero, another three-second wait,
+then Run alone, in one locked raw-write sequence without intermediate reads.
+Offline serialization checks had confirmed three PUTs to `/devices/1`, with
+the final body containing only `Device.Operation.state: Run`.
+
+The two settings writes returned `2.04`; Run returned `4.00`, accepted false,
+and `Control fail, <Operation.state=Run>`. The delayed `2.05` read still showed
+LowerBake, desired 400 Fahrenheit, both times zero, both states Ready, and
+remoteControlEnabled true. The owner confirmed that the oven did not start.
+`held: false` in this result compares the final requested Run with Ready; it
+does not mean the preceding mode, setpoint or timer writes were rejected.
+
+Preparing a positive timer and clearing it before Run therefore did not enable
+untimed Start on the tested lower-cavity path. The refusal is at Run despite
+the retained zero-duration settings. This strengthens the evidence for a
+state-dependent restriction in the remote Start path, without exposing the
+firmware condition or ruling out every other command sequence. Starting with
+a positive timer and clearing it after Run remains the only demonstrated
+remote route to an untimed cook; that earlier manual result needs no repeat.
+No automatic workaround, runtime behavior change or submitted PR update has
+been made from these experiments.
+
+### Automatic timer removal test build
+
+The subsequent investigation build implements the manually demonstrated
+Start-then-clear route for the exact `LCD_OV_WALL_16K` legacy transport family.
+An omitted or zero cook duration prepares one minute, then uses the existing
+three-second settings/Run sequence. After a successful Run response it reads
+the cavity's Operation endpoint until Run is confirmed, checks Smart Control
+again, and writes operationTime alone as `00:00:00`. Success requires a fresh
+read showing Run with both operationTime and remainingTime zero. Positive
+requested durations and other legacy families keep their original sequence.
+
+The normal Start action gives this sequence a shared 30-second request budget
+and keeps the session lock throughout. Each confirmation has at most three
+reads one second apart. There is one Run write and one timer-clear write;
+neither is replayed after a refusal or lost response. Failure after attempting
+Run reports that the oven may be running with a temporary timer, rather than
+claiming untimed cooking succeeded. That message exists in all ten catalogs;
+catalog checks do not constitute native-speaker review.
+
+Software coverage exercises upper, lower and divider-removed routes through
+both the button and coordinator action; blank, zero and positive durations;
+lost responses at every stage; permission loss before clearing; delayed or
+invalid readback; timer-clear refusal; remaining-time mismatch; preservation
+of the original requested values; and shared timeout exhaustion. Hardware
+validation of the automatic sequence, including its confirmation timing, is
+still pending. Neither submitted PR contains this test build.
+
+The build passes all 3,401 tests (65.46 seconds), formatting, lint and type
+checks. Its 285 focused oven and translation cases also pass independently.
+
 ## Status and verification
 
 - **Power:** the LCD_OV_WALL family's ineffective switch becomes read-only status,
