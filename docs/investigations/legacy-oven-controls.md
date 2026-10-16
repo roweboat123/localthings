@@ -340,7 +340,7 @@ This confirms clearing the running cook timer without stopping Bake in that
 test. Running edits on the upper cavity and whole-oven configuration remain
 software-covered only. Neither result resolves starting without a cook time.
 
-### Remote-cleared timer capture and next Start candidate
+### Remote-cleared timer capture and explicit-zero Run experiment
 
 The 18:29 America/Chicago diagnostic on October 15 reports Lower Bake at
 400 F, Operation Run, Oven Preheat and Smart Control true. Its cached raw
@@ -359,16 +359,30 @@ while the router still listed it connected. Toggling the oven's Wi-Fi restored
 access. The startup log shows unreachable-host failures and canceled setup,
 not a timer-command refusal; it does not establish the cause of the outage.
 
-The next isolated experiment retains zero in the settings step and additionally
-sends `{"Device":{"Operation":{"state":"Run","operationTime":"00:00:00"}}}`
-for the final Start request to `/devices/{id}`. This tests whether zero must
-accompany Run rather than only precede it. It is a protocol hypothesis, not a
-verified Samsung Start sequence. The candidate applies only to an explicitly
-zero duration on LCD_OV_WALL_16K. Blank durations, positive durations, other
-families, existing Smart Control checks, settling and at-most-once Start
-dispatch remain unchanged. It never starts a positive timer and clears it
-automatically. Hardware acceptance is pending. The owner has paused updates
-to both submitted PRs while this investigation continues.
+The isolated build `fdb0dda` retained zero in the settings step and additionally
+sent `{"Device":{"Operation":{"state":"Run","operationTime":"00:00:00"}}}`
+for the final Start request to `/devices/{id}`. This tested whether zero must
+accompany Run rather than only precede it. The candidate applied only to an
+explicitly zero duration on LCD_OV_WALL_16K, retaining the existing Smart
+Control checks, settling and at-most-once Start dispatch.
+
+At 19:55 America/Chicago on October 15, the owner reported a delay followed by
+the same refusal. The subsequent screenshot shows the lower request rejected
+as `4.00 Control fail, <Operation.state=Run> <Operation.operationTime=00:00:00>`
+at `/device/1`, with the lower setpoint at 400 F. The Start sequence includes a
+three-second pause; the screenshot does not establish the total elapsed time.
+The blank durations and No Operation displayed after the refusal do not show
+which settings were selected before Start. The error itself confirms that
+the rejected request included explicit zero with Run.
+
+This variation did not establish a direct untimed start. Its runtime and test
+changes were removed, preserving the confirmed operationTime-only running
+timer edit. Zero remains the observed representation of an untimed cook and
+the accepted value for clearing an active timer; neither proves that the same
+value is accepted during Start. No literal `None` command, automatic timed
+start followed by timer clearing, or replacement refusal message is added.
+The owner has paused updates to both submitted PRs while this investigation
+continues.
 
 ## Status and verification
 

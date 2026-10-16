@@ -479,9 +479,8 @@ class TestWrites:
 
     @pytest.mark.parametrize("index,mode", [(0, "UpperConvectionBake"), (1, "LowerBake")])
     @pytest.mark.parametrize("failed_step", [0, 1])
-    @pytest.mark.parametrize("duration", [0, 300])
     def test_a_refusal_stops_the_sequence_and_keeps_the_reason(
-        self, index, mode, failed_step, duration, monkeypatch
+        self, index, mode, failed_step, monkeypatch
     ):
         transport = _transport()
         permission = (200, {"Configuration": {"remoteControlEnabled": True}})
@@ -491,7 +490,7 @@ class TestWrites:
         ]
         request = Mock(side_effect=responses)
         monkeypatch.setattr(transport, "_request", request)
-        batch = cook.CookPlan(mode, 350, "Fahrenheit", duration).batch(
+        batch = cook.CookPlan(mode, 350, "Fahrenheit", 300).batch(
             lambda href: href[:-1] + str(index)
         )
 
@@ -1494,16 +1493,12 @@ async def test_live_mode_spec_takes_precedence_over_legacy_limits(hass):
     assert cook.mode_specs(resources)["UpperConvectionBake"].time_max == 7200
 
 
-@pytest.mark.parametrize(
-    "index,divided,mode",
-    [(0, True, "UpperConvectionBake"), (1, True, "LowerBake"), (0, False, "Bake")],
-)
+@pytest.mark.parametrize("index,mode", [(0, "UpperConvectionBake"), (1, "LowerBake")])
 @pytest.mark.parametrize("use_button", [False, True])
-@pytest.mark.parametrize("duration", [0, 300])
 async def test_normal_start_keeps_the_lock_through_both_writes(
-    hass: HomeAssistant, monkeypatch, index, divided, mode, use_button, duration
+    hass: HomeAssistant, monkeypatch, index, mode, use_button
 ):
-    coordinator = await _discovered(hass, _routes(divided=divided))
+    coordinator = await _discovered(hass)
     cavity = _lower(coordinator) if index else MAIN
 
     def bound(key):
@@ -1512,7 +1507,7 @@ async def test_normal_start_keeps_the_lock_through_both_writes(
     if use_button:
         await coordinator.async_send_command(bound("oven_mode"), mode)
         await coordinator.async_send_command(bound("oven_setpoint"), 350)
-        await coordinator.async_send_command(bound("cook_time_minutes"), duration // 60)
+        await coordinator.async_send_command(bound("cook_time_minutes"), 5)
     _FakeConnection.log.clear()
 
     def settle(seconds):
@@ -1529,12 +1524,9 @@ async def test_normal_start_keeps_the_lock_through_both_writes(
     if use_button:
         await coordinator.async_send_command(bound("start_cooking"), "")
     else:
-        await coordinator.async_start_cooking(cavity, mode=mode, temperature=350, duration=duration)
+        await coordinator.async_start_cooking(cavity, mode=mode, temperature=350, duration=300)
 
     sleep.assert_called_once_with(3.0)
-    run_operation = {"state": "Run"}
-    if duration == 0:
-        run_operation["operationTime"] = "00:00:00"
     assert [entry[:3] for entry in _FakeConnection.log] == [
         ("GET", f"/devices/{index}/configuration", None),
         (
@@ -1544,12 +1536,12 @@ async def test_normal_start_keeps_the_lock_through_both_writes(
                 "Device": {
                     "Mode": {"modes": [mode]},
                     "Temperatures": [{"id": "0", "desired": 350, "unit": "Fahrenheit"}],
-                    "Operation": {"operationTime": cook.format_hms(duration)},
+                    "Operation": {"operationTime": "00:05:00"},
                 }
             },
         ),
         ("GET", f"/devices/{index}/configuration", None),
-        ("PUT", f"/devices/{index}", {"Device": {"Operation": run_operation}}),
+        ("PUT", f"/devices/{index}", {"Device": {"Operation": {"state": "Run"}}}),
     ]
     assert not coordinator._session_lock.locked()
 

@@ -21,38 +21,9 @@ from tests.test_legacy_http_lower_cavity import (
 from tests.test_legacy_http_transport import _FakeConnection
 
 
-def _batch(index, duration=300):
+def _batch(index):
     mode = "LowerBake" if index else "UpperConvectionBake"
-    return cook.CookPlan(mode, 350, "Fahrenheit", duration).batch(
-        lambda href: href[:-1] + str(index)
-    )
-
-
-@pytest.mark.parametrize("index", [0, 1])
-@pytest.mark.parametrize("duration", [None, 0, 300])
-@pytest.mark.parametrize("family", ["LCD_OV_WALL_16K", "LCD_OV_WALL_20K"])
-def test_zero_with_run_is_limited_to_explicit_zero_on_the_measured_board(index, duration, family):
-    code, _ = _transport(family).write(["device", str(index)], _batch(index, duration), timeout=8.0)
-
-    assert code == 0x44
-    path = f"/devices/{index}"
-    assert _requests() == [
-        ("GET", path + "/configuration"),
-        ("PUT", path),
-        ("GET", path + "/configuration"),
-        ("PUT", path),
-    ]
-    settings_body = _FakeConnection.log[1][2]
-    assert settings_body is not None
-    settings = settings_body["Device"]
-    if duration is None:
-        assert "Operation" not in settings
-    else:
-        assert settings["Operation"] == {"operationTime": cook.format_hms(duration)}
-    run_operation = {"state": "Run"}
-    if family == "LCD_OV_WALL_16K" and duration == 0:
-        run_operation["operationTime"] = "00:00:00"
-    assert _FakeConnection.log[-1][2] == {"Device": {"Operation": run_operation}}
+    return cook.CookPlan(mode, 350, "Fahrenheit", 300).batch(lambda href: href[:-1] + str(index))
 
 
 @pytest.mark.parametrize("index", [0, 1])
@@ -71,10 +42,7 @@ def test_zero_with_run_is_limited_to_explicit_zero_on_the_measured_board(index, 
         (500, None),
     ],
 )
-@pytest.mark.parametrize("duration", [0, 300])
-def test_unconfirmed_permission_never_sends_the_next_write(
-    index, phase, response, duration, monkeypatch
-):
+def test_unconfirmed_permission_never_sends_the_next_write(index, phase, response, monkeypatch):
     path = f"/devices/{index}"
 
     def disable(_seconds=None):
@@ -87,7 +55,7 @@ def test_unconfirmed_permission_never_sends_the_next_write(
             "custom_components.localthings.legacy_http_transport.time.sleep", disable
         )
 
-    code, reason = _transport().write(["device", str(index)], _batch(index, duration), timeout=8.0)
+    code, reason = _transport().write(["device", str(index)], _batch(index), timeout=8.0)
 
     assert code >> 5 != 2
     assert phase in reason
@@ -101,8 +69,7 @@ def test_unconfirmed_permission_never_sends_the_next_write(
 
 @pytest.mark.parametrize("index", [0, 1])
 @pytest.mark.parametrize("bypass", [False, True])
-@pytest.mark.parametrize("duration", [0, 300])
-async def test_live_off_blocks_start_even_with_stale_true_cache(hass, index, bypass, duration):
+async def test_live_off_blocks_start_even_with_stale_true_cache(hass, index, bypass):
     coordinator = await _discovered(hass)
     cavity = _lower(coordinator) if index else MAIN
     assert coordinator._remote_control_enabled(cavity)
@@ -120,7 +87,7 @@ async def test_live_off_blocks_start_even_with_stale_true_cache(hass, index, byp
             cavity,
             mode="LowerBake" if index else "UpperConvectionBake",
             temperature=350,
-            duration=duration,
+            duration=300,
         )
 
     assert _requests() == [("GET", f"/devices/{index}/configuration")]
@@ -128,9 +95,8 @@ async def test_live_off_blocks_start_even_with_stale_true_cache(hass, index, byp
 
 @pytest.mark.parametrize("index", [0, 1])
 @pytest.mark.parametrize("failed_request", [1, 2, 3, 4])
-@pytest.mark.parametrize("duration", [0, 300])
 async def test_start_is_not_replayed_after_a_lost_response(
-    hass, monkeypatch, index, failed_request, duration
+    hass, monkeypatch, index, failed_request
 ):
     coordinator = await _discovered(hass)
     cavity = _lower(coordinator) if index else MAIN
@@ -156,7 +122,7 @@ async def test_start_is_not_replayed_after_a_lost_response(
             cavity,
             mode="LowerBake" if index else "UpperConvectionBake",
             temperature=350,
-            duration=duration,
+            duration=300,
         )
 
     assert error.value.translation_key == "cook_start_unconfirmed"
@@ -166,8 +132,7 @@ async def test_start_is_not_replayed_after_a_lost_response(
 
 
 @pytest.mark.parametrize("budget", [0.0, 4.0, 8.0])
-@pytest.mark.parametrize("duration", [0, 300])
-def test_all_start_requests_share_one_timeout_budget(monkeypatch, budget, duration):
+def test_all_start_requests_share_one_timeout_budget(monkeypatch, budget):
     now = 0.0
     timeouts = []
 
@@ -193,8 +158,8 @@ def test_all_start_requests_share_one_timeout_budget(monkeypatch, budget, durati
 
     if budget < 8:
         with pytest.raises(TimeoutError):
-            transport.write(["device", "0"], _batch(0, duration), timeout=budget)
+            transport.write(["device", "0"], _batch(0), timeout=budget)
         assert timeouts == ([] if budget == 0 else [4.0, 3.0])
     else:
-        assert transport.write(["device", "0"], _batch(0, duration), timeout=budget)[0] == 0x44
+        assert transport.write(["device", "0"], _batch(0), timeout=budget)[0] == 0x44
         assert timeouts == [8.0, 7.0, 3.0, 2.0]
