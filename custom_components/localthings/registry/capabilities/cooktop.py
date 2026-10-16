@@ -226,7 +226,10 @@ def _ring_size(value):
     return value.lower() if value in ("Idle", "Single", "Dual", "Triple") else value
 
 
-def _legacy_radiant_sensor(desc):
+def _legacy_radiant_entity(desc):
+    if desc.key == "cooktop_paused":
+        # NZ36K7570R lacks All-Pause but still reports Pause_Off.
+        return dataclasses.replace(desc, enabled_default=False)
     if not isinstance(desc, SensorDesc):
         return desc
     if desc.key == "main_timer_set":
@@ -254,7 +257,7 @@ LEGACY_RADIANT_MODE = dataclasses.replace(
     COOKTOP_MODE,
     match_fn=is_legacy_radiant_cooktop,
     entities=tuple(
-        _legacy_radiant_sensor(desc)
+        _legacy_radiant_entity(desc)
         for desc in COOKTOP_MODE.entities
         if desc.key != "main_timer_current"
     ),

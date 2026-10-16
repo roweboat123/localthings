@@ -33,6 +33,9 @@ not a raw fixture or a measured guarantee that polling always catches it.
 | 3, triple rings | PanSize3_Triple | Ready at power 0, then Run at power 3 |
 | 5, larger size | PanSize5_Dual | Run at power 3 |
 
+The user confirmed that the updated Home Assistant Ring Size sensors report
+the selected sizes correctly.
+
 Both slots also reported Single in earlier captures. Idle was present for
 slot 3 in the original support fixture. FlexCoil_0 remained unchanged in
 these tests; it cannot yet be interpreted as the selected ring count.
@@ -46,6 +49,16 @@ must use the lowercase enum values. Unknown device values remain visible.
 The Flex Coil diagnostic stays raw and is disabled by default for this
 family. Existing entity enablement is preserved. No remote cooktop writes
 are introduced.
+
+## Paused
+
+Every captured options array reports Pause_Off. Samsung's
+[2022 product catalog](https://image-us.samsung.com/SamsungUS/samsungbusiness/builder/product-catalog/catalog.pdf)
+lists no All-Pause feature for the NZ36K7570R. Paused therefore defaults to
+disabled in the legacy radiant profile; other cooktop profiles are unchanged.
+Existing entity enablement is preserved, so an already enabled Paused entity
+must be disabled once in Home Assistant. The raw field remains available in
+diagnostic downloads.
 
 ## Sync Control and hood scope
 

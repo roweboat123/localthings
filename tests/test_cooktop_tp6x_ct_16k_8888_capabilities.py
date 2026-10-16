@@ -225,6 +225,8 @@ def test_timer_units_only_for_verified_legacy_family(name):
     bound = discover(resources, reg.capabilities, reg.pattern_capabilities)
     descriptions = {b.desc.key: b.desc for b in bound}
     timer = cast(SensorDesc, descriptions["main_timer_set"])
+    if "cooktop_paused" in descriptions:
+        assert descriptions["cooktop_paused"].enabled_default is (name != NAME)
     if name == NAME:
         assert (timer.unit, timer.device_class, timer.translation_key) == (
             "min",
