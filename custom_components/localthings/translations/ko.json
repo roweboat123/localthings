@@ -1886,6 +1886,21 @@
       },
       "oven_cavity_food_probe_setpoint": {
         "name": "{cavity} 온도 프로브 목표"
+      },
+      "cooktop_timer_remaining": {
+        "name": "타이머 남은 시간"
+      },
+      "cooktop_timer_status": {
+        "name": "타이머 상태"
+      },
+      "cooktop_ring_size": {
+        "name": "화구 {number} 크기",
+        "state": {
+          "idle": "대기",
+          "single": "단일",
+          "dual": "이중",
+          "triple": "삼중"
+        }
       }
     },
     "switch": {

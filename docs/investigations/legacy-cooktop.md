@@ -1,0 +1,65 @@
+# NZ36K7570R timer and burner sizes
+
+Hardware observations on 2026-10-16, using the TP6X_CT_16K legacy HTTPS
+interface. The device reports DeviceType_NV9300K-/AA2. The observations
+below do not establish units or ring-size meanings for other board families.
+
+## Timer
+
+A timer set locally to ten minutes reported MainTimerCurrent_10,
+MainTimerSet_10 and MainTimerState_Run. About two minutes later, both
+numeric fields reported 8 while the state remained Run. Both fields therefore
+report remaining minutes on this appliance; Set does not retain the original
+duration. All burners were off during this test.
+
+Keep the existing, enabled main_timer_set entity as Timer Remaining with
+duration class and minute units. Keep main_timer_current disabled by default
+as a diagnostic reading; preserve both entity IDs. Timer Status continues
+to report the device value without deriving completion from a zero countdown.
+
+A diagnostic downloaded during the audible alert reported both time fields
+as zero and the state as Ready, with an empty alarm list. The user separately
+observed Finished on the Home Assistant timer-status sensor while beeping.
+No capture contains that transient value, so it is a user-observed state,
+not a raw fixture or a measured guarantee that polling always catches it.
+
+## Burner sizes
+
+| User-selected burner | Reported option | Observed operation |
+| --- | --- | --- |
+| 3, triple rings | PanSize3_Triple | Ready at power 0, then Run at power 3 |
+| 5, larger size | PanSize5_Dual | Run at power 3 |
+
+Both slots also reported Single in earlier captures. Idle was present for
+slot 3 in the original support fixture. FlexCoil_0 remained unchanged in
+these tests; it cannot yet be interpreted as the selected ring count.
+The user also reported trying every panel button while Flex Coil Code
+remained 0. This observation does not establish a function for that field.
+Physical front/back/left/right positions have not been verified.
+
+Ring sizes use translated enum states idle/single/dual/triple, retaining the
+existing entity IDs. Automations comparing the old capitalized raw values
+must use the lowercase enum values. Unknown device values remain visible.
+The Flex Coil diagnostic stays raw and is disabled by default for this
+family. Existing entity enablement is preserved. No remote cooktop writes
+are introduced.
+
+## Sync Control and hood scope
+
+The existing Sync Control sensor reads SyncFlex_On/Off. Samsung describes
+Sync Control as operating the two left elements together for large cookware
+or a griddle, separately from Bluetooth hood connectivity in its
+[product catalog](https://image-us.samsung.com/SamsungUS/samsungbusiness/samsung-builder/pdfs/Samsung_Home_Appliances_2019_Product_Catalog.pdf).
+The raw captures contain only SyncFlex_Off. The user subsequently identified
+Sync Control with burners 1 and 2 and supplied a Home Assistant screenshot
+showing Sync Control On; no raw capture of that active state is available.
+FlexCoil is a separate raw field with an unverified meaning.
+
+No new hood mapping or control is included: no compatible hood is available
+for hardware verification. The existing upstream hood resources for other
+appliances are unchanged.
+
+The fixture legacy_cooktop_observations.json contains only the relevant
+options arrays extracted from the user's diagnostics. Its state reflects
+the coordinator resource snapshot; the transport's discovery cache can be
+older and is not a second synchronized measurement.

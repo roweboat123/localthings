@@ -1886,6 +1886,21 @@
       },
       "oven_cavity_food_probe_setpoint": {
         "name": "{cavity}: Temperatura obiettivo della sonda"
+      },
+      "cooktop_timer_remaining": {
+        "name": "Tempo rimanente del timer"
+      },
+      "cooktop_timer_status": {
+        "name": "Stato del timer"
+      },
+      "cooktop_ring_size": {
+        "name": "Dimensione della zona {number}",
+        "state": {
+          "idle": "Inattiva",
+          "single": "Singola",
+          "dual": "Doppia",
+          "triple": "Tripla"
+        }
       }
     },
     "switch": {

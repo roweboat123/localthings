@@ -1886,6 +1886,21 @@
       },
       "oven_cavity_food_probe_setpoint": {
         "name": "{cavity}: Doeltemperatuur van de sonde"
+      },
+      "cooktop_timer_remaining": {
+        "name": "Resterende timertijd"
+      },
+      "cooktop_timer_status": {
+        "name": "Timerstatus"
+      },
+      "cooktop_ring_size": {
+        "name": "Grootte kookzone {number}",
+        "state": {
+          "idle": "Inactief",
+          "single": "Enkel",
+          "dual": "Dubbel",
+          "triple": "Drievoudig"
+        }
       }
     },
     "switch": {

@@ -1886,6 +1886,21 @@
       },
       "oven_cavity_food_probe_setpoint": {
         "name": "{cavity}: Zieltemperatur des Temperaturfühlers"
+      },
+      "cooktop_timer_remaining": {
+        "name": "Verbleibende Timerzeit"
+      },
+      "cooktop_timer_status": {
+        "name": "Timerstatus"
+      },
+      "cooktop_ring_size": {
+        "name": "Kochzonengröße {number}",
+        "state": {
+          "idle": "Inaktiv",
+          "single": "Einfach",
+          "dual": "Zweifach",
+          "triple": "Dreifach"
+        }
       }
     },
     "switch": {

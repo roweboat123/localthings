@@ -1886,6 +1886,21 @@
       },
       "oven_cavity_food_probe_setpoint": {
         "name": "{cavity} Temperature Probe Target"
+      },
+      "cooktop_timer_remaining": {
+        "name": "Timer Remaining"
+      },
+      "cooktop_timer_status": {
+        "name": "Timer Status"
+      },
+      "cooktop_ring_size": {
+        "name": "Burner {number} Ring Size",
+        "state": {
+          "idle": "Idle",
+          "single": "Single",
+          "dual": "Dual",
+          "triple": "Triple"
+        }
       }
     },
     "switch": {

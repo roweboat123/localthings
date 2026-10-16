@@ -1886,6 +1886,21 @@
       },
       "oven_cavity_food_probe_setpoint": {
         "name": "{cavity}: Cieľová teplota sondy"
+      },
+      "cooktop_timer_remaining": {
+        "name": "Zostávajúci čas časovača"
+      },
+      "cooktop_timer_status": {
+        "name": "Stav časovača"
+      },
+      "cooktop_ring_size": {
+        "name": "Veľkosť zóny {number}",
+        "state": {
+          "idle": "Nečinná",
+          "single": "Jednoduchá",
+          "dual": "Dvojitá",
+          "triple": "Trojitá"
+        }
       }
     },
     "switch": {

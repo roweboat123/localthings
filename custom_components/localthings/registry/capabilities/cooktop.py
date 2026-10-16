@@ -162,9 +162,8 @@ COOKTOP_MODE = Capability(
             enabled_default=False,
             value_fn=lambda options: _int_or_none(_option_value(options, "MainTimerCurrent")),
         ),
-        # Reported by the NV9300K, NV8000T and NZ36K7570R (#609). Timer units,
-        # flex-coil encoding and the pan-size vocabulary are unverified, so
-        # they stay raw.
+        # These values stay raw on unverified boards; the legacy radiant
+        # profile below supplies the NZ36K7570R's confirmed meanings.
         SensorDesc(
             key="main_timer_set",
             field="x.com.samsung.da.options",
@@ -213,6 +212,52 @@ COOKTOP_MODE = Capability(
             for slot in _SUPPORTED_OPERATION_SLOTS
         ),
     ),
+)
+
+
+def is_legacy_radiant_cooktop(rep, resources):
+    information = resources.get("/information/vs/0") or {}
+    board = str(information.get("x.com.samsung.da.modelNum", "")).split("|", 1)[0]
+    model = _option_value(rep.get("x.com.samsung.da.options"), "DeviceType")
+    return board == "TP6X_CT_16K" and (is_stub_rep(rep) or str(model).startswith("NV9300K"))
+
+
+def _ring_size(value):
+    return value.lower() if value in ("Idle", "Single", "Dual", "Triple") else value
+
+
+def _legacy_radiant_sensor(desc):
+    if not isinstance(desc, SensorDesc):
+        return desc
+    if desc.key == "main_timer_set":
+        # NZ36K7570R reports remaining minutes in both timer fields; retain
+        # the existing enabled entity (docs/investigations/legacy-cooktop.md).
+        return dataclasses.replace(
+            desc, translation_key="cooktop_timer_remaining", unit="min", device_class="duration"
+        )
+    if desc.key == "main_timer_current":
+        return dataclasses.replace(
+            desc, unit="min", device_class="duration", entity_category="diagnostic"
+        )
+    if desc.key == "main_timer_state":
+        return dataclasses.replace(desc, translation_key="cooktop_timer_status")
+    if desc.key == "cooktop_flex_coil":
+        return dataclasses.replace(desc, enabled_default=False)
+    if desc.translation_key == "burner_pan_size":
+        return dataclasses.replace(
+            desc,
+            translation_key="cooktop_ring_size",
+            device_class="enum",
+            options=("idle", "single", "dual", "triple"),
+            value_fn=lambda options: _ring_size(desc.value_fn(options)),
+        )
+    return desc
+
+
+LEGACY_RADIANT_MODE = dataclasses.replace(
+    COOKTOP_MODE,
+    match_fn=is_legacy_radiant_cooktop,
+    entities=tuple(_legacy_radiant_sensor(desc) for desc in COOKTOP_MODE.entities),
 )
 
 
