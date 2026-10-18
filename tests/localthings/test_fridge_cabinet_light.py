@@ -1,5 +1,7 @@
 """Cabinet light availability follows door updates without removing the entity."""
 
+from functools import partial
+
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
@@ -47,7 +49,12 @@ async def test_cabinet_light_recovers_after_door_closes(
         source="observe",
     )
     for door_state, light_state in (("Open", "unavailable"), ("Close", "off")):
-        coordinator._observe.apply(door_href, {"openState": door_state}, source="observe")
+        # Device notifications arrive on a transport thread, outside the HA loop.
+        await hass.async_add_executor_job(
+            partial(
+                coordinator._observe.apply, door_href, {"openState": door_state}, source="observe"
+            )
+        )
         await hass.async_block_till_done()
         assert _state(hass, light) == light_state
         assert _state(hass, gradual) == "on"
