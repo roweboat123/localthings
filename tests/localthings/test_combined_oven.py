@@ -1,5 +1,6 @@
 """One physical Flex Duo device keeps independent cavity commands and identities."""
 
+import asyncio
 from collections import Counter
 from unittest.mock import AsyncMock, patch
 
@@ -36,6 +37,16 @@ from tests.test_subdevice_discovery import _coordinator, _discover
 
 async def _load(hass, monkeypatch, coordinator, *, offline=False):
     await hass.async_block_till_done()
+    # Older HA needs another loop turn for thread-safe cache notifications.
+    # Finish discovery's queued push before simulating an offline connection.
+    if coordinator._push_pending:
+        pushed = asyncio.Event()
+        remove_listener = coordinator.async_add_listener(pushed.set)
+        try:
+            async with asyncio.timeout(1):
+                await pushed.wait()
+        finally:
+            remove_listener()
     entry = coordinator._entry
     hass.config_entries.async_update_entry(
         entry, version=4, data={**entry.data, CONF_DEVICE_KEY: coordinator.device_key}
@@ -149,9 +160,13 @@ async def test_upgrade_groups_entities_preserves_ids_and_changes_cavity_labels(
         expected = "Upper" if divided else "Oven"
         state = hass.states.get(main_time)
         assert state is not None and expected + " Cook Time Minutes" in state.name
-        assert entities.async_get(main_time).original_name == expected + " Cook Time Minutes"
+        main_time_row = entities.async_get(main_time)
+        assert main_time_row is not None
+        assert main_time_row.original_name == expected + " Cook Time Minutes"
         assert (hass.states.get(lower_time).state == "unavailable") is not divided
-        assert entities.async_get("button.my_lower_start").name == "My Lower Start"
+        lower_start_row = entities.async_get("button.my_lower_start")
+        assert lower_start_row is not None
+        assert lower_start_row.name == "My Lower Start"
     assert _rows(hass, coordinator).keys() == rows.keys()
     await hass.config_entries.async_unload(coordinator._entry.entry_id)
 

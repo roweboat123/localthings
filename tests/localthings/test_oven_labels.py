@@ -106,7 +106,9 @@ async def test_split_label_upgrade_preserves_retained_entities(
                 assert hass.states.get(row.entity_id).name.endswith(
                     "My Setpoint" if row.entity_id == custom.entity_id else name
                 )
-        assert entities.async_get(custom.entity_id).name == "My Setpoint"
+        custom_row = entities.async_get(custom.entity_id)
+        assert custom_row is not None
+        assert custom_row.name == "My Setpoint"
         current = devices.async_get(upper.id)
         assert current is not None
         assert (current.identifiers, current.name, current.name_by_user) == (

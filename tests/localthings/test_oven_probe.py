@@ -101,7 +101,9 @@ async def test_probe_connects_without_reload_and_reuses_entities(
             state = hass.states.get(after[key].entity_id)
             assert state is not None
             assert (state.state == "unavailable") is not connected
-        assert registry.async_get(probe.entity_id).name == "My Food Probe"
+        probe_row = registry.async_get(probe.entity_id)
+        assert probe_row is not None
+        assert probe_row.name == "My Food Probe"
     reload_requested.assert_not_called()
 
     await hass.config_entries.async_unload(coordinator._entry.entry_id)
@@ -120,7 +122,9 @@ async def test_probe_connects_without_reload_and_reuses_entities(
     for key in probe_keys:
         assert after_restart[key].entity_id == rows[key].entity_id
         assert hass.states.get(after_restart[key].entity_id).state != "unavailable"
-    assert registry.async_get(probe.entity_id).name == "My Food Probe"
+    probe_row = registry.async_get(probe.entity_id)
+    assert probe_row is not None
+    assert probe_row.name == "My Food Probe"
     await hass.config_entries.async_unload(coordinator._entry.entry_id)
 
 

@@ -4,7 +4,8 @@ from typing import cast
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from homeassistant.components.number import NumberMode
+from homeassistant.components.number import NumberDeviceClass, NumberMode
+from homeassistant.components.number.const import UNIT_CONVERTERS
 
 from custom_components.localthings.coordinator import LocalThingsCoordinator
 from custom_components.localthings.number import LocalThingsNumber
@@ -33,7 +34,11 @@ class _FakeCoordinator:
 def _number(desc, resources):
     href = "/temperatures/vs/0"
     bound = BoundEntity(href=href, capability=Capability(href=href, entities=(desc,)), desc=desc)
-    return LocalThingsNumber(cast(LocalThingsCoordinator, _FakeCoordinator(resources)), bound)
+    entity = LocalThingsNumber(cast(LocalThingsCoordinator, _FakeCoordinator(resources)), bound)
+    entity.platform_data = Mock(
+        platform_name="localthings", domain="number", default_language_platform_translations={}
+    )
+    return entity
 
 
 def test_bounds_fn_reads_a_sibling_href_and_overrides_static_bounds():
@@ -101,6 +106,20 @@ async def test_cook_time_unit_changes_preserve_duration_bounds_and_writes(hass, 
     entity.registry_entry = registry
     entity.async_registry_entry_updated()
 
+    # HA 2026.2 does not offer duration-unit overrides in the number UI.
+    if NumberDeviceClass.DURATION not in UNIT_CONVERTERS:
+        assert entity.unit_of_measurement == "min"
+        assert entity.state == minutes
+        assert entity.capability_attributes == {
+            "min": 0.0,
+            "max": 599.0,
+            "step": 1.0,
+            "mode": "box",
+        }
+        await entity.async_set_native_value(entity.state)
+        coordinator.async_send_command.assert_awaited_once_with(entity._bound, minutes)
+        return
+
     assert entity.unit_of_measurement == "h"
     assert entity.state == pytest.approx(minutes / 60)
     assert entity.capability_attributes == {
@@ -120,7 +139,7 @@ async def test_cook_time_unit_changes_preserve_duration_bounds_and_writes(hass, 
     assert coordinator.data[entity._state_key] == minutes
 
 
-async def test_hour_entry_sends_minutes_and_retains_one_minute_precision(hass):
+async def test_supported_duration_entry_sends_minutes(hass):
     desc = next(e for e in OVEN_OPERATIONAL_STATE.entities if e.key == "cook_time")
     entity = _number(desc, {})
     entity.hass = hass
@@ -128,5 +147,7 @@ async def test_hour_entry_sends_minutes_and_retains_one_minute_precision(hass):
     entity.registry_entry = Mock(options={"number": {"unit_of_measurement": "h"}})
     entity.async_registry_entry_updated()
 
-    await entity.async_set_native_value(1.5)
+    supports_hours = NumberDeviceClass.DURATION in UNIT_CONVERTERS
+    assert entity.unit_of_measurement == ("h" if supports_hours else "min")
+    await entity.async_set_native_value(1.5 if supports_hours else 90)
     entity.coordinator.async_send_command.assert_awaited_once_with(entity._bound, 90)
