@@ -159,6 +159,16 @@
       },
       "cooktop_paused": {
         "name": "Gepauzeerd"
+      },
+      "divider_lcd_wall_16k": {
+        "name": "Scheidingswand",
+        "state": {
+          "on": "Geplaatst",
+          "off": "Verwijderd"
+        }
+      },
+      "reservoir_open": {
+        "name": "Waterreservoir"
       }
     },
     "button": {

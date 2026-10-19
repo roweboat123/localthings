@@ -159,6 +159,16 @@
       },
       "cooktop_paused": {
         "name": "Wstrzymano"
+      },
+      "divider_lcd_wall_16k": {
+        "name": "Przegroda",
+        "state": {
+          "on": "Włożona",
+          "off": "Wyjęta"
+        }
+      },
+      "reservoir_open": {
+        "name": "Zbiornik wody"
       }
     },
     "button": {

@@ -159,6 +159,16 @@
       },
       "cooktop_paused": {
         "name": "Paused"
+      },
+      "divider_lcd_wall_16k": {
+        "name": "Divider",
+        "state": {
+          "on": "Inserted",
+          "off": "Removed"
+        }
+      },
+      "reservoir_open": {
+        "name": "Reservoir"
       }
     },
     "button": {

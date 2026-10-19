@@ -159,6 +159,16 @@
       },
       "cooktop_paused": {
         "name": "Pozastaveno"
+      },
+      "divider_lcd_wall_16k": {
+        "name": "Přepážka",
+        "state": {
+          "on": "Vložená",
+          "off": "Vyjmutá"
+        }
+      },
+      "reservoir_open": {
+        "name": "Nádržka"
       }
     },
     "button": {
