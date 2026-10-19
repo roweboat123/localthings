@@ -68,7 +68,7 @@ from .registry import CAPABILITIES
 from .registry.adapter import _key, flatten
 from .registry.batch import parse_device0_batch
 from .registry.by_type import resolve as resolve_registry
-from .registry.capabilities import cook
+from .registry.capabilities import cook, oven
 from .registry.capabilities.common import (
     REMOTE_CONTROL_HREFS,
     merge_items_field,
@@ -577,7 +577,8 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         own reps, plus this integration's discovered cloud programs merged
         onto /course/vs/0 under cloudcourse.FIELD (issue #342), and for an
         oven the upper cavity's modeSpec shared with the lower one and each
-        idle cavity's held cook choices (issue #473, see cook.py).
+        idle cavity's held cook choices (issue #473, see cook.py). The
+        NV51K7770S also shares its door, divider and reservoir readings.
 
         Merged at read time rather than applied to the state cache, so the
         synthetic field can never be polled over or written to the device --
@@ -595,7 +596,9 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         this per-subdevice means keying the store by actual href the way
         LearnedModes does, and migrating the persisted shape.
         """
-        snapshot = self._with_held_cooks(self._cook_view(self.last_resources))
+        snapshot = oven.shared_sensor_view(
+            self._with_held_cooks(self._cook_view(self.last_resources))
+        )
         rep = snapshot.get(cloudcourse.COURSE_HREF)
         if rep is None:
             return snapshot
@@ -682,7 +685,7 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         exists_fn counterpart to canonical_resources."""
         if self._rehydrate_resources is None:
             return self.canonical_resources(subdevice)
-        resources = self._cook_view(self._rehydrate_resources)
+        resources = oven.shared_sensor_view(self._cook_view(self._rehydrate_resources))
         return canonical_view(subdevice, resources, self.subdevices)
 
     # ------------------------------------------------------------------

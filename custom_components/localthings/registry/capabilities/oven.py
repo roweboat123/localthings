@@ -701,6 +701,89 @@ OVEN_PROBE_DESIRED_OCF = Capability(
     ),
 )
 
+_SHARED_DIVIDER = "_localthings_divider"
+_SHARED_RESERVOIR = "_localthings_reservoir"
+
+
+def _divider_state(value):
+    return True if value == "On" else False if value == "Off" else None
+
+
+def shared_sensor_view(resources: dict[str, dict]) -> dict[str, dict]:
+    """Share the NV51K7770S's physical sensors only in the entity view."""
+    prefix = "x.com.samsung.da."
+    main = resources.get("/information/vs/0", {})
+    lower = resources.get("/information/vs/1", {})
+    if (
+        not cook.is_lcd_wall_oven(resources)
+        or not cook.is_lcd_wall_oven({"/information/vs/0": lower})
+        or lower.get(prefix + "description") != "LCD_OV_WALL_16K_DIV"
+    ):
+        return resources
+
+    divider = resources.get("/connected/vs/1", {}).get(prefix + "connected")
+    view = {
+        **resources,
+        "/information/vs/0": {**main, _SHARED_DIVIDER: _divider_state(divider)},
+    }
+    lower_door = resources.get("/doors/vs/1", {})
+    items = resources.get("/doors/vs/0", {}).get(prefix + "items")
+    if (
+        lower_door.get(prefix + "items") == []
+        and isinstance(items, list)
+        and len(items) == 1
+        and isinstance(items[0], dict)
+        and items[0].get(prefix + "id") == "0"
+        and items[0].get(prefix + "openState") in ("Open", "Close")
+    ):
+        # One physical door, even with the divider removed. Retain any
+        # lower reading and keep its raw empty list in diagnostics.
+        view["/doors/vs/1"] = {**lower_door, prefix + "items": items}
+
+    main_mode = resources.get("/mode/vs/0", {})
+    options = resources.get("/mode/vs/1", {}).get(prefix + "options")
+    if options is not None and not isinstance(options, list):
+        return view
+    own_switch = any(
+        _option_value(options, name) is not None
+        for name in ("waterTankInSwitch", "waterTankOutSwitch")
+    )
+    if not own_switch and _has_reservoir(main_mode, resources):
+        # Share the display value, not Upper's options array: sibling
+        # options must never enter a Lower control write.
+        view["/information/vs/1"] = {
+            **lower,
+            _SHARED_RESERVOIR: _reservoir_open(main_mode.get(prefix + "options")),
+        }
+    return view
+
+
+OVEN_SHARED_SENSORS = Capability(
+    href="/information/vs/0",
+    match_fn=lambda rep, resources: cook.is_lcd_wall_oven(resources),
+    entities=(
+        BinarySensorDesc(
+            key="divider",
+            translation_key="divider_lcd_wall_16k",
+            field=_SHARED_DIVIDER,
+            icon="mdi:view-split-horizontal",
+            exists_fn=lambda rep, resources: (
+                _SHARED_DIVIDER in resources.get("/information/vs/0", {})
+            ),
+        ),
+        BinarySensorDesc(
+            key="reservoir_open",
+            field=_SHARED_RESERVOIR,
+            device_class="opening",
+            icon="mdi:cup-water",
+            exists_fn=lambda rep, resources: (
+                _SHARED_RESERVOIR in resources.get("/information/vs/0", {})
+            ),
+        ),
+    ),
+)
+
+
 OVEN_DOOR = Capability(
     href="/doors/vs/0",
     poll_tier="hot",
@@ -743,8 +826,20 @@ OVEN_CONNECTED = Capability(
             key="divider",
             field="x.com.samsung.da.connected",
             icon="mdi:view-split-horizontal",
-            exists_fn=_is_lower_cavity,
+            exists_fn=lambda rep, resources: (
+                _is_lower_cavity(rep, resources) and not cook.is_lcd_wall_oven(resources)
+            ),
             value_fn=lambda v: v == "On",
+        ),
+        BinarySensorDesc(
+            key="divider",
+            translation_key="divider_lcd_wall_16k",
+            field="x.com.samsung.da.connected",
+            icon="mdi:view-split-horizontal",
+            exists_fn=lambda rep, resources: (
+                _is_lower_cavity(rep, resources) and cook.is_lcd_wall_oven(resources)
+            ),
+            value_fn=_divider_state,
         ),
     ),
 )
