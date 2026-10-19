@@ -32,6 +32,15 @@ class LocalThingsButton(LocalThingsEntity, ButtonEntity):
         super().__init__(coordinator, bound)
         self._payload = bound.desc.payload
         self._payload_fn = bound.desc.payload_fn
+        self._available_fn = bound.desc.available_fn
+
+    @property
+    def available(self) -> bool:
+        if not super().available:
+            return False
+        return self._available_fn is None or self._available_fn(
+            self.coordinator.resource(self._bound.href), self._resources
+        )
 
     async def async_press(self) -> None:
         payload = self._payload_fn(dt_util.now()) if self._payload_fn else self._payload
