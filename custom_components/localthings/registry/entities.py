@@ -131,6 +131,8 @@ class LightDesc(SamsungEntityDescription):
 
 @dataclass(frozen=True, kw_only=True)
 class ButtonDesc(SamsungEntityDescription):
+    # Keep the entity registered while a temporary device condition blocks it.
+    available_fn: Callable[[dict, dict], bool] | None = None
     payload: Any = ""
     # Optional press-time payload generation. The button platform supplies
     # Home Assistant's current local time so registry modules stay HA-free.
