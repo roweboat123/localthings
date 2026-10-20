@@ -117,7 +117,9 @@ async def test_upgrade_and_live_labels_preserve_identity_and_user_names(
             else:
                 assert row.original_name == old.original_name
                 assert row.translation_key == old.translation_key
-        assert entities.async_get(custom.entity_id).name == "My Setpoint"
+        current = entities.async_get(custom.entity_id)
+        assert current is not None
+        assert current.name == "My Setpoint"
         for device_id, old in old_devices.items():
             current = devices.async_get(device_id)
             assert current is not None and old is not None
