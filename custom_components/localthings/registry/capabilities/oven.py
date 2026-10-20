@@ -17,6 +17,7 @@ the start button sends it; mid-cook they write straight through, which the
 board keeps.
 """
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 from ..batch import is_stub_rep
@@ -29,7 +30,7 @@ from ..entities import (
     SensorDesc,
     SwitchDesc,
 )
-from . import cook
+from . import cook, dishwasher
 from .common import normalize_temp_unit
 from .operational import STOP_BUTTON
 
@@ -341,6 +342,23 @@ START_COOKING_BUTTON = ButtonDesc(
 # ---------------------------------------------------------------------------
 # Capabilities
 # ---------------------------------------------------------------------------
+
+
+def _diagnosis_start_exists(rep, resources):
+    model = (resources.get("/information/vs/0") or {}).get("x.com.samsung.da.modelNum")
+    return not (isinstance(model, str) and model.split("|", 1)[0] == "LCD_OV_WALL_16K")
+
+
+# NV51K7770S acknowledged Start without a verified run or result.
+# Keep the reported status; do not imply that Ready means a test passed.
+OVEN_DIAGNOSIS = replace(
+    dishwasher.DIAGNOSIS,
+    entities=tuple(
+        replace(desc, exists_fn=_diagnosis_start_exists) if isinstance(desc, ButtonDesc) else desc
+        for desc in dishwasher.DIAGNOSIS.entities
+    ),
+)
+
 
 OVEN_OPERATIONAL_STATE = Capability(
     href="/operational/state/vs/0",
