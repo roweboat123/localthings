@@ -384,12 +384,22 @@ def startable_modes(resources: dict) -> list[str]:
     ]
 
 
+def is_lcd_wall_oven(resources: dict) -> bool:
+    """The NV51K7770S board verified with a removable divider."""
+    model = (resources.get("/information/vs/0") or {}).get("x.com.samsung.da.modelNum")
+    return isinstance(model, str) and model.split("|", 1)[0] == "LCD_OV_WALL_16K"
+
+
 def can_start(rep: dict, resources: dict) -> bool:
     """exists_fn for the start button: a board that declares a startable
     mode, whether or not this cavity offers one right now, or one whose
     modeSpec is empty for now (#600). A press while nothing is startable is
     refused by plan_start."""
     spec = (resources.get(MODE_HREF) or {}).get(MODE_SPEC)
+    # Lower reports only NoOperation with the divider out; keep its button
+    # registered for reinsertion (docs/investigations/oven-divider-recovery.md).
+    if spec is None and is_lcd_wall_oven(resources):
+        return True
     if _is_empty_spec(spec):
         return True
     return any(s.startable for s in mode_specs(resources).values())
