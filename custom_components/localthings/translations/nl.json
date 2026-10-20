@@ -159,6 +159,9 @@
       },
       "cooktop_paused": {
         "name": "Gepauzeerd"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity}: Actief"
       }
     },
     "button": {
@@ -209,6 +212,12 @@
       },
       "start_cooking": {
         "name": "Bereiding starten"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity}: Stoppen"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity}: Bereiding starten"
       }
     },
     "climate": {
@@ -302,6 +311,12 @@
       },
       "zone_target_temperature": {
         "name": "Doeltemperatuur zone"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Bereidingstijd"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity}: Instelpunt"
       }
     },
     "select": {
@@ -1123,6 +1138,37 @@
           "low": "Laag",
           "high": "Hoog"
         }
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity}: Bereidingsmodus",
+        "state": {
+          "no_operation": "Niet actief",
+          "bake": "Bakken",
+          "broil": "Grillen",
+          "convection": "Hetelucht",
+          "convection_bake": "Bakken met hetelucht",
+          "convection_broil": "Grillen met hetelucht",
+          "frozen_pizza_plus": "Frozen Pizza+",
+          "slow_cook": "Langzaam garen",
+          "plate_warm": "Borden warmhouden",
+          "air_fry": "Airfryen",
+          "convection_roast": "Heteluchtbraden",
+          "keep_warm": "Warmhouden",
+          "bread_proof": "Deeg rijzen",
+          "dehydrate": "Drogen",
+          "self_clean": "Zelfreiniging",
+          "air_fryer": "Airfryer",
+          "upper_broil": "Grillen (boven)",
+          "upper_convection_bake": "Bakken met hetelucht (boven)",
+          "upper_convection_roast": "Heteluchtbraden (boven)",
+          "lower_bake": "Bakken (onder)",
+          "lower_convection_bake": "Bakken met hetelucht (onder)",
+          "steam_bake": "Stoombakken",
+          "steam_roast": "Stoombraden",
+          "upper_steam_bake": "Stoombakken (boven)",
+          "descale": "Ontkalken",
+          "drain": "Water aftappen"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1707,38 @@
           "dual": "Dubbel",
           "triple": "Drievoudig"
         }
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity}: Temperatuur"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity}: Geschatte eindtijd"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity}: Werkingsduur"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity}: Status ovenruimte",
+        "state": {
+          "ready": "Gereed",
+          "preheat": "Voorverwarmen",
+          "cooking": "Bereiden",
+          "finish": "Voltooid"
+        }
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity}: Voortgangspercentage"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity}: Machinestatus",
+        "state": {
+          "idle": "Inactief",
+          "active": "Actief",
+          "pause": "Gepauzeerd"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Bereidingstijd"
       }
     },
     "switch": {
@@ -2347,7 +2425,9 @@
         "ice_maker": "IJsmaker",
         "cubed_ice": "IJsblokjes",
         "ice_bites": "Ice Bites",
-        "whiskey_ice_ball": "IJsballen"
+        "whiskey_ice_ball": "IJsballen",
+        "oven_cavity_upper": "Boven",
+        "oven_cavity_oven": "Oven"
       }
     }
   }

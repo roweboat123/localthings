@@ -13,9 +13,11 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import LocalThingsCoordinator
+from .oven_labels import CAVITY_KEYS, main_cavity_divider
 from .registry.adapter import _key
 from .registry.batch import is_stub_rep
 from .registry.discovery import BoundEntity, _snake_to_title
+from .registry.subdevices import MAIN
 
 
 def _is_included(bound: BoundEntity, coordinator: LocalThingsCoordinator) -> bool:
@@ -114,6 +116,13 @@ class LocalThingsEntity(CoordinatorEntity[LocalThingsCoordinator]):
         self._bound = bound
         self._state_key = _key(bound)
         self._attr_unique_id = f"{DOMAIN}_{coordinator.device_key}_{self._state_key}"
+        self._oven_divider_href = None
+        if (
+            bound.subdevice == MAIN
+            and bound.desc.key in CAVITY_KEYS
+            and getattr(coordinator, "device_type_name", None) == "oven"
+        ):
+            self._oven_divider_href = main_cavity_divider(coordinator.discovery_resources)
         if bound.desc.translation_placeholders is not None:
             self._attr_translation_placeholders = dict(bound.desc.translation_placeholders)
         elif bound.desc.use_instance_name:
@@ -122,6 +131,7 @@ class LocalThingsEntity(CoordinatorEntity[LocalThingsCoordinator]):
                     _instance_display_name(bound, self._state_key), coordinator.instance_names
                 )
             }
+        self._update_cavity_name()
 
         # _attr_name is deliberately left unset: HA gives an explicitly-set
         # name precedence over the translation catalog, so setting it here
@@ -131,6 +141,24 @@ class LocalThingsEntity(CoordinatorEntity[LocalThingsCoordinator]):
         raw_cat = bound.desc.entity_category
         self._attr_entity_category = EntityCategory(raw_cat) if raw_cat else None
         self._attr_entity_registry_enabled_default = bound.desc.enabled_default
+
+    def _update_cavity_name(self) -> None:
+        if self._oven_divider_href is None:
+            return
+        resources = (
+            self.coordinator.discovery_resources
+            if self.coordinator.rehydrated
+            else self.coordinator.last_resources
+        )
+        state = (resources.get(self._oven_divider_href) or {}).get("x.com.samsung.da.connected")
+        # Missing or unknown divider state must not imply full-cavity operation.
+        label = "oven" if state == "Off" else "upper"
+        name = self.coordinator.instance_names.get(
+            f"oven_cavity_{label}", "Oven" if label == "oven" else "Upper"
+        )
+        if self.translation_placeholders.get("cavity") != name:
+            self._attr_translation_placeholders = {**self.translation_placeholders, "cavity": name}
+            self.__dict__.pop("name", None)
 
     @property
     def translation_key(self) -> str | None:
@@ -150,13 +178,16 @@ class LocalThingsEntity(CoordinatorEntity[LocalThingsCoordinator]):
         """
         tk = self._bound.desc.translation_key
         if callable(tk):
-            return tk(
-                self._resources or self.coordinator.discovery_canonical(self._bound.subdevice)
-            )
-        return tk if tk is not None else self._bound.desc.key
+            key = tk(self._resources or self.coordinator.discovery_canonical(self._bound.subdevice))
+        else:
+            key = tk if tk is not None else self._bound.desc.key
+        return (
+            f"oven_cavity_{key}" if self._oven_divider_href is not None and key is not None else key
+        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
+        self._update_cavity_name()
         # The frontend translates state from the registry's copy of the key,
         # which HA never refreshes on its own (issue #531).
         entry = self.registry_entry

@@ -159,6 +159,9 @@
       },
       "cooktop_paused": {
         "name": "Pozastaveno"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity}: Běží"
       }
     },
     "button": {
@@ -209,6 +212,12 @@
       },
       "start_cooking": {
         "name": "Spustit vaření"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity}: Zastavit"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity}: Spustit vaření"
       }
     },
     "climate": {
@@ -302,6 +311,12 @@
       },
       "zone_target_temperature": {
         "name": "Požadovaná teplota zóny"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Doba vaření"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity}: Požadovaná teplota"
       }
     },
     "select": {
@@ -1123,6 +1138,37 @@
           "low": "Nízká",
           "high": "Vysoká"
         }
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity}: Režim vaření",
+        "state": {
+          "no_operation": "Bez provozu",
+          "bake": "Pečení",
+          "broil": "Gril",
+          "convection": "Konvekce",
+          "convection_bake": "Konvekční pečení",
+          "convection_broil": "Konvekční gril",
+          "frozen_pizza_plus": "Mražená pizza+",
+          "slow_cook": "Pomalé vaření",
+          "plate_warm": "Ohřev talířů",
+          "air_fry": "Fritéza na vzduch",
+          "convection_roast": "Pečení horkým vzduchem",
+          "keep_warm": "Udržování teploty",
+          "bread_proof": "Kynutí těsta",
+          "dehydrate": "Sušení",
+          "self_clean": "Samočištění",
+          "air_fryer": "Horkovzdušná fritéza",
+          "upper_broil": "Gril (horní)",
+          "upper_convection_bake": "Konvekční pečení (horní)",
+          "upper_convection_roast": "Pečení horkým vzduchem (horní)",
+          "lower_bake": "Pečení (dolní)",
+          "lower_convection_bake": "Konvekční pečení (dolní)",
+          "steam_bake": "Pečení s párou",
+          "steam_roast": "Pečení masa s párou",
+          "upper_steam_bake": "Pečení s párou (horní)",
+          "descale": "Odvápnění",
+          "drain": "Vypuštění vody"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1707,38 @@
           "dual": "Dvojitá",
           "triple": "Trojitá"
         }
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity}: Teplota"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity}: Odhadované dokončení"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity}: Doba provozu"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity}: Stav trouby",
+        "state": {
+          "ready": "Připraveno",
+          "preheat": "Předehřev",
+          "cooking": "Vaření",
+          "finish": "Dokončeno"
+        }
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity}: Průběh v procentech"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity}: Stav stroje",
+        "state": {
+          "idle": "Nečinný",
+          "active": "Aktivní",
+          "pause": "Pozastaveno"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Doba vaření"
       }
     },
     "switch": {
@@ -2347,7 +2425,9 @@
         "ice_maker": "Výrobník ledu",
         "cubed_ice": "Kostky ledu",
         "ice_bites": "Ice Bites",
-        "whiskey_ice_ball": "Ledové koule"
+        "whiskey_ice_ball": "Ledové koule",
+        "oven_cavity_upper": "Horní prostor",
+        "oven_cavity_oven": "Trouba"
       }
     }
   }

@@ -159,6 +159,9 @@
       },
       "cooktop_paused": {
         "name": "일시 정지"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity} 작동 중"
       }
     },
     "button": {
@@ -209,6 +212,12 @@
       },
       "start_cooking": {
         "name": "조리 시작"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity} 정지"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity} 조리 시작"
       }
     },
     "climate": {
@@ -302,6 +311,12 @@
       },
       "zone_target_temperature": {
         "name": "구역 목표 온도"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity} 조리 시간"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} 설정 온도"
       }
     },
     "select": {
@@ -1123,6 +1138,37 @@
           "low": "약",
           "high": "강"
         }
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity} 조리 모드",
+        "state": {
+          "no_operation": "작동 안 함",
+          "bake": "베이크",
+          "broil": "브로일",
+          "convection": "컨벡션",
+          "convection_bake": "컨벡션 베이크",
+          "convection_broil": "컨벡션 브로일",
+          "frozen_pizza_plus": "냉동 피자+",
+          "slow_cook": "저온 조리",
+          "plate_warm": "접시 데우기",
+          "air_fry": "에어프라이",
+          "convection_roast": "컨벡션 로스트",
+          "keep_warm": "보온",
+          "bread_proof": "발효",
+          "dehydrate": "건조",
+          "self_clean": "자동 세척",
+          "air_fryer": "에어프라이",
+          "upper_broil": "브로일 (상단)",
+          "upper_convection_bake": "컨벡션 베이크 (상단)",
+          "upper_convection_roast": "컨벡션 로스트 (상단)",
+          "lower_bake": "베이크 (하단)",
+          "lower_convection_bake": "컨벡션 베이크 (하단)",
+          "steam_bake": "스팀 베이크",
+          "steam_roast": "스팀 로스트",
+          "upper_steam_bake": "스팀 베이크 (상단)",
+          "descale": "석회 제거",
+          "drain": "배수"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1707,38 @@
           "dual": "이중",
           "triple": "삼중"
         }
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity} 온도"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity} 예상 완료 시각"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity} 운전 시간"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity} 조리실 상태",
+        "state": {
+          "ready": "준비됨",
+          "preheat": "예열",
+          "cooking": "조리 중",
+          "finish": "완료"
+        }
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity} 진행률"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity} 기기 상태",
+        "state": {
+          "idle": "대기",
+          "active": "작동 중",
+          "pause": "일시 정지"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity} 조리 시간"
       }
     },
     "switch": {
@@ -2347,7 +2425,9 @@
         "ice_maker": "제빙기",
         "cubed_ice": "각얼음",
         "ice_bites": "아이스 바이트",
-        "whiskey_ice_ball": "볼 얼음"
+        "whiskey_ice_ball": "볼 얼음",
+        "oven_cavity_upper": "상부",
+        "oven_cavity_oven": "오븐"
       }
     }
   }

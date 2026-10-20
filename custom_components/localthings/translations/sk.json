@@ -159,6 +159,9 @@
       },
       "cooktop_paused": {
         "name": "Pozastavené"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity}: V prevádzke"
       }
     },
     "button": {
@@ -209,6 +212,12 @@
       },
       "start_cooking": {
         "name": "Spustiť varenie"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity}: Zastaviť"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity}: Spustiť varenie"
       }
     },
     "climate": {
@@ -302,6 +311,12 @@
       },
       "zone_target_temperature": {
         "name": "Požadovaná teplota zóny"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Čas varenia"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity}: Požadovaná teplota"
       }
     },
     "select": {
@@ -1123,6 +1138,37 @@
           "low": "Nízka",
           "high": "Vysoká"
         }
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity}: Režim varenia",
+        "state": {
+          "no_operation": "Nečinnosť",
+          "bake": "Pečenie",
+          "broil": "Grilovanie",
+          "convection": "Teplovzdušný ohrev",
+          "convection_bake": "Teplovzdušné pečenie",
+          "convection_broil": "Teplovzdušné grilovanie",
+          "frozen_pizza_plus": "Mrazená pizza+",
+          "slow_cook": "Pomalé varenie",
+          "plate_warm": "Ohrev tanierov",
+          "air_fry": "Teplovzdušné fritovanie",
+          "convection_roast": "Teplovzdušné opekanie",
+          "keep_warm": "Udržiavanie teploty",
+          "bread_proof": "Kysnutie cesta",
+          "dehydrate": "Sušenie",
+          "self_clean": "Samočistenie",
+          "air_fryer": "Teplovzdušné fritovanie",
+          "upper_broil": "Grilovanie (horná)",
+          "upper_convection_bake": "Teplovzdušné pečenie (horná)",
+          "upper_convection_roast": "Teplovzdušné opekanie (horná)",
+          "lower_bake": "Pečenie (dolná)",
+          "lower_convection_bake": "Teplovzdušné pečenie (dolná)",
+          "steam_bake": "Pečenie s parou",
+          "steam_roast": "Opekanie s parou",
+          "upper_steam_bake": "Pečenie s parou (horná)",
+          "descale": "Odvápnenie",
+          "drain": "Vypustenie vody"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1707,38 @@
           "dual": "Dvojitá",
           "triple": "Trojitá"
         }
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity}: Teplota"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity}: Odhadovaný koniec"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity}: Čas prevádzky"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity}: Stav vnútorného priestoru",
+        "state": {
+          "ready": "Pripravené",
+          "preheat": "Predhrievanie",
+          "cooking": "Varenie",
+          "finish": "Dokončené"
+        }
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity}: Priebeh v percentách"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity}: Stav zariadenia",
+        "state": {
+          "idle": "Nečinnosť",
+          "active": "Aktívne",
+          "pause": "Pozastavené"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Čas varenia"
       }
     },
     "switch": {
@@ -2347,7 +2425,9 @@
         "ice_maker": "Výrobník ľadu",
         "cubed_ice": "Kocky ľadu",
         "ice_bites": "Ice Bites",
-        "whiskey_ice_ball": "Ľadové gule"
+        "whiskey_ice_ball": "Ľadové gule",
+        "oven_cavity_upper": "Horná časť",
+        "oven_cavity_oven": "Rúra"
       }
     }
   }

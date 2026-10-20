@@ -159,6 +159,9 @@
       },
       "cooktop_paused": {
         "name": "Paused"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity} Running"
       }
     },
     "button": {
@@ -209,6 +212,12 @@
       },
       "start_cooking": {
         "name": "Start cooking"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity} Stop"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity} Start cooking"
       }
     },
     "climate": {
@@ -302,6 +311,12 @@
       },
       "zone_target_temperature": {
         "name": "Zone target temperature"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity} Cook time"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} Setpoint"
       }
     },
     "select": {
@@ -1123,6 +1138,37 @@
           "low": "Low",
           "high": "High"
         }
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity} Cooking mode",
+        "state": {
+          "no_operation": "No operation",
+          "bake": "Bake",
+          "broil": "Broil",
+          "convection": "Convection",
+          "convection_bake": "Convection bake",
+          "convection_broil": "Convection broil",
+          "frozen_pizza_plus": "Frozen Pizza+",
+          "slow_cook": "Slow cook",
+          "plate_warm": "Plate warm",
+          "air_fry": "Air fry",
+          "convection_roast": "Convection roast",
+          "keep_warm": "Keep warm",
+          "bread_proof": "Bread proof",
+          "dehydrate": "Dehydrate",
+          "self_clean": "Self clean",
+          "air_fryer": "Air fry",
+          "upper_broil": "Upper broil",
+          "upper_convection_bake": "Upper convection bake",
+          "upper_convection_roast": "Upper convection roast",
+          "lower_bake": "Lower bake",
+          "lower_convection_bake": "Lower convection bake",
+          "steam_bake": "Steam bake",
+          "steam_roast": "Steam roast",
+          "upper_steam_bake": "Upper steam bake",
+          "descale": "Descale",
+          "drain": "Drain"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1707,38 @@
           "dual": "Dual",
           "triple": "Triple"
         }
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity} Temperature"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity} Estimated finish"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity} Operation time"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity} Cavity state",
+        "state": {
+          "ready": "Ready",
+          "preheat": "Preheat",
+          "cooking": "Cooking",
+          "finish": "Finished"
+        }
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity} Progress percent"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity} Machine state",
+        "state": {
+          "idle": "Idle",
+          "active": "Active",
+          "pause": "Paused"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity} Cook time"
       }
     },
     "switch": {
@@ -2347,7 +2425,9 @@
         "ice_maker": "Ice maker",
         "cubed_ice": "Cubed ice",
         "ice_bites": "Ice Bites",
-        "whiskey_ice_ball": "Ice balls"
+        "whiskey_ice_ball": "Ice balls",
+        "oven_cavity_upper": "Upper",
+        "oven_cavity_oven": "Oven"
       }
     }
   }

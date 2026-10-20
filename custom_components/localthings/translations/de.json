@@ -159,6 +159,9 @@
       },
       "cooktop_paused": {
         "name": "Pausiert"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity}: Läuft"
       }
     },
     "button": {
@@ -209,6 +212,12 @@
       },
       "start_cooking": {
         "name": "Garen starten"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity}: Stopp"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity}: Garen starten"
       }
     },
     "climate": {
@@ -302,6 +311,12 @@
       },
       "good_sleep": {
         "name": "Guter Schlaf"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Kochzeit"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity}: Sollwert"
       }
     },
     "select": {
@@ -1123,6 +1138,37 @@
           "low": "Niedrig",
           "high": "Hoch"
         }
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity}: Kochmodus",
+        "state": {
+          "no_operation": "Kein Betrieb",
+          "bake": "Backen",
+          "broil": "Grillen",
+          "convection": "Umluft",
+          "convection_bake": "Umluftbacken",
+          "convection_broil": "Umluftgrillen",
+          "frozen_pizza_plus": "Tiefkühlpizza+",
+          "slow_cook": "Langsam garen",
+          "plate_warm": "Tellerwärmen",
+          "air_fry": "Heißluftfritteuse",
+          "convection_roast": "Umluftbraten",
+          "keep_warm": "Warmhalten",
+          "bread_proof": "Teig gehen lassen",
+          "dehydrate": "Dörren",
+          "self_clean": "Selbstreinigung",
+          "air_fryer": "Heißluftfritteuse",
+          "upper_broil": "Grillen (oben)",
+          "upper_convection_bake": "Umluftbacken (oben)",
+          "upper_convection_roast": "Umluftbraten (oben)",
+          "lower_bake": "Backen (unten)",
+          "lower_convection_bake": "Umluftbacken (unten)",
+          "steam_bake": "Dampfbacken",
+          "steam_roast": "Dampfbraten",
+          "upper_steam_bake": "Dampfbacken (oben)",
+          "descale": "Entkalken",
+          "drain": "Wasser ablassen"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1707,38 @@
           "dual": "Zweifach",
           "triple": "Dreifach"
         }
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity}: Temperatur"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity}: Voraussichtliches Ende"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity}: Betriebszeit"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity}: Ofenzustand",
+        "state": {
+          "ready": "Bereit",
+          "preheat": "Vorheizen",
+          "cooking": "Garen",
+          "finish": "Fertig"
+        }
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity}: Fortschritt in Prozent"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity}: Maschinenzustand",
+        "state": {
+          "idle": "Leerlauf",
+          "active": "Aktiv",
+          "pause": "Pausiert"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Kochzeit"
       }
     },
     "switch": {
@@ -2347,7 +2425,9 @@
         "ice_maker": "Eisbereiter",
         "cubed_ice": "Eiswürfel",
         "ice_bites": "Ice Bites",
-        "whiskey_ice_ball": "Eiskugeln"
+        "whiskey_ice_ball": "Eiskugeln",
+        "oven_cavity_upper": "Oberer Garraum",
+        "oven_cavity_oven": "Ofen"
       }
     }
   }
