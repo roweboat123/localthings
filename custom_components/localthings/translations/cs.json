@@ -1741,12 +1741,6 @@
       "oven_title_finish_time": {
         "name": "Odhadované dokončení"
       },
-      "oven_title_food_probe_setpoint": {
-        "name": "Cílová teplota sondy"
-      },
-      "oven_title_food_probe_temp": {
-        "name": "Teplotní sonda"
-      },
       "oven_title_machine_state": {
         "name": "Stav stroje",
         "state": {

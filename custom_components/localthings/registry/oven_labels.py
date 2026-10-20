@@ -1,10 +1,5 @@
 """Model-specific English labels without changing shared appliance translations."""
 
-from dataclasses import replace
-from functools import partial
-
-from .capability import Capability
-
 TITLE_CASE_KEYS = frozenset(
     {
         "ai_energy_level",
@@ -22,8 +17,6 @@ TITLE_CASE_KEYS = frozenset(
         "fast_preheat",
         "finish_time",
         "firmware_update",
-        "food_probe_setpoint",
-        "food_probe_temp",
         "machine_state",
         "natural_steam",
         "operation_time_minutes",
@@ -47,16 +40,3 @@ def oven_label_key(key: str, resources: dict) -> str:
     if isinstance(model, str) and model.split("|", 1)[0] == "LCD_OV_WALL_16K":
         return f"oven_title_{key}"
     return key
-
-
-def with_english_labels(capability: Capability) -> Capability:
-    """Use separate catalogs only for the verified oven's affected labels."""
-    return replace(
-        capability,
-        entities=tuple(
-            replace(desc, translation_key=partial(oven_label_key, key))
-            if isinstance(key := desc.translation_key or desc.key, str) and key in TITLE_CASE_KEYS
-            else desc
-            for desc in capability.entities
-        ),
-    )

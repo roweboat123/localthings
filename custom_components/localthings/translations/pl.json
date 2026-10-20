@@ -1741,12 +1741,6 @@
       "oven_title_finish_time": {
         "name": "Szacowane zakończenie"
       },
-      "oven_title_food_probe_setpoint": {
-        "name": "Docelowa temperatura sondy do żywności"
-      },
-      "oven_title_food_probe_temp": {
-        "name": "Sonda do żywności"
-      },
       "oven_title_machine_state": {
         "name": "Stan urządzenia",
         "state": {

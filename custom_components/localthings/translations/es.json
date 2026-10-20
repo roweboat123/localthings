@@ -2110,12 +2110,6 @@
       "oven_title_finish_time": {
         "name": "Finalización estimada"
       },
-      "oven_title_food_probe_setpoint": {
-        "name": "Objetivo de la sonda"
-      },
-      "oven_title_food_probe_temp": {
-        "name": "Sonda de alimentos"
-      },
       "oven_title_machine_state": {
         "name": "Estado de la máquina",
         "state": {

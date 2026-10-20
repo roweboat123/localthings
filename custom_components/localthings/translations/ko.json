@@ -1741,12 +1741,6 @@
       "oven_title_finish_time": {
         "name": "예상 완료 시각"
       },
-      "oven_title_food_probe_setpoint": {
-        "name": "온도 프로브 목표"
-      },
-      "oven_title_food_probe_temp": {
-        "name": "온도 프로브"
-      },
       "oven_title_machine_state": {
         "name": "기기 상태",
         "state": {

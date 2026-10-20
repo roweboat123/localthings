@@ -1741,12 +1741,6 @@
       "oven_title_finish_time": {
         "name": "Estimated Finish"
       },
-      "oven_title_food_probe_setpoint": {
-        "name": "Food Probe Target"
-      },
-      "oven_title_food_probe_temp": {
-        "name": "Food Probe"
-      },
       "oven_title_machine_state": {
         "name": "Machine State",
         "state": {

@@ -1741,12 +1741,6 @@
       "oven_title_finish_time": {
         "name": "Geschatte eindtijd"
       },
-      "oven_title_food_probe_setpoint": {
-        "name": "Doeltemperatuur voedselsonde"
-      },
-      "oven_title_food_probe_temp": {
-        "name": "Voedselsonde"
-      },
       "oven_title_machine_state": {
         "name": "Machinestatus",
         "state": {

@@ -1741,12 +1741,6 @@
       "oven_title_finish_time": {
         "name": "Fine stimata"
       },
-      "oven_title_food_probe_setpoint": {
-        "name": "Target sonda"
-      },
-      "oven_title_food_probe_temp": {
-        "name": "Sonda per alimenti"
-      },
       "oven_title_machine_state": {
         "name": "Stato macchina",
         "state": {

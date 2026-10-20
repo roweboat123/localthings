@@ -1741,12 +1741,6 @@
       "oven_title_finish_time": {
         "name": "Fin estimée"
       },
-      "oven_title_food_probe_setpoint": {
-        "name": "Cible de la sonde de cuisson"
-      },
-      "oven_title_food_probe_temp": {
-        "name": "Sonde de cuisson"
-      },
       "oven_title_machine_state": {
         "name": "État de la machine",
         "state": {

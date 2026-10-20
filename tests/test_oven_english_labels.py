@@ -69,31 +69,24 @@ async def test_upgrade_preserves_ids_custom_names_and_other_languages(
 ):
     hass.config.language = language
     coordinator = await _discovered(hass, _routes(divided=divided))
-    updated_bound = coordinator.bound
-    coordinator.bound = [
-        replace(b, desc=replace(b.desc, translation_key=b.desc.translation_key({})))
-        if callable(b.desc.translation_key)
-        else b
-        for b in updated_bound
-    ]
     with monkeypatch.context() as previous:
         previous.setattr("custom_components.localthings.sensor.oven_label_key", lambda key, r: key)
+        previous.setattr("custom_components.localthings.entity.oven_label_key", lambda key, r: key)
         await _load(hass, previous, coordinator)
-    rows = _rows(hass, coordinator)
-    entities, devices = er.async_get(hass), dr.async_get(hass)
-    custom = rows["number", "cook_time"]
-    entities.async_update_entity(
-        custom.entity_id, new_entity_id="number.my_cook_time", name="My cooking timer"
-    )
-    disabled = rows["sensor", "alarm_code"]
-    entities.async_update_entity(disabled.entity_id, disabled_by=er.RegistryEntryDisabler.USER)
-    old_devices = {}
-    for device_id in {row.device_id for row in rows.values()}:
-        assert device_id is not None
-        old_devices[device_id] = devices.async_update_device(device_id, name_by_user="My Oven")
-    old_rows = _rows(hass, coordinator)
-    await hass.config_entries.async_unload(coordinator._entry.entry_id)
-    coordinator.bound = updated_bound
+        rows = _rows(hass, coordinator)
+        entities, devices = er.async_get(hass), dr.async_get(hass)
+        custom = rows["number", "cook_time"]
+        entities.async_update_entity(
+            custom.entity_id, new_entity_id="number.my_cook_time", name="My cooking timer"
+        )
+        disabled = rows["sensor", "alarm_code"]
+        entities.async_update_entity(disabled.entity_id, disabled_by=er.RegistryEntryDisabler.USER)
+        old_devices = {}
+        for device_id in {row.device_id for row in rows.values()}:
+            assert device_id is not None
+            old_devices[device_id] = devices.async_update_device(device_id, name_by_user="My Oven")
+        old_rows = _rows(hass, coordinator)
+        await hass.config_entries.async_unload(coordinator._entry.entry_id)
     await _load(hass, monkeypatch, coordinator)
 
     rows = _rows(hass, coordinator)
@@ -232,3 +225,14 @@ def test_catalogs_preserve_original_wording_and_mode_codes():
     assert modes["convection_bake"] == "Convection Bake"
     assert modes["keep_warm"] == "Keep Warm"
     assert modes["bread_proof"] == "Bread Proof"
+
+
+async def test_labels_preserve_capability_identity_for_upgrade_cleanup(hass):
+    from custom_components.localthings.registry.capabilities import oven
+
+    coordinator = await _discovered(hass)
+    modes = [bound for bound in coordinator.bound if bound.desc.key == "oven_mode"]
+    assert modes
+    for bound in modes:
+        assert bound.capability is oven.OVEN_MODE
+        assert LocalThingsEntity(coordinator, bound).translation_key == "oven_title_oven_mode"

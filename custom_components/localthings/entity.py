@@ -16,6 +16,7 @@ from .coordinator import LocalThingsCoordinator
 from .registry.adapter import _key
 from .registry.batch import is_stub_rep
 from .registry.discovery import BoundEntity, _snake_to_title
+from .registry.oven_labels import TITLE_CASE_KEYS, oven_label_key
 
 
 def _is_included(bound: BoundEntity, coordinator: LocalThingsCoordinator) -> bool:
@@ -150,10 +151,18 @@ class LocalThingsEntity(CoordinatorEntity[LocalThingsCoordinator]):
         """
         tk = self._bound.desc.translation_key
         if callable(tk):
-            return tk(
-                self._resources or self.coordinator.discovery_canonical(self._bound.subdevice)
+            key = tk(self._resources or self.coordinator.discovery_canonical(self._bound.subdevice))
+        else:
+            key = tk if tk is not None else self._bound.desc.key
+        if (
+            key is not None
+            and getattr(self.coordinator, "device_type_name", None) == "oven"
+            and self._bound.desc.key in TITLE_CASE_KEYS
+        ):
+            return oven_label_key(
+                key, self._resources or self.coordinator.discovery_canonical(self._bound.subdevice)
             )
-        return tk if tk is not None else self._bound.desc.key
+        return key
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -162,7 +171,13 @@ class LocalThingsEntity(CoordinatorEntity[LocalThingsCoordinator]):
         entry = self.registry_entry
         if (
             entry is not None
-            and callable(self._bound.desc.translation_key)
+            and (
+                callable(self._bound.desc.translation_key)
+                or (
+                    getattr(self.coordinator, "device_type_name", None) == "oven"
+                    and self._bound.desc.key in TITLE_CASE_KEYS
+                )
+            )
             and (tk := self.translation_key) != entry.translation_key
         ):
             self.registry_entry = er.async_get(self.hass).async_update_entity(

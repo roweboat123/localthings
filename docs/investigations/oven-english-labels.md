@@ -13,3 +13,7 @@ than being capitalized at runtime.
 Existing entity IDs, custom names, disabled settings, mode values and command
 routes are preserved. Verification covers upgrades in all ten languages, both
 divider states, offline startup and unaffected appliance fixtures.
+
+Labels are resolved on entities without copying the registry capabilities, so
+upgrade cleanup can still identify the original controls. Temperature-probe
+labels retain their own wording.

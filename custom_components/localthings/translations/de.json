@@ -1741,12 +1741,6 @@
       "oven_title_finish_time": {
         "name": "Voraussichtliches Ende"
       },
-      "oven_title_food_probe_setpoint": {
-        "name": "Bratenthermometer-Zieltemperatur"
-      },
-      "oven_title_food_probe_temp": {
-        "name": "Bratenthermometer"
-      },
       "oven_title_machine_state": {
         "name": "Maschinenzustand",
         "state": {
