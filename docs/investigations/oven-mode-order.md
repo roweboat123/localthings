@@ -26,7 +26,3 @@ Software checks cover all ten languages, both cavities, changing option lists,
 the static fallback, unknown values, untranslated labels and unaffected appliance
 fixtures. They verify that each choice still maps to its original command value.
 This change does not require new appliance protocol behavior or new translations.
-
-During the combined review, compose the model-specific descriptor with item 12's
-mode exclusions and item 11a's Sound gate. Check the resolved translation key
-with item 4's Healthy Cook labels and item 13's cavity labels.
