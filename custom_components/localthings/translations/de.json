@@ -151,6 +151,13 @@
       "divider": {
         "name": "Trennwand"
       },
+      "divider_lcd_wall_16k": {
+        "name": "Trennwand",
+        "state": {
+          "on": "Eingesetzt",
+          "off": "Entfernt"
+        }
+      },
       "reservoir_open": {
         "name": "Wassertank"
       },

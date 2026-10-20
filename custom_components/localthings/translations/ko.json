@@ -151,6 +151,13 @@
       "divider": {
         "name": "칸막이"
       },
+      "divider_lcd_wall_16k": {
+        "name": "칸막이",
+        "state": {
+          "on": "삽입됨",
+          "off": "제거됨"
+        }
+      },
       "reservoir_open": {
         "name": "물통"
       },
