@@ -159,6 +159,15 @@
       },
       "cooktop_paused": {
         "name": "일시 정지"
+      },
+      "oven_title_child_lock": {
+        "name": "어린이 보호 잠금"
+      },
+      "oven_title_cloud_connected": {
+        "name": "클라우드 연결됨"
+      },
+      "oven_title_firmware_update": {
+        "name": "펌웨어 업데이트 가능"
       }
     },
     "button": {
@@ -209,6 +218,18 @@
       },
       "start_cooking": {
         "name": "조리 시작"
+      },
+      "oven_title_diagnosis_start": {
+        "name": "진단 시작"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "자가 점검 시작"
+      },
+      "oven_title_start_cooking": {
+        "name": "조리 시작"
+      },
+      "oven_title_sync_clock": {
+        "name": "시계 동기화"
       }
     },
     "climate": {
@@ -302,6 +323,9 @@
       },
       "zone_target_temperature": {
         "name": "구역 목표 온도"
+      },
+      "oven_title_cook_time": {
+        "name": "조리 시간"
       }
     },
     "select": {
@@ -1123,6 +1147,40 @@
           "low": "약",
           "high": "강"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "AI 절약 모드 단계"
+      },
+      "oven_title_oven_mode": {
+        "name": "조리 모드",
+        "state": {
+          "no_operation": "작동 안 함",
+          "bake": "베이크",
+          "broil": "브로일",
+          "convection": "컨벡션",
+          "convection_bake": "컨벡션 베이크",
+          "convection_broil": "컨벡션 브로일",
+          "frozen_pizza_plus": "냉동 피자+",
+          "slow_cook": "저온 조리",
+          "plate_warm": "접시 데우기",
+          "air_fry": "에어프라이",
+          "convection_roast": "컨벡션 로스트",
+          "keep_warm": "보온",
+          "bread_proof": "발효",
+          "dehydrate": "건조",
+          "self_clean": "자동 세척",
+          "air_fryer": "에어프라이",
+          "upper_broil": "브로일 (상단)",
+          "upper_convection_bake": "컨벡션 베이크 (상단)",
+          "upper_convection_roast": "컨벡션 로스트 (상단)",
+          "lower_bake": "베이크 (하단)",
+          "lower_convection_bake": "컨벡션 베이크 (하단)",
+          "steam_bake": "스팀 베이크",
+          "steam_roast": "스팀 로스트",
+          "upper_steam_bake": "스팀 베이크 (상단)",
+          "descale": "석회 제거",
+          "drain": "배수"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1719,81 @@
           "dual": "이중",
           "triple": "삼중"
         }
+      },
+      "oven_title_alarm_code": {
+        "name": "알람 코드"
+      },
+      "oven_title_diagnosis_status": {
+        "name": "진단 상태",
+        "state": {
+          "ready": "준비됨"
+        }
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "지난달 에너지"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "절감 에너지"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "이번 달 에너지"
+      },
+      "oven_title_finish_time": {
+        "name": "예상 완료 시각"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "온도 프로브 목표"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "온도 프로브"
+      },
+      "oven_title_machine_state": {
+        "name": "기기 상태",
+        "state": {
+          "idle": "대기",
+          "active": "작동 중",
+          "pause": "일시 정지"
+        }
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "운전 시간"
+      },
+      "oven_title_oven_state": {
+        "name": "조리실 상태",
+        "state": {
+          "ready": "준비됨",
+          "preheat": "예열",
+          "cooking": "조리 중",
+          "finish": "완료"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "소비 에너지"
+      },
+      "oven_title_progress_percentage": {
+        "name": "진행률"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "자가 점검 오류"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "자가 점검 결과"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "자가 점검 상태"
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "운전 시간"
+      },
+      "oven_title_connection_mode": {
+        "name": "연결 모드",
+        "state": {
+          "observe": "푸시(OBSERVE)",
+          "poll": "폴링"
+        }
+      },
+      "oven_title_last_response": {
+        "name": "마지막 응답"
       }
     },
     "switch": {
@@ -1915,6 +2048,21 @@
       },
       "extra_rinse": {
         "name": "헹굼 추가"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "AI 절약 모드"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "쿡탑 켜짐 알림"
+      },
+      "oven_title_energy_saving": {
+        "name": "절전"
+      },
+      "oven_title_fast_preheat": {
+        "name": "빠른 예열"
+      },
+      "oven_title_natural_steam": {
+        "name": "내추럴 스팀"
       }
     },
     "time": {

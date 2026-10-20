@@ -28,6 +28,7 @@ from .coordinator import LocalThingsCoordinator
 from .entity import LocalThingsEntity, _is_included
 from .observe import MODE_OBSERVE, MODE_POLL
 from .registry.entities import SensorDesc
+from .registry.oven_labels import oven_label_key
 
 
 async def async_setup_entry(
@@ -203,6 +204,10 @@ class LocalThingsConnectionModeSensor(CoordinatorEntity[LocalThingsCoordinator],
     def __init__(self, coordinator: LocalThingsCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{DOMAIN}_{coordinator.device_key}_connection_mode"
+        if getattr(coordinator, "device_type_name", None) == "oven":
+            self._attr_translation_key = oven_label_key(
+                "connection_mode", coordinator.discovery_resources
+            )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -229,6 +234,10 @@ class LocalThingsLastResponseSensor(CoordinatorEntity[LocalThingsCoordinator], R
     def __init__(self, coordinator: LocalThingsCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{DOMAIN}_{coordinator.device_key}_last_response"
+        if getattr(coordinator, "device_type_name", None) == "oven":
+            self._attr_translation_key = oven_label_key(
+                "last_response", coordinator.discovery_resources
+            )
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()

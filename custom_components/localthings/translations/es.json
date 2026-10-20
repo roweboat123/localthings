@@ -528,6 +528,15 @@
       },
       "cooktop_paused": {
         "name": "En pausa"
+      },
+      "oven_title_child_lock": {
+        "name": "Bloqueo infantil"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Conectado a la nube"
+      },
+      "oven_title_firmware_update": {
+        "name": "Actualización de firmware disponible"
       }
     },
     "button": {
@@ -578,6 +587,18 @@
       },
       "start_cooking": {
         "name": "Iniciar cocción"
+      },
+      "oven_title_diagnosis_start": {
+        "name": "Iniciar diagnóstico"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Iniciar autocomprobación"
+      },
+      "oven_title_start_cooking": {
+        "name": "Iniciar cocción"
+      },
+      "oven_title_sync_clock": {
+        "name": "Sincronizar reloj"
       }
     },
     "climate": {
@@ -671,6 +692,9 @@
       },
       "zone_target_temperature": {
         "name": "Temperatura objetivo de zona"
+      },
+      "oven_title_cook_time": {
+        "name": "Tiempo de cocción"
       }
     },
     "select": {
@@ -1492,6 +1516,40 @@
           "low": "Baja",
           "high": "Alta"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Nivel del modo de energía IA"
+      },
+      "oven_title_oven_mode": {
+        "name": "Modo de cocción",
+        "state": {
+          "no_operation": "Sin operación",
+          "bake": "Hornear",
+          "broil": "Gratinar",
+          "convection": "Convección",
+          "convection_bake": "Hornear por convección",
+          "convection_broil": "Gratinar por convección",
+          "frozen_pizza_plus": "Pizza congelada+",
+          "slow_cook": "Cocción lenta",
+          "plate_warm": "Calentar platos",
+          "air_fry": "Freidora de aire",
+          "convection_roast": "Asar por convección",
+          "keep_warm": "Mantener caliente",
+          "bread_proof": "Fermentar masa",
+          "dehydrate": "Deshidratar",
+          "self_clean": "Autolimpieza",
+          "air_fryer": "Freidora de aire",
+          "upper_broil": "Gratinar (superior)",
+          "upper_convection_bake": "Hornear por convección (superior)",
+          "upper_convection_roast": "Asar por convección (superior)",
+          "lower_bake": "Hornear (inferior)",
+          "lower_convection_bake": "Hornear por convección (inferior)",
+          "steam_bake": "Hornear al vapor",
+          "steam_roast": "Asar al vapor",
+          "upper_steam_bake": "Hornear al vapor (superior)",
+          "descale": "Descalcificación",
+          "drain": "Vaciado de agua"
+        }
       }
     },
     "sensor": {
@@ -2030,6 +2088,81 @@
           "dual": "Doble",
           "triple": "Triple"
         }
+      },
+      "oven_title_alarm_code": {
+        "name": "Código de alarma"
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Estado del diagnóstico",
+        "state": {
+          "ready": "Listo"
+        }
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Energía (último mes)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Energía ahorrada"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Energía (este mes)"
+      },
+      "oven_title_finish_time": {
+        "name": "Finalización estimada"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Objetivo de la sonda"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Sonda de alimentos"
+      },
+      "oven_title_machine_state": {
+        "name": "Estado de la máquina",
+        "state": {
+          "idle": "Inactiva",
+          "active": "Activa",
+          "pause": "En pausa"
+        }
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Tiempo de funcionamiento"
+      },
+      "oven_title_oven_state": {
+        "name": "Estado de la cavidad",
+        "state": {
+          "ready": "Listo",
+          "preheat": "Precalentamiento",
+          "cooking": "Cocción",
+          "finish": "Finalizado"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Energía"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Porcentaje de progreso"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Error de autocomprobación"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Resultado de autocomprobación"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Estado de autocomprobación"
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Tiempo de funcionamiento"
+      },
+      "oven_title_connection_mode": {
+        "name": "Modo de conexión",
+        "state": {
+          "observe": "Push (observación)",
+          "poll": "Sondeo"
+        }
+      },
+      "oven_title_last_response": {
+        "name": "Última respuesta"
       }
     },
     "switch": {
@@ -2284,6 +2417,21 @@
       },
       "extra_rinse": {
         "name": "Aclarado extra"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Modo de energía IA"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Alerta de placa encendida"
+      },
+      "oven_title_energy_saving": {
+        "name": "Ahorro de energía"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Precalentamiento rápido"
+      },
+      "oven_title_natural_steam": {
+        "name": "Vapor natural"
       }
     },
     "time": {

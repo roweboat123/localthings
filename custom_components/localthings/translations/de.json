@@ -159,6 +159,15 @@
       },
       "cooktop_paused": {
         "name": "Pausiert"
+      },
+      "oven_title_child_lock": {
+        "name": "Kindersicherung"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Cloud verbunden"
+      },
+      "oven_title_firmware_update": {
+        "name": "Firmware-Update verfügbar"
       }
     },
     "button": {
@@ -209,6 +218,18 @@
       },
       "start_cooking": {
         "name": "Garen starten"
+      },
+      "oven_title_diagnosis_start": {
+        "name": "Diagnose starten"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Selbsttest starten"
+      },
+      "oven_title_start_cooking": {
+        "name": "Garen starten"
+      },
+      "oven_title_sync_clock": {
+        "name": "Uhr synchronisieren"
       }
     },
     "climate": {
@@ -302,6 +323,9 @@
       },
       "good_sleep": {
         "name": "Guter Schlaf"
+      },
+      "oven_title_cook_time": {
+        "name": "Kochzeit"
       }
     },
     "select": {
@@ -1123,6 +1147,40 @@
           "low": "Niedrig",
           "high": "Hoch"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "KI-Energiesparstufe"
+      },
+      "oven_title_oven_mode": {
+        "name": "Kochmodus",
+        "state": {
+          "no_operation": "Kein Betrieb",
+          "bake": "Backen",
+          "broil": "Grillen",
+          "convection": "Umluft",
+          "convection_bake": "Umluftbacken",
+          "convection_broil": "Umluftgrillen",
+          "frozen_pizza_plus": "Tiefkühlpizza+",
+          "slow_cook": "Langsam garen",
+          "plate_warm": "Tellerwärmen",
+          "air_fry": "Heißluftfritteuse",
+          "convection_roast": "Umluftbraten",
+          "keep_warm": "Warmhalten",
+          "bread_proof": "Teig gehen lassen",
+          "dehydrate": "Dörren",
+          "self_clean": "Selbstreinigung",
+          "air_fryer": "Heißluftfritteuse",
+          "upper_broil": "Grillen (oben)",
+          "upper_convection_bake": "Umluftbacken (oben)",
+          "upper_convection_roast": "Umluftbraten (oben)",
+          "lower_bake": "Backen (unten)",
+          "lower_convection_bake": "Umluftbacken (unten)",
+          "steam_bake": "Dampfbacken",
+          "steam_roast": "Dampfbraten",
+          "upper_steam_bake": "Dampfbacken (oben)",
+          "descale": "Entkalken",
+          "drain": "Wasser ablassen"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1719,81 @@
           "dual": "Zweifach",
           "triple": "Dreifach"
         }
+      },
+      "oven_title_alarm_code": {
+        "name": "Alarmcode"
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Diagnosestatus",
+        "state": {
+          "ready": "Bereit"
+        }
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Energie (letzter Monat)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Eingesparte Energie"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Energie (dieser Monat)"
+      },
+      "oven_title_finish_time": {
+        "name": "Voraussichtliches Ende"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Bratenthermometer-Zieltemperatur"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Bratenthermometer"
+      },
+      "oven_title_machine_state": {
+        "name": "Maschinenzustand",
+        "state": {
+          "idle": "Leerlauf",
+          "active": "Aktiv",
+          "pause": "Pausiert"
+        }
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Betriebszeit"
+      },
+      "oven_title_oven_state": {
+        "name": "Ofenzustand",
+        "state": {
+          "ready": "Bereit",
+          "preheat": "Vorheizen",
+          "cooking": "Garen",
+          "finish": "Fertig"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Energieverbrauch"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Fortschritt in Prozent"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Selbsttestfehler"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Selbsttestergebnis"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Selbstteststatus"
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Betriebszeit"
+      },
+      "oven_title_connection_mode": {
+        "name": "Verbindungsmodus",
+        "state": {
+          "observe": "Push (Beobachten)",
+          "poll": "Abfrage"
+        }
+      },
+      "oven_title_last_response": {
+        "name": "Letzte Antwort"
       }
     },
     "switch": {
@@ -1915,6 +2048,21 @@
       },
       "extra_rinse": {
         "name": "Extra-Spülen"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "KI-Energiesparmodus"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Kochfeld-Ein-Warnung"
+      },
+      "oven_title_energy_saving": {
+        "name": "Energiesparen"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Schnellvorheizen"
+      },
+      "oven_title_natural_steam": {
+        "name": "Natürlicher Dampf"
       }
     },
     "time": {

@@ -159,6 +159,15 @@
       },
       "cooktop_paused": {
         "name": "Paused"
+      },
+      "oven_title_child_lock": {
+        "name": "Child Lock"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Cloud Connected"
+      },
+      "oven_title_firmware_update": {
+        "name": "Firmware Update Available"
       }
     },
     "button": {
@@ -209,6 +218,18 @@
       },
       "start_cooking": {
         "name": "Start cooking"
+      },
+      "oven_title_diagnosis_start": {
+        "name": "Start Diagnosis"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Start Self-Check"
+      },
+      "oven_title_start_cooking": {
+        "name": "Start Cooking"
+      },
+      "oven_title_sync_clock": {
+        "name": "Sync Clock"
       }
     },
     "climate": {
@@ -302,6 +323,9 @@
       },
       "zone_target_temperature": {
         "name": "Zone target temperature"
+      },
+      "oven_title_cook_time": {
+        "name": "Cook Time"
       }
     },
     "select": {
@@ -1123,6 +1147,40 @@
           "low": "Low",
           "high": "High"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "AI Energy Mode Level"
+      },
+      "oven_title_oven_mode": {
+        "name": "Cooking Mode",
+        "state": {
+          "no_operation": "No Operation",
+          "bake": "Bake",
+          "broil": "Broil",
+          "convection": "Convection",
+          "convection_bake": "Convection Bake",
+          "convection_broil": "Convection Broil",
+          "frozen_pizza_plus": "Frozen Pizza+",
+          "slow_cook": "Slow Cook",
+          "plate_warm": "Plate Warm",
+          "air_fry": "Air Fry",
+          "convection_roast": "Convection Roast",
+          "keep_warm": "Keep Warm",
+          "bread_proof": "Bread Proof",
+          "dehydrate": "Dehydrate",
+          "self_clean": "Self Clean",
+          "air_fryer": "Air Fry",
+          "upper_broil": "Upper Broil",
+          "upper_convection_bake": "Upper Convection Bake",
+          "upper_convection_roast": "Upper Convection Roast",
+          "lower_bake": "Lower Bake",
+          "lower_convection_bake": "Lower Convection Bake",
+          "steam_bake": "Steam Bake",
+          "steam_roast": "Steam Roast",
+          "upper_steam_bake": "Upper Steam Bake",
+          "descale": "Descale",
+          "drain": "Drain"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1719,81 @@
           "dual": "Dual",
           "triple": "Triple"
         }
+      },
+      "oven_title_alarm_code": {
+        "name": "Alarm Code"
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Diagnosis Status",
+        "state": {
+          "ready": "Ready"
+        }
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Energy (Last Month)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Energy Saved"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Energy (This Month)"
+      },
+      "oven_title_finish_time": {
+        "name": "Estimated Finish"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Food Probe Target"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Food Probe"
+      },
+      "oven_title_machine_state": {
+        "name": "Machine State",
+        "state": {
+          "idle": "Idle",
+          "active": "Active",
+          "pause": "Paused"
+        }
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Operation Time"
+      },
+      "oven_title_oven_state": {
+        "name": "Cavity State",
+        "state": {
+          "ready": "Ready",
+          "preheat": "Preheat",
+          "cooking": "Cooking",
+          "finish": "Finished"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Power Energy"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Progress Percent"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Self-Check Error"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Self-Check Result"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Self-Check Status"
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Running Time"
+      },
+      "oven_title_connection_mode": {
+        "name": "Connection Mode",
+        "state": {
+          "observe": "Push (observe)",
+          "poll": "Polling"
+        }
+      },
+      "oven_title_last_response": {
+        "name": "Last Response"
       }
     },
     "switch": {
@@ -1915,6 +2048,21 @@
       },
       "extra_rinse": {
         "name": "Extra rinse"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "AI Energy Mode"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Cooktop-On Alert"
+      },
+      "oven_title_energy_saving": {
+        "name": "Energy Saving"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Fast Preheat"
+      },
+      "oven_title_natural_steam": {
+        "name": "Natural Steam"
       }
     },
     "time": {

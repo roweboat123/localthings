@@ -159,6 +159,15 @@
       },
       "cooktop_paused": {
         "name": "Gepauzeerd"
+      },
+      "oven_title_child_lock": {
+        "name": "Kinderslot"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Verbonden met cloud"
+      },
+      "oven_title_firmware_update": {
+        "name": "Firmware-update beschikbaar"
       }
     },
     "button": {
@@ -209,6 +218,18 @@
       },
       "start_cooking": {
         "name": "Bereiding starten"
+      },
+      "oven_title_diagnosis_start": {
+        "name": "Diagnose starten"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Zelfcontrole starten"
+      },
+      "oven_title_start_cooking": {
+        "name": "Bereiding starten"
+      },
+      "oven_title_sync_clock": {
+        "name": "Klok synchroniseren"
       }
     },
     "climate": {
@@ -302,6 +323,9 @@
       },
       "zone_target_temperature": {
         "name": "Doeltemperatuur zone"
+      },
+      "oven_title_cook_time": {
+        "name": "Bereidingstijd"
       }
     },
     "select": {
@@ -1123,6 +1147,40 @@
           "low": "Laag",
           "high": "Hoog"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Niveau AI Energy Mode"
+      },
+      "oven_title_oven_mode": {
+        "name": "Bereidingsmodus",
+        "state": {
+          "no_operation": "Niet actief",
+          "bake": "Bakken",
+          "broil": "Grillen",
+          "convection": "Hetelucht",
+          "convection_bake": "Bakken met hetelucht",
+          "convection_broil": "Grillen met hetelucht",
+          "frozen_pizza_plus": "Frozen Pizza+",
+          "slow_cook": "Langzaam garen",
+          "plate_warm": "Borden warmhouden",
+          "air_fry": "Airfryen",
+          "convection_roast": "Heteluchtbraden",
+          "keep_warm": "Warmhouden",
+          "bread_proof": "Deeg rijzen",
+          "dehydrate": "Drogen",
+          "self_clean": "Zelfreiniging",
+          "air_fryer": "Airfryer",
+          "upper_broil": "Grillen (boven)",
+          "upper_convection_bake": "Bakken met hetelucht (boven)",
+          "upper_convection_roast": "Heteluchtbraden (boven)",
+          "lower_bake": "Bakken (onder)",
+          "lower_convection_bake": "Bakken met hetelucht (onder)",
+          "steam_bake": "Stoombakken",
+          "steam_roast": "Stoombraden",
+          "upper_steam_bake": "Stoombakken (boven)",
+          "descale": "Ontkalken",
+          "drain": "Water aftappen"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1719,81 @@
           "dual": "Dubbel",
           "triple": "Drievoudig"
         }
+      },
+      "oven_title_alarm_code": {
+        "name": "Alarmcode"
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Diagnosestatus",
+        "state": {
+          "ready": "Gereed"
+        }
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Energie (vorige maand)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Bespaarde energie"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Energie (deze maand)"
+      },
+      "oven_title_finish_time": {
+        "name": "Geschatte eindtijd"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Doeltemperatuur voedselsonde"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Voedselsonde"
+      },
+      "oven_title_machine_state": {
+        "name": "Machinestatus",
+        "state": {
+          "idle": "Inactief",
+          "active": "Actief",
+          "pause": "Gepauzeerd"
+        }
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Werkingsduur"
+      },
+      "oven_title_oven_state": {
+        "name": "Status ovenruimte",
+        "state": {
+          "ready": "Gereed",
+          "preheat": "Voorverwarmen",
+          "cooking": "Bereiden",
+          "finish": "Voltooid"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Energieverbruik"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Voortgangspercentage"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Fout zelfcontrole"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Resultaat zelfcontrole"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Status zelfcontrole"
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Bedrijfstijd"
+      },
+      "oven_title_connection_mode": {
+        "name": "Verbindingsmodus",
+        "state": {
+          "observe": "Push (observeren)",
+          "poll": "Polling"
+        }
+      },
+      "oven_title_last_response": {
+        "name": "Laatste antwoord"
       }
     },
     "switch": {
@@ -1915,6 +2048,21 @@
       },
       "extra_rinse": {
         "name": "Extra spoelen"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "AI Energy Mode"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Waarschuwing kookplaat aan"
+      },
+      "oven_title_energy_saving": {
+        "name": "Energiebesparing"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Snel voorverwarmen"
+      },
+      "oven_title_natural_steam": {
+        "name": "Natuurlijke stoom"
       }
     },
     "time": {

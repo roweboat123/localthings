@@ -159,6 +159,15 @@
       },
       "cooktop_paused": {
         "name": "Pozastaveno"
+      },
+      "oven_title_child_lock": {
+        "name": "Dětská pojistka"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Připojeno ke cloudu"
+      },
+      "oven_title_firmware_update": {
+        "name": "Dostupná aktualizace firmwaru"
       }
     },
     "button": {
@@ -209,6 +218,18 @@
       },
       "start_cooking": {
         "name": "Spustit vaření"
+      },
+      "oven_title_diagnosis_start": {
+        "name": "Spustit diagnostiku"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Spustit vlastní kontrolu"
+      },
+      "oven_title_start_cooking": {
+        "name": "Spustit vaření"
+      },
+      "oven_title_sync_clock": {
+        "name": "Synchronizovat hodiny"
       }
     },
     "climate": {
@@ -302,6 +323,9 @@
       },
       "zone_target_temperature": {
         "name": "Požadovaná teplota zóny"
+      },
+      "oven_title_cook_time": {
+        "name": "Doba vaření"
       }
     },
     "select": {
@@ -1123,6 +1147,40 @@
           "low": "Nízká",
           "high": "Vysoká"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Úroveň režimu AI Energy"
+      },
+      "oven_title_oven_mode": {
+        "name": "Režim vaření",
+        "state": {
+          "no_operation": "Bez provozu",
+          "bake": "Pečení",
+          "broil": "Gril",
+          "convection": "Konvekce",
+          "convection_bake": "Konvekční pečení",
+          "convection_broil": "Konvekční gril",
+          "frozen_pizza_plus": "Mražená pizza+",
+          "slow_cook": "Pomalé vaření",
+          "plate_warm": "Ohřev talířů",
+          "air_fry": "Fritéza na vzduch",
+          "convection_roast": "Pečení horkým vzduchem",
+          "keep_warm": "Udržování teploty",
+          "bread_proof": "Kynutí těsta",
+          "dehydrate": "Sušení",
+          "self_clean": "Samočištění",
+          "air_fryer": "Horkovzdušná fritéza",
+          "upper_broil": "Gril (horní)",
+          "upper_convection_bake": "Konvekční pečení (horní)",
+          "upper_convection_roast": "Pečení horkým vzduchem (horní)",
+          "lower_bake": "Pečení (dolní)",
+          "lower_convection_bake": "Konvekční pečení (dolní)",
+          "steam_bake": "Pečení s párou",
+          "steam_roast": "Pečení masa s párou",
+          "upper_steam_bake": "Pečení s párou (horní)",
+          "descale": "Odvápnění",
+          "drain": "Vypuštění vody"
+        }
       }
     },
     "sensor": {
@@ -1661,6 +1719,81 @@
           "dual": "Dvojitá",
           "triple": "Trojitá"
         }
+      },
+      "oven_title_alarm_code": {
+        "name": "Kód alarmu"
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Stav diagnostiky",
+        "state": {
+          "ready": "Připraveno"
+        }
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Energie (minulý měsíc)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Ušetřená energie"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Energie (tento měsíc)"
+      },
+      "oven_title_finish_time": {
+        "name": "Odhadované dokončení"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Cílová teplota sondy"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Teplotní sonda"
+      },
+      "oven_title_machine_state": {
+        "name": "Stav stroje",
+        "state": {
+          "idle": "Nečinný",
+          "active": "Aktivní",
+          "pause": "Pozastaveno"
+        }
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Doba provozu"
+      },
+      "oven_title_oven_state": {
+        "name": "Stav trouby",
+        "state": {
+          "ready": "Připraveno",
+          "preheat": "Předehřev",
+          "cooking": "Vaření",
+          "finish": "Dokončeno"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Spotřeba energie"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Průběh v procentech"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Chyba vlastní kontroly"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Výsledek vlastní kontroly"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Stav vlastní kontroly"
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Doba provozu"
+      },
+      "oven_title_connection_mode": {
+        "name": "Režim připojení",
+        "state": {
+          "observe": "Push (observe)",
+          "poll": "Dotazování"
+        }
+      },
+      "oven_title_last_response": {
+        "name": "Poslední odpověď"
       }
     },
     "switch": {
@@ -1915,6 +2048,21 @@
       },
       "extra_rinse": {
         "name": "Extra máchání"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Režim AI Energy"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Upozornění na zapnutou varnou desku"
+      },
+      "oven_title_energy_saving": {
+        "name": "Úspora energie"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Rychlé předehřátí"
+      },
+      "oven_title_natural_steam": {
+        "name": "Přírodní pára"
       }
     },
     "time": {
