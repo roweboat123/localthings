@@ -2,6 +2,7 @@
 
 import json
 from copy import deepcopy
+from dataclasses import replace
 
 import pytest
 from homeassistant.exceptions import ServiceValidationError
@@ -72,7 +73,8 @@ async def test_captured_cavity_choices_keep_order_and_the_raw_snapshot(hass, div
         bound = _mode(coordinator, subdevice)
         entity = LocalThingsSelect(coordinator, bound)
         live = coordinator.canonical_resources(subdevice)["/mode/vs/0"][PREFIX + "supportedModes"]
-        assert bound.desc is next(d for d in oven.OVEN_MODE.entities if d.key == "oven_mode")
+        shared = next(d for d in oven.OVEN_MODE.entities if d.key == "oven_mode")
+        assert bound.desc == replace(shared, sort_options=True)
         assert entity._raw_options() == [
             "NoOperation",
             *cook.startable_modes(coordinator.canonical_resources(subdevice)),

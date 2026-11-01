@@ -17,6 +17,7 @@ the start button sends it; mid-cook they write straight through, which the
 board keeps.
 """
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 from ..batch import is_stub_rep
@@ -882,5 +883,26 @@ OVEN_MODE = Capability(
             value_fn=lambda opts: _option_value(opts, "BurnerOnAlert") == "On",
             write_fn=_option_switch_write("BurnerOnAlert"),
         ),
+    ),
+)
+
+
+def _personal_mode_order(resources):
+    model = (resources.get("/information/vs/0") or {}).get("x.com.samsung.da.modelNum")
+    return is_lcd_ov_wall_16k(model)
+
+
+# Personal preference for the owner's oven, not a hardware requirement.
+OVEN_MODE_FALLBACK = replace(
+    OVEN_MODE, match_fn=lambda rep, resources: not _personal_mode_order(resources)
+)
+PERSONAL_OVEN_MODE = replace(
+    OVEN_MODE,
+    match_fn=lambda rep, resources: _personal_mode_order(resources),
+    entities=tuple(
+        replace(desc, sort_options=True)
+        if isinstance(desc, SelectDesc) and desc.key == "oven_mode"
+        else desc
+        for desc in OVEN_MODE.entities
     ),
 )
