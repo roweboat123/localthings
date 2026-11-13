@@ -102,7 +102,7 @@ async def test_probe_connects_without_reload_and_reuses_entities(
 
     probe_keys = {("sensor", "food_probe_temp"), ("sensor", "food_probe_setpoint")}
     before = _rows(hass, coordinator)
-    assert len({row.device_id for row in before.values()}) == 2
+    assert len({row.device_id for row in before.values()}) == (1 if family == "legacy" else 2)
     assert probe_keys.issubset(before) is initially_connected
     for current in (107, 108):
         _probe_update(coordinator, family, True, current=current)

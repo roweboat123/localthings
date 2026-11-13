@@ -27,6 +27,14 @@ from tests.test_legacy_http_nw9300md import _routes as _combo_routes
 from tests.test_subdevice_discovery import _coordinator, _discover
 
 
+@pytest.fixture(autouse=True)
+def separate_device_layout(monkeypatch):
+    """Keep upstream fallback-label coverage alongside the personal grouping tests."""
+    monkeypatch.setattr(
+        "custom_components.localthings.coordinator.combined_lower", lambda *args: None
+    )
+
+
 async def _load(hass, monkeypatch, coordinator):
     await hass.async_block_till_done()
     entry = coordinator._entry

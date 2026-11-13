@@ -26,6 +26,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .const import DOMAIN
+
 # Read at import, not lazily: custom integrations are imported in an executor
 # thread, so this stays off the event loop no matter who asks first.
 _ENTITY_CATALOG: dict[str, dict[str, dict]] = json.loads(
@@ -48,3 +50,17 @@ def translated_states(platform: str, translation_key: str) -> frozenset[str]:
     """
     entry = _ENTITY_CATALOG.get(platform, {}).get(translation_key)
     return frozenset(entry.get("state", ())) if entry else frozenset()
+
+
+def translated_state_label(
+    platform: str, translation_key: str, state: str, strings: dict[str, str]
+) -> str:
+    """Resolve a normalized state label, falling back to English or the value."""
+    key = f"component.{DOMAIN}.entity.{platform}.{translation_key}.state.{state}"
+    fallback = (
+        _ENTITY_CATALOG.get(platform, {})
+        .get(translation_key, {})
+        .get("state", {})
+        .get(state, state)
+    )
+    return strings.get(key, fallback)

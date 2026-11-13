@@ -554,7 +554,7 @@ async def test_the_lower_cavity_becomes_its_own_device(hass: HomeAssistant):
     coordinator = await _discovered(hass)
     lower = _lower(coordinator)
 
-    assert coordinator.device_info_for(lower)["name"].endswith("Lower oven")
+    assert coordinator.device_info_for(lower) == coordinator.device_info
     state = flatten(coordinator.bound, coordinator._cache.snapshot())
     assert state["subdevice1_divider"] is True
     assert {"subdevice1_oven_mode", "subdevice1_machine_state"} <= set(state)

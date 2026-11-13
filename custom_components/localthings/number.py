@@ -13,6 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 from .coordinator import LocalThingsCoordinator
 from .entity import LocalThingsEntity, async_add_bound_entities
+from .registry.capabilities import cook
 from .registry.capabilities.cooktop import LEGACY_HOOD_MODE, paired_hood_running
 from .registry.entities import NumberDesc
 
@@ -116,7 +117,14 @@ class LocalThingsNumber(LocalThingsEntity, NumberEntity):
 
     @property
     def native_value(self):
-        return (self.coordinator.data or {}).get(self._state_key)
+        value = (self.coordinator.data or {}).get(self._state_key)
+        if (
+            value == 0
+            and self._bound.desc.cook_param in cook.DURATION_PARTS
+            and self.coordinator.cook_time_is_unset(self._bound.subdevice)
+        ):
+            return None
+        return value
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_send_command(self._bound, value)

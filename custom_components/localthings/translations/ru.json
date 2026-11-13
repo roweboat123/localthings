@@ -192,6 +192,27 @@
       },
       "energy_saving": {
         "name": "Энергосбережение"
+      },
+      "instance_door": {
+        "name": "{instance_name}"
+      },
+      "oven_title_child_lock": {
+        "name": "Защита от детей"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Подключено к облаку"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity} Running"
+      },
+      "oven_title_cycle_active": {
+        "name": "Работает"
+      },
+      "oven_title_firmware_update": {
+        "name": "Доступно обновление прошивки"
+      },
+      "oven_title_energy_saving": {
+        "name": "Энергосбережение"
       }
     },
     "button": {
@@ -245,6 +266,24 @@
       },
       "pair_bluetooth": {
         "name": "Выполнить сопряжение Bluetooth"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Запустить самопроверку"
+      },
+      "oven_title_sync_clock": {
+        "name": "Синхронизировать часы"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity} Stop"
+      },
+      "oven_title_stop": {
+        "name": "Остановить"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity} Start"
+      },
+      "oven_title_start_cooking": {
+        "name": "Начать приготовление"
       }
     },
     "climate": {
@@ -405,6 +444,36 @@
       },
       "woofer_level": {
         "name": "Уровень сабвуфера"
+      },
+      "cook_time_hours": {
+        "name": "Cook time hours"
+      },
+      "cook_time_minutes": {
+        "name": "Cook time minutes"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity} Cook Time"
+      },
+      "oven_title_cook_time": {
+        "name": "Время приготовления"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} Setpoint"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Уставка"
+      },
+      "oven_cavity_cook_time_hours": {
+        "name": "{cavity} Cook Time Hours"
+      },
+      "oven_title_cook_time_hours": {
+        "name": "Cook time hours"
+      },
+      "oven_cavity_cook_time_minutes": {
+        "name": "{cavity} Cook Time Minutes"
+      },
+      "oven_title_cook_time_minutes": {
+        "name": "Cook time minutes"
       }
     },
     "select": {
@@ -1388,6 +1457,99 @@
           "mute": "Без звука",
           "voice": "Голос"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Уровень режима AI Energy"
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity} Cooking Mode",
+        "state": {
+          "no_operation": "Нет операции",
+          "bake": "Выпечка",
+          "broil": "Верхний нагрев",
+          "convection": "Конвекция",
+          "convection_bake": "Конвекционная выпечка",
+          "convection_broil": "Конвекционный верхний нагрев",
+          "frozen_pizza_plus": "Замороженная пицца+",
+          "slow_cook": "Медленное приготовление",
+          "plate_warm": "Подогрев тарелок",
+          "air_fry": "Аэрофритюр",
+          "convection_roast": "Конвекционное запекание",
+          "keep_warm": "Поддержание тепла",
+          "bread_proof": "Расстойка теста",
+          "dehydrate": "Дегидратация",
+          "self_clean": "Самоочистка",
+          "air_fryer": "Аэрофритюр",
+          "upper_broil": "Верхний гриль",
+          "upper_convection_bake": "Верхняя конвекционная выпечка",
+          "upper_convection_roast": "Верхнее конвекционное запекание",
+          "lower_bake": "Нижняя выпечка",
+          "lower_convection_bake": "Нижняя конвекционная выпечка",
+          "steam_bake": "Выпечка на пару",
+          "steam_roast": "Запекание на пару",
+          "upper_steam_bake": "Верхняя выпечка на пару",
+          "descale": "Удаление накипи",
+          "drain": "Слив",
+          "healthycook1": "Здоровое приготовление 1",
+          "healthycook2": "Здоровое приготовление 2",
+          "healthycook3": "Здоровое приготовление 3",
+          "healthycook4": "Здоровое приготовление 4",
+          "healthycook5": "Здоровое приготовление 5",
+          "healthycook6": "Здоровое приготовление 6",
+          "upper_healthycook1": "Верхнее здоровое приготовление 1",
+          "upper_healthycook2": "Верхнее здоровое приготовление 2",
+          "upper_healthycook3": "Верхнее здоровое приготовление 3",
+          "upper_healthycook4": "Верхнее здоровое приготовление 4",
+          "lower_healthycook1": "Нижнее здоровое приготовление 1",
+          "lower_healthycook2": "Нижнее здоровое приготовление 2",
+          "lower_healthycook3": "Нижнее здоровое приготовление 3",
+          "lower_healthycook4": "Нижнее здоровое приготовление 4"
+        }
+      },
+      "oven_title_oven_mode": {
+        "name": "Режим приготовления",
+        "state": {
+          "no_operation": "Нет операции",
+          "bake": "Выпечка",
+          "broil": "Верхний нагрев",
+          "convection": "Конвекция",
+          "convection_bake": "Конвекционная выпечка",
+          "convection_broil": "Конвекционный верхний нагрев",
+          "frozen_pizza_plus": "Замороженная пицца+",
+          "slow_cook": "Медленное приготовление",
+          "plate_warm": "Подогрев тарелок",
+          "air_fry": "Аэрофритюр",
+          "convection_roast": "Конвекционное запекание",
+          "keep_warm": "Поддержание тепла",
+          "bread_proof": "Расстойка теста",
+          "dehydrate": "Дегидратация",
+          "self_clean": "Самоочистка",
+          "air_fryer": "Аэрофритюр",
+          "upper_broil": "Верхний гриль",
+          "upper_convection_bake": "Верхняя конвекционная выпечка",
+          "upper_convection_roast": "Верхнее конвекционное запекание",
+          "lower_bake": "Нижняя выпечка",
+          "lower_convection_bake": "Нижняя конвекционная выпечка",
+          "steam_bake": "Выпечка на пару",
+          "steam_roast": "Запекание на пару",
+          "upper_steam_bake": "Верхняя выпечка на пару",
+          "descale": "Удаление накипи",
+          "drain": "Слив",
+          "healthycook1": "Здоровое приготовление 1",
+          "healthycook2": "Здоровое приготовление 2",
+          "healthycook3": "Здоровое приготовление 3",
+          "healthycook4": "Здоровое приготовление 4",
+          "healthycook5": "Здоровое приготовление 5",
+          "healthycook6": "Здоровое приготовление 6",
+          "upper_healthycook1": "Верхнее здоровое приготовление 1",
+          "upper_healthycook2": "Верхнее здоровое приготовление 2",
+          "upper_healthycook3": "Верхнее здоровое приготовление 3",
+          "upper_healthycook4": "Верхнее здоровое приготовление 4",
+          "lower_healthycook1": "Нижнее здоровое приготовление 1",
+          "lower_healthycook2": "Нижнее здоровое приготовление 2",
+          "lower_healthycook3": "Нижнее здоровое приготовление 3",
+          "lower_healthycook4": "Нижнее здоровое приготовление 4"
+        }
       }
     },
     "sensor": {
@@ -2082,6 +2244,130 @@
       },
       "oven_setpoint": {
         "name": "Уставка"
+      },
+      "oven_cavity_alarm_code": {
+        "name": "{cavity} Alarm Code"
+      },
+      "oven_title_alarm_code": {
+        "name": "Код ошибки"
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity} Temperature"
+      },
+      "oven_title_current_temp_c": {
+        "name": "Температура"
+      },
+      "oven_cavity_food_probe_temp": {
+        "name": "{cavity} Temperature Probe"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Термощуп для продуктов"
+      },
+      "oven_cavity_food_probe_setpoint": {
+        "name": "{cavity} Temperature Probe Target"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Целевая температура термощупа"
+      },
+      "oven_cavity_diagnosis_status": {
+        "name": "{cavity} Diagnosis Status",
+        "state": {
+          "ready": "Готово"
+        }
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Состояние диагностики",
+        "state": {
+          "ready": "Готово"
+        }
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Время работы"
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Энергия (прошлый месяц)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Сэкономленная энергия"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Энергия (этот месяц)"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity} Estimated Finish"
+      },
+      "oven_title_finish_time": {
+        "name": "Предполагаемое завершение"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity} Operation Time"
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Время работы"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity} Cavity State",
+        "state": {
+          "ready": "Готово",
+          "preheat": "Предварительный нагрев",
+          "cooking": "Приготовление",
+          "finish": "Завершено"
+        }
+      },
+      "oven_title_oven_state": {
+        "name": "Состояние камеры",
+        "state": {
+          "ready": "Готово",
+          "preheat": "Предварительный нагрев",
+          "cooking": "Приготовление",
+          "finish": "Завершено"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Потребляемая энергия"
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity} Progress Percent"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Прогресс в процентах"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Ошибка самопроверки"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Результат самопроверки"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Состояние самопроверки"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity} Machine State",
+        "state": {
+          "idle": "Ожидание",
+          "active": "Активна",
+          "pause": "Приостановлена"
+        }
+      },
+      "oven_title_machine_state": {
+        "name": "Состояние машины",
+        "state": {
+          "idle": "Ожидание",
+          "active": "Активна",
+          "pause": "Приостановлена"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity} Cook time"
+      },
+      "oven_title_cook_time": {
+        "name": "Время приготовления"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} Уставка"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Уставка"
       }
     },
     "switch": {
@@ -2372,6 +2658,24 @@
       },
       "repeated_cleaning": {
         "name": "Повторная уборка"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "AI Energy Mode"
+      },
+      "oven_title_child_lock": {
+        "name": "Защита от детей"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Быстрый предварительный нагрев"
+      },
+      "oven_title_natural_steam": {
+        "name": "Естественный пар"
+      },
+      "oven_title_energy_saving": {
+        "name": "Энергосбережение"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Оповещение о включённой варочной панели"
       }
     },
     "time": {
@@ -2827,6 +3131,21 @@
     },
     "media_option_not_supported": {
       "message": "Устройство сейчас не предлагает этот вариант."
+    },
+    "cook_duration_part_invalid": {
+      "message": "Enter whole hours from 0 to 9 and whole minutes from 0 to 59."
+    },
+    "cook_duration_unavailable": {
+      "message": "The current cook time is unavailable. Wait for a device update before changing its hours or minutes."
+    },
+    "cook_duration_total_out_of_range": {
+      "message": "The combined cook time cannot exceed {max}."
+    },
+    "cook_untimed_unconfirmed": {
+      "message": "Untimed cooking could not be confirmed. The oven may be running with a temporary cook timer. Check the oven before trying Start again. Details: {error}"
+    },
+    "cooking_cavity_not_found": {
+      "message": "This appliance does not expose a combined cavity pair. Select its existing cavity device instead."
     }
   },
   "selector": {
@@ -2850,7 +3169,10 @@
         "ice_maker": "Льдогенератор",
         "cubed_ice": "Кубики льда",
         "ice_bites": "Ice Bites",
-        "whiskey_ice_ball": "Ледяные шарики"
+        "whiskey_ice_ball": "Ледяные шарики",
+        "oven_cavity_upper": "Upper",
+        "oven_cavity_lower": "Lower",
+        "oven_cavity_whole": "Oven"
       }
     }
   },
@@ -2874,6 +3196,10 @@
         "duration": {
           "name": "Время приготовления",
           "description": "Сколько времени готовить, включая предварительный нагрев. По умолчанию используется значение по умолчанию для режима."
+        },
+        "cavity": {
+          "name": "Cavity",
+          "description": "For a combined oven device, choose Upper (the whole oven with the divider removed) or Lower. Leave empty to use the selected device's default cavity."
         }
       }
     },

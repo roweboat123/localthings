@@ -17,6 +17,8 @@ the start button sends it; mid-cook they write straight through, which the
 board keeps.
 """
 
+from dataclasses import replace
+
 from ...finish import running_finish
 from ..batch import is_stub_rep
 from ..capability import Capability
@@ -28,7 +30,7 @@ from ..entities import (
     SensorDesc,
     SwitchDesc,
 )
-from . import cook
+from . import cook, dishwasher
 from .common import normalize_temp_unit
 from .operational import STOP_BUTTON
 
@@ -385,6 +387,39 @@ def _cook_time_bounds(rep, resources):
     return float(-(-(spec.time_min or 0) // 60)), float(spec.time_max // 60), 1.0
 
 
+def has_paired_cook_time(resources):
+    """The measured 9:59 wall oven, excluding the same-board combo (#681)."""
+    info = resources.get("/information/vs/0") or {}
+    return (
+        is_lcd_ov_wall_16k(info.get("x.com.samsung.da.modelNum"))
+        and info.get("x.com.samsung.da.deviceSubType") == "WallOven"
+    )
+
+
+def _cook_time_part_exists(rep, resources):
+    return has_paired_cook_time(resources) and "x.com.samsung.da.operationTime" in rep
+
+
+def _cook_time_total_exists(rep, resources):
+    return not has_paired_cook_time(resources) and (
+        not rep or is_stub_rep(rep) or "x.com.samsung.da.operationTime" in rep
+    )
+
+
+def _cook_hours(op_time):
+    minutes = _op_minutes(op_time)
+    return minutes // 60 if minutes is not None else None
+
+
+def _cook_minutes(op_time):
+    minutes = _op_minutes(op_time)
+    return minutes % 60 if minutes is not None else None
+
+
+def _cook_hours_bounds(rep, resources):
+    return 0.0, float(cook.duration_parts_max(resources) // 3600), 1.0
+
+
 START_COOKING_BUTTON = ButtonDesc(
     key="start_cooking",
     icon="mdi:play",
@@ -452,10 +487,43 @@ OVEN_OPERATIONAL_STATE = Capability(
             native_max=1439,
             step=1.0,
             icon="mdi:timer",
+            exists_fn=_cook_time_total_exists,
             bounds_fn=_cook_time_bounds,
             value_fn=_op_minutes,
             write_fn=_cook_time_write,
             cook_param=cook.PARAM_DURATION,
+        ),
+        # Components keep fixed units; HA's duration conversion would turn a
+        # minute remainder into fractional hours rather than the paired timer.
+        NumberDesc(
+            key="cook_time_hours",
+            supersedes=(("number", "cook_time"),),
+            mode="box",
+            field="x.com.samsung.da.operationTime",
+            unit="h",
+            native_min=0,
+            native_max=9,
+            step=1.0,
+            icon="mdi:timer",
+            exists_fn=_cook_time_part_exists,
+            bounds_fn=_cook_hours_bounds,
+            value_fn=_cook_hours,
+            write_fn=_cook_time_write,
+            cook_param=cook.PARAM_DURATION_HOURS,
+        ),
+        NumberDesc(
+            key="cook_time_minutes",
+            mode="box",
+            field="x.com.samsung.da.operationTime",
+            unit="min",
+            native_min=0,
+            native_max=59,
+            step=1.0,
+            icon="mdi:timer",
+            exists_fn=_cook_time_part_exists,
+            value_fn=_cook_minutes,
+            write_fn=_cook_time_write,
+            cook_param=cook.PARAM_DURATION_MINUTES,
         ),
         STOP_BUTTON,
         START_COOKING_BUTTON,
@@ -876,5 +944,41 @@ OVEN_MODE = Capability(
             value_fn=lambda opts: _option_value(opts, "BurnerOnAlert") == "On",
             write_fn=_option_switch_write("BurnerOnAlert"),
         ),
+    ),
+)
+
+
+def _personal_mode_order(resources):
+    return has_paired_cook_time(resources)
+
+
+# The owner prefers to hide the unverified diagnosis action, keeping its readings.
+PERSONAL_DIAGNOSIS = replace(
+    dishwasher.DIAGNOSIS,
+    entities=tuple(
+        replace(
+            desc,
+            exists_fn=lambda rep, resources: not has_paired_cook_time(resources),
+            prune_when_excluded=True,
+        )
+        if isinstance(desc, ButtonDesc)
+        else desc
+        for desc in dishwasher.DIAGNOSIS.entities
+    ),
+)
+
+
+# Personal preference for the owner's oven, not a hardware requirement.
+OVEN_MODE_FALLBACK = replace(
+    OVEN_MODE, match_fn=lambda rep, resources: not _personal_mode_order(resources)
+)
+PERSONAL_OVEN_MODE = replace(
+    OVEN_MODE,
+    match_fn=lambda rep, resources: _personal_mode_order(resources),
+    entities=tuple(
+        replace(desc, sort_options=True)
+        if isinstance(desc, SelectDesc) and desc.key == "oven_mode"
+        else desc
+        for desc in OVEN_MODE.entities
     ),
 )

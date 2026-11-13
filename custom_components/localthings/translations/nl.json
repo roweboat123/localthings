@@ -192,6 +192,27 @@
       },
       "energy_saving": {
         "name": "Energiebesparing"
+      },
+      "instance_door": {
+        "name": "{instance_name}"
+      },
+      "oven_title_child_lock": {
+        "name": "Kinderslot"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Verbonden met cloud"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity}: Actief"
+      },
+      "oven_title_cycle_active": {
+        "name": "Actief"
+      },
+      "oven_title_firmware_update": {
+        "name": "Firmware-update beschikbaar"
+      },
+      "oven_title_energy_saving": {
+        "name": "Energiebesparing"
       }
     },
     "button": {
@@ -245,6 +266,24 @@
       },
       "pair_bluetooth": {
         "name": "Bluetooth koppelen"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Zelfcontrole starten"
+      },
+      "oven_title_sync_clock": {
+        "name": "Klok synchroniseren"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity}: Stoppen"
+      },
+      "oven_title_stop": {
+        "name": "Stoppen"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity}: Starten"
+      },
+      "oven_title_start_cooking": {
+        "name": "Bereiding starten"
       }
     },
     "climate": {
@@ -405,6 +444,36 @@
       },
       "woofer_level": {
         "name": "Wooferniveau"
+      },
+      "cook_time_hours": {
+        "name": "Kooktijd uren"
+      },
+      "cook_time_minutes": {
+        "name": "Kooktijd minuten"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Bereidingstijd"
+      },
+      "oven_title_cook_time": {
+        "name": "Bereidingstijd"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity}: Instelpunt"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Instelpunt"
+      },
+      "oven_cavity_cook_time_hours": {
+        "name": "{cavity}: Kooktijd uren"
+      },
+      "oven_title_cook_time_hours": {
+        "name": "Kooktijd uren"
+      },
+      "oven_cavity_cook_time_minutes": {
+        "name": "{cavity}: Kooktijd minuten"
+      },
+      "oven_title_cook_time_minutes": {
+        "name": "Kooktijd minuten"
       }
     },
     "select": {
@@ -1388,6 +1457,99 @@
           "mute": "Gedempt",
           "voice": "Stem"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Niveau AI Energy Mode"
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity}: Bereidingsmodus",
+        "state": {
+          "no_operation": "Niet actief",
+          "bake": "Bakken",
+          "broil": "Grillen",
+          "convection": "Hetelucht",
+          "convection_bake": "Bakken met hetelucht",
+          "convection_broil": "Grillen met hetelucht",
+          "frozen_pizza_plus": "Frozen Pizza+",
+          "slow_cook": "Langzaam garen",
+          "plate_warm": "Borden warmhouden",
+          "air_fry": "Airfryen",
+          "convection_roast": "Heteluchtbraden",
+          "keep_warm": "Warmhouden",
+          "bread_proof": "Deeg rijzen",
+          "dehydrate": "Drogen",
+          "self_clean": "Zelfreiniging",
+          "air_fryer": "Airfryer",
+          "upper_broil": "Grillen (boven)",
+          "upper_convection_bake": "Bakken met hetelucht (boven)",
+          "upper_convection_roast": "Heteluchtbraden (boven)",
+          "lower_bake": "Bakken (onder)",
+          "lower_convection_bake": "Bakken met hetelucht (onder)",
+          "steam_bake": "Stoombakken",
+          "steam_roast": "Stoombraden",
+          "upper_steam_bake": "Stoombakken (boven)",
+          "descale": "Ontkalken",
+          "drain": "Water aftappen",
+          "healthycook1": "Gezond koken 1",
+          "healthycook2": "Gezond koken 2",
+          "healthycook3": "Gezond koken 3",
+          "healthycook4": "Gezond koken 4",
+          "healthycook5": "Gezond koken 5",
+          "healthycook6": "Gezond koken 6",
+          "upper_healthycook1": "Gezond koken 1 (boven)",
+          "upper_healthycook2": "Gezond koken 2 (boven)",
+          "upper_healthycook3": "Gezond koken 3 (boven)",
+          "upper_healthycook4": "Gezond koken 4 (boven)",
+          "lower_healthycook1": "Gezond koken 1 (onder)",
+          "lower_healthycook2": "Gezond koken 2 (onder)",
+          "lower_healthycook3": "Gezond koken 3 (onder)",
+          "lower_healthycook4": "Gezond koken 4 (onder)"
+        }
+      },
+      "oven_title_oven_mode": {
+        "name": "Bereidingsmodus",
+        "state": {
+          "no_operation": "Niet actief",
+          "bake": "Bakken",
+          "broil": "Grillen",
+          "convection": "Hetelucht",
+          "convection_bake": "Bakken met hetelucht",
+          "convection_broil": "Grillen met hetelucht",
+          "frozen_pizza_plus": "Frozen Pizza+",
+          "slow_cook": "Langzaam garen",
+          "plate_warm": "Borden warmhouden",
+          "air_fry": "Airfryen",
+          "convection_roast": "Heteluchtbraden",
+          "keep_warm": "Warmhouden",
+          "bread_proof": "Deeg rijzen",
+          "dehydrate": "Drogen",
+          "self_clean": "Zelfreiniging",
+          "air_fryer": "Airfryer",
+          "upper_broil": "Grillen (boven)",
+          "upper_convection_bake": "Bakken met hetelucht (boven)",
+          "upper_convection_roast": "Heteluchtbraden (boven)",
+          "lower_bake": "Bakken (onder)",
+          "lower_convection_bake": "Bakken met hetelucht (onder)",
+          "steam_bake": "Stoombakken",
+          "steam_roast": "Stoombraden",
+          "upper_steam_bake": "Stoombakken (boven)",
+          "descale": "Ontkalken",
+          "drain": "Water aftappen",
+          "healthycook1": "Gezond koken 1",
+          "healthycook2": "Gezond koken 2",
+          "healthycook3": "Gezond koken 3",
+          "healthycook4": "Gezond koken 4",
+          "healthycook5": "Gezond koken 5",
+          "healthycook6": "Gezond koken 6",
+          "upper_healthycook1": "Gezond koken 1 (boven)",
+          "upper_healthycook2": "Gezond koken 2 (boven)",
+          "upper_healthycook3": "Gezond koken 3 (boven)",
+          "upper_healthycook4": "Gezond koken 4 (boven)",
+          "lower_healthycook1": "Gezond koken 1 (onder)",
+          "lower_healthycook2": "Gezond koken 2 (onder)",
+          "lower_healthycook3": "Gezond koken 3 (onder)",
+          "lower_healthycook4": "Gezond koken 4 (onder)"
+        }
       }
     },
     "sensor": {
@@ -2082,6 +2244,130 @@
       },
       "oven_setpoint": {
         "name": "Instelpunt"
+      },
+      "oven_cavity_alarm_code": {
+        "name": "{cavity}: Alarmcode"
+      },
+      "oven_title_alarm_code": {
+        "name": "Alarmcode"
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity}: Temperatuur"
+      },
+      "oven_title_current_temp_c": {
+        "name": "Temperatuur"
+      },
+      "oven_cavity_food_probe_temp": {
+        "name": "{cavity}: Temperatuursonde"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Voedselsonde"
+      },
+      "oven_cavity_food_probe_setpoint": {
+        "name": "{cavity}: Doeltemperatuur van de sonde"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Doeltemperatuur voedselsonde"
+      },
+      "oven_cavity_diagnosis_status": {
+        "name": "{cavity}: Diagnosestatus",
+        "state": {
+          "ready": "Gereed"
+        }
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Diagnosestatus",
+        "state": {
+          "ready": "Gereed"
+        }
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Bedrijfstijd"
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Energie (vorige maand)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Bespaarde energie"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Energie (deze maand)"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity}: Geschatte eindtijd"
+      },
+      "oven_title_finish_time": {
+        "name": "Geschatte eindtijd"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity}: Werkingsduur"
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Werkingsduur"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity}: Status ovenruimte",
+        "state": {
+          "ready": "Gereed",
+          "preheat": "Voorverwarmen",
+          "cooking": "Bereiden",
+          "finish": "Voltooid"
+        }
+      },
+      "oven_title_oven_state": {
+        "name": "Status ovenruimte",
+        "state": {
+          "ready": "Gereed",
+          "preheat": "Voorverwarmen",
+          "cooking": "Bereiden",
+          "finish": "Voltooid"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Energieverbruik"
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity}: Voortgangspercentage"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Voortgangspercentage"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Fout zelfcontrole"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Resultaat zelfcontrole"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Status zelfcontrole"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity}: Machinestatus",
+        "state": {
+          "idle": "Inactief",
+          "active": "Actief",
+          "pause": "Gepauzeerd"
+        }
+      },
+      "oven_title_machine_state": {
+        "name": "Machinestatus",
+        "state": {
+          "idle": "Inactief",
+          "active": "Actief",
+          "pause": "Gepauzeerd"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Bereidingstijd"
+      },
+      "oven_title_cook_time": {
+        "name": "Bereidingstijd"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} Instelpunt"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Instelpunt"
       }
     },
     "switch": {
@@ -2372,6 +2658,24 @@
       },
       "repeated_cleaning": {
         "name": "Reiniging herhalen"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "AI Energy Mode"
+      },
+      "oven_title_child_lock": {
+        "name": "Kinderslot"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Snel voorverwarmen"
+      },
+      "oven_title_natural_steam": {
+        "name": "Natuurlijke stoom"
+      },
+      "oven_title_energy_saving": {
+        "name": "Energiebesparing"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Waarschuwing kookplaat aan"
       }
     },
     "time": {
@@ -2827,6 +3131,21 @@
     },
     "media_option_not_supported": {
       "message": "Het apparaat biedt deze optie nu niet aan."
+    },
+    "cook_duration_part_invalid": {
+      "message": "Voer hele uren van 0 tot 9 en hele minuten van 0 tot 59 in."
+    },
+    "cook_duration_unavailable": {
+      "message": "De huidige kooktijd is niet beschikbaar. Wacht op een update van het apparaat voordat u de uren of minuten wijzigt."
+    },
+    "cook_duration_total_out_of_range": {
+      "message": "De totale kooktijd mag niet langer zijn dan {max}."
+    },
+    "cook_untimed_unconfirmed": {
+      "message": "Koken zonder tijdslimiet kon niet worden bevestigd. De oven werkt mogelijk met een tijdelijk ingestelde kooktijd. Controleer de oven voordat je opnieuw op Start drukt. Details: {error}"
+    },
+    "cooking_cavity_not_found": {
+      "message": "Dit apparaat heeft geen gecombineerd paar ovenruimtes. Selecteer het bestaande apparaat voor de gewenste ovenruimte."
     }
   },
   "selector": {
@@ -2850,7 +3169,10 @@
         "ice_maker": "IJsmaker",
         "cubed_ice": "IJsblokjes",
         "ice_bites": "Ice Bites",
-        "whiskey_ice_ball": "IJsballen"
+        "whiskey_ice_ball": "IJsballen",
+        "oven_cavity_upper": "Boven",
+        "oven_cavity_lower": "Onder",
+        "oven_cavity_whole": "Oven"
       }
     }
   },
@@ -2874,6 +3196,10 @@
         "duration": {
           "name": "Kooktijd",
           "description": "Hoe lang er gekookt wordt, inclusief voorverwarmen. Standaard de eigen standaardwaarde van de stand."
+        },
+        "cavity": {
+          "name": "Cavity",
+          "description": "For a combined oven device, choose Upper (the whole oven with the divider removed) or Lower. Leave empty to use the selected device's default cavity."
         }
       }
     },

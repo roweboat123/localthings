@@ -40,7 +40,7 @@ async def test_captured_oven_has_no_sound_control_and_keeps_energy_saving(hass, 
     state = flatten(coordinator.bound, coordinator.last_resources)
     assert state["energy_saving"] is True
     assert "diagnosis_status" in state
-    assert any(b.desc.key == "diagnosis_start" for b in included)
+    assert not any(b.desc.key == "diagnosis_start" for b in included)
     assert not any(method == "PUT" for method, _ in _requests())
 
 

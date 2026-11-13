@@ -1,5 +1,7 @@
 """Healthy Cook's shared labels preserve the raw codes for each cavity."""
 
+import json
+from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
@@ -30,13 +32,28 @@ async def test_healthy_cook_display_and_selection_keep_each_cavitys_raw_codes(
     send = AsyncMock()
     monkeypatch.setattr(coordinator, "async_send_command", send)
 
-    assert entity.translation_key == "oven_mode"
+    assert entity.translation_key == "oven_cavity_oven_mode"
+    catalog = json.loads(
+        (
+            Path(__file__).parents[1] / "custom_components/localthings/translations/en.json"
+        ).read_text()
+    )
+    labels = catalog["entity"]["select"][entity.translation_key]["state"]
+    captured = [
+        "Baked Potato",
+        "Grilled Chicken",
+        "Salmon Steak",
+        "White Fish Fillet",
+        "Dehydrate",
+        "Bread Proof",
+    ]
     for number in range(1, count + 1):
         raw = f"{prefix}Healthycook{number}"
         state = f"{prefix.lower()}_healthycook{number}" if prefix else f"healthycook{number}"
         coordinator._observe.apply(bound.href, {PREFIX + "modes": [raw]}, source="poll")
         coordinator._publish_data()
 
+        assert labels[state] == f"Healthy Cook: {captured[number - 1]}"
         assert state in entity.options
         assert entity.current_option == state
         await entity.async_select_option(state)

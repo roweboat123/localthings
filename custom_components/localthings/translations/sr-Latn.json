@@ -192,6 +192,27 @@
       },
       "energy_saving": {
         "name": "Ušteda energije"
+      },
+      "instance_door": {
+        "name": "{instance_name}"
+      },
+      "oven_title_child_lock": {
+        "name": "Zaštita za decu"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Povezan na cloud"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity} Running"
+      },
+      "oven_title_cycle_active": {
+        "name": "U radu"
+      },
+      "oven_title_firmware_update": {
+        "name": "Dostupno ažuriranje firmvera"
+      },
+      "oven_title_energy_saving": {
+        "name": "Ušteda energije"
       }
     },
     "button": {
@@ -245,6 +266,24 @@
       },
       "pair_bluetooth": {
         "name": "Upari Bluetooth"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Pokreni samoproveru"
+      },
+      "oven_title_sync_clock": {
+        "name": "Sinhronizuj sat"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity} Stop"
+      },
+      "oven_title_stop": {
+        "name": "Zaustavi"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity} Start"
+      },
+      "oven_title_start_cooking": {
+        "name": "Pokreni kuvanje"
       }
     },
     "climate": {
@@ -405,6 +444,36 @@
       },
       "woofer_level": {
         "name": "Nivo vufera"
+      },
+      "cook_time_hours": {
+        "name": "Cook time hours"
+      },
+      "cook_time_minutes": {
+        "name": "Cook time minutes"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity} Cook Time"
+      },
+      "oven_title_cook_time": {
+        "name": "Vreme kuvanja"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} Setpoint"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Zadana vrednost"
+      },
+      "oven_cavity_cook_time_hours": {
+        "name": "{cavity} Cook Time Hours"
+      },
+      "oven_title_cook_time_hours": {
+        "name": "Cook time hours"
+      },
+      "oven_cavity_cook_time_minutes": {
+        "name": "{cavity} Cook Time Minutes"
+      },
+      "oven_title_cook_time_minutes": {
+        "name": "Cook time minutes"
       }
     },
     "select": {
@@ -1388,6 +1457,99 @@
           "mute": "Utišano",
           "voice": "Glas"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Nivo AI Energy režima"
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity} Cooking Mode",
+        "state": {
+          "no_operation": "Bez operacije",
+          "bake": "Pečenje",
+          "broil": "Grilovanje",
+          "convection": "Konvekcija (Ventilator)",
+          "convection_bake": "Pečenje sa ventilatorom",
+          "convection_broil": "Grilovanje sa ventilatorom",
+          "frozen_pizza_plus": "Zamrznuta pica+",
+          "slow_cook": "Sporo kuvanje",
+          "plate_warm": "Zagrevanje tanjira",
+          "air_fry": "Prženje na vazduhu",
+          "convection_roast": "Pečenje mesa sa ventilatorom",
+          "keep_warm": "Održavanje toplote",
+          "bread_proof": "Narastanje testa",
+          "dehydrate": "Dehidratacija (Sušenje)",
+          "self_clean": "Samočišćenje",
+          "air_fryer": "Prženje na vazduhu",
+          "upper_broil": "Gornji gril",
+          "upper_convection_bake": "Gornje pečenje sa ventilatorom",
+          "upper_convection_roast": "Gornje pečenje mesa sa ventilatorom",
+          "lower_bake": "Donje pečenje",
+          "lower_convection_bake": "Donje pečenje sa ventilatorom",
+          "steam_bake": "Pečenje sa parom",
+          "steam_roast": "Pečenje mesa sa parom",
+          "upper_steam_bake": "Gornje pečenje sa parom",
+          "descale": "Uklanjanje kamenca",
+          "drain": "Ispuštanje vode",
+          "healthycook1": "Zdravo kuvanje 1",
+          "healthycook2": "Zdravo kuvanje 2",
+          "healthycook3": "Zdravo kuvanje 3",
+          "healthycook4": "Zdravo kuvanje 4",
+          "healthycook5": "Zdravo kuvanje 5",
+          "healthycook6": "Zdravo kuvanje 6",
+          "upper_healthycook1": "Gornje zdravo kuvanje 1",
+          "upper_healthycook2": "Gornje zdravo kuvanje 2",
+          "upper_healthycook3": "Gornje zdravo kuvanje 3",
+          "upper_healthycook4": "Gornje zdravo kuvanje 4",
+          "lower_healthycook1": "Donje zdravo kuvanje 1",
+          "lower_healthycook2": "Donje zdravo kuvanje 2",
+          "lower_healthycook3": "Donje zdravo kuvanje 3",
+          "lower_healthycook4": "Donje zdravo kuvanje 4"
+        }
+      },
+      "oven_title_oven_mode": {
+        "name": "Režim pripreme hrane",
+        "state": {
+          "no_operation": "Bez operacije",
+          "bake": "Pečenje",
+          "broil": "Grilovanje",
+          "convection": "Konvekcija (Ventilator)",
+          "convection_bake": "Pečenje sa ventilatorom",
+          "convection_broil": "Grilovanje sa ventilatorom",
+          "frozen_pizza_plus": "Zamrznuta pica+",
+          "slow_cook": "Sporo kuvanje",
+          "plate_warm": "Zagrevanje tanjira",
+          "air_fry": "Prženje na vazduhu",
+          "convection_roast": "Pečenje mesa sa ventilatorom",
+          "keep_warm": "Održavanje toplote",
+          "bread_proof": "Narastanje testa",
+          "dehydrate": "Dehidratacija (Sušenje)",
+          "self_clean": "Samočišćenje",
+          "air_fryer": "Prženje na vazduhu",
+          "upper_broil": "Gornji gril",
+          "upper_convection_bake": "Gornje pečenje sa ventilatorom",
+          "upper_convection_roast": "Gornje pečenje mesa sa ventilatorom",
+          "lower_bake": "Donje pečenje",
+          "lower_convection_bake": "Donje pečenje sa ventilatorom",
+          "steam_bake": "Pečenje sa parom",
+          "steam_roast": "Pečenje mesa sa parom",
+          "upper_steam_bake": "Gornje pečenje sa parom",
+          "descale": "Uklanjanje kamenca",
+          "drain": "Ispuštanje vode",
+          "healthycook1": "Zdravo kuvanje 1",
+          "healthycook2": "Zdravo kuvanje 2",
+          "healthycook3": "Zdravo kuvanje 3",
+          "healthycook4": "Zdravo kuvanje 4",
+          "healthycook5": "Zdravo kuvanje 5",
+          "healthycook6": "Zdravo kuvanje 6",
+          "upper_healthycook1": "Gornje zdravo kuvanje 1",
+          "upper_healthycook2": "Gornje zdravo kuvanje 2",
+          "upper_healthycook3": "Gornje zdravo kuvanje 3",
+          "upper_healthycook4": "Gornje zdravo kuvanje 4",
+          "lower_healthycook1": "Donje zdravo kuvanje 1",
+          "lower_healthycook2": "Donje zdravo kuvanje 2",
+          "lower_healthycook3": "Donje zdravo kuvanje 3",
+          "lower_healthycook4": "Donje zdravo kuvanje 4"
+        }
       }
     },
     "sensor": {
@@ -2082,6 +2244,130 @@
       },
       "oven_setpoint": {
         "name": "Zadana vrednost"
+      },
+      "oven_cavity_alarm_code": {
+        "name": "{cavity} Alarm Code"
+      },
+      "oven_title_alarm_code": {
+        "name": "Kod alarma"
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity} Temperature"
+      },
+      "oven_title_current_temp_c": {
+        "name": "Temperatura"
+      },
+      "oven_cavity_food_probe_temp": {
+        "name": "{cavity} Temperature Probe"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Sonda za hranu"
+      },
+      "oven_cavity_food_probe_setpoint": {
+        "name": "{cavity} Temperature Probe Target"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Ciljna temperatura sonde za hranu"
+      },
+      "oven_cavity_diagnosis_status": {
+        "name": "{cavity} Diagnosis Status",
+        "state": {
+          "ready": "Spremno"
+        }
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Status dijagnostike",
+        "state": {
+          "ready": "Spremno"
+        }
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Vreme rada"
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Potrošnja energije (prošli mesec)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Ušteda energije"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Potrošnja energije (ovaj mesec)"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity} Estimated Finish"
+      },
+      "oven_title_finish_time": {
+        "name": "Procenjeno vreme završetka"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity} Operation Time"
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Vreme rada"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity} Cavity State",
+        "state": {
+          "ready": "Spremno",
+          "preheat": "Predgrevanje",
+          "cooking": "Kuvanje u toku",
+          "finish": "Završeno"
+        }
+      },
+      "oven_title_oven_state": {
+        "name": "Status unutrašnjosti rerne",
+        "state": {
+          "ready": "Spremno",
+          "preheat": "Predgrevanje",
+          "cooking": "Kuvanje u toku",
+          "finish": "Završeno"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Utrošena električna energija"
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity} Progress Percent"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Procenat napretka"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Greška pri samoproveri"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Rezultat samoprovere"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Status samoprovere"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity} Machine State",
+        "state": {
+          "idle": "Mirovanje",
+          "active": "Aktivno",
+          "pause": "Pauzirano"
+        }
+      },
+      "oven_title_machine_state": {
+        "name": "Status mašine",
+        "state": {
+          "idle": "Mirovanje",
+          "active": "Aktivno",
+          "pause": "Pauzirano"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity} Cook time"
+      },
+      "oven_title_cook_time": {
+        "name": "Vreme kuvanja"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} Zadana vrednost"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Zadana vrednost"
       }
     },
     "switch": {
@@ -2372,6 +2658,24 @@
       },
       "repeated_cleaning": {
         "name": "Ponovi čišćenje"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "AI Energy režim"
+      },
+      "oven_title_child_lock": {
+        "name": "Zaštita za decu"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Brzo predgrevanje"
+      },
+      "oven_title_natural_steam": {
+        "name": "Prirodna para"
+      },
+      "oven_title_energy_saving": {
+        "name": "Ušteda energije"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Upozorenje da je ploča uključena"
       }
     },
     "time": {
@@ -2827,6 +3131,21 @@
     },
     "media_option_not_supported": {
       "message": "Uređaj trenutno ne nudi ovu opciju."
+    },
+    "cook_duration_part_invalid": {
+      "message": "Enter whole hours from 0 to 9 and whole minutes from 0 to 59."
+    },
+    "cook_duration_unavailable": {
+      "message": "The current cook time is unavailable. Wait for a device update before changing its hours or minutes."
+    },
+    "cook_duration_total_out_of_range": {
+      "message": "The combined cook time cannot exceed {max}."
+    },
+    "cook_untimed_unconfirmed": {
+      "message": "Untimed cooking could not be confirmed. The oven may be running with a temporary cook timer. Check the oven before trying Start again. Details: {error}"
+    },
+    "cooking_cavity_not_found": {
+      "message": "This appliance does not expose a combined cavity pair. Select its existing cavity device instead."
     }
   },
   "selector": {
@@ -2850,7 +3169,10 @@
         "ice_maker": "Ledomat",
         "cubed_ice": "Kockice leda",
         "ice_bites": "Drobljeni led (Ice Bites)",
-        "whiskey_ice_ball": "Kugle od leda"
+        "whiskey_ice_ball": "Kugle od leda",
+        "oven_cavity_upper": "Upper",
+        "oven_cavity_lower": "Lower",
+        "oven_cavity_whole": "Oven"
       }
     }
   },
@@ -2874,6 +3196,10 @@
         "duration": {
           "name": "Vreme kuvanja",
           "description": "Koliko dugo treba kuvati/peći, uključujući predgrevanje. Podrazumeva se sopstvena podrazumevana vrednost režima."
+        },
+        "cavity": {
+          "name": "Cavity",
+          "description": "For a combined oven device, choose Upper (the whole oven with the divider removed) or Lower. Leave empty to use the selected device's default cavity."
         }
       }
     },

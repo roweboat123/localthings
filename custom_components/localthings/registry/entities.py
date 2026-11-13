@@ -164,6 +164,7 @@ class SelectDesc(SamsungEntityDescription):
     # snapshot (not just this entity's own href) and returns raw device
     # option values; see select.py's LocalThingsSelect._raw_options().
     options_field: str | None = None  # resource field that contains the live options list
+    sort_options: bool = False  # opt in to ordering by translated labels
     # Optional device-specific fallback for values absent from the translation
     # catalog. Receives (raw_value, canonical_resources); select.py applies it
     # identically to the current state and every option.
@@ -177,6 +178,8 @@ class SwitchDesc(SamsungEntityDescription):
     device_class: str | None = None
     write_fn: WriteFn = None
     validate_fn: ValidateFn = None
+    # Live control availability; unlike exists_fn, this keeps the entity registered.
+    available_fn: Callable[[dict, dict], bool] | None = None
 
 
 @dataclass(frozen=True, kw_only=True)

@@ -92,7 +92,12 @@ async def test_cavity_cleanup_without_start_preserves_valid_and_unrelated_rows(
             row = registry.async_get_or_create(
                 platform, DOMAIN, f"{prefix}{cavity.key_prefix}{key}", config_entry=entry
             )
-            kept.append(
+            personal_removed = (
+                not combo
+                and (key == "cook_time" or (key == "diagnosis_start" and cavity == MAIN))
+                and not (startup == "disabled_lower" and cavity.key == lower_key)
+            )
+            (removed if personal_removed else kept).append(
                 registry.async_update_entity(
                     row.entity_id,
                     new_entity_id=f"{platform}.kept_{cavity.key_prefix}{key}",
@@ -118,7 +123,9 @@ async def test_cavity_cleanup_without_start_preserves_valid_and_unrelated_rows(
     )
     for _ in range(2):
         async_reconcile_entities(hass, entry, coordinator)
-        assert all(registry.async_get(row.entity_id) is None for row in removed)
+        assert not [
+            row.entity_id for row in removed if registry.async_get(row.entity_id) is not None
+        ]
         assert all(registry.async_get(row.entity_id) == row for row in kept)
 
 

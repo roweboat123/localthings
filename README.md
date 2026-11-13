@@ -1,3 +1,5 @@
+> **Personal build:** This branch is Brennan's `0.38.0+personal.1` build for the NV51K7770S oven, NZ36K7570R cooktop and RF23DB9750QLAA refrigerator. See the [features and installation instructions](docs/personal-build/brennan-appliances.md). Upstream documentation follows.
+
 <!-- dark mode -->
 <img src="custom_components/localthings/brand/dark_logo@2x.png#gh-dark-mode-only" alt="LocalThings Logo"/>
 <!-- light mode -->

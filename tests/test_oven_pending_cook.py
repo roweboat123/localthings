@@ -26,14 +26,16 @@ from tests.test_legacy_http_lower_cavity import (
     "index,divided,mode",
     [(0, True, "UpperConvectionBake"), (1, True, "LowerBake"), (0, False, "Bake")],
 )
-@pytest.mark.parametrize("order", list(permutations(("oven_mode", "oven_setpoint", "cook_time"))))
+@pytest.mark.parametrize(
+    "order", list(permutations(("oven_mode", "oven_setpoint", "cook_time_minutes")))
+)
 async def test_entry_order_and_reselection_preserve_each_cavity_recipe(
     hass, monkeypatch, index, divided, mode, order
 ):
     coordinator = await _discovered(hass, _routes(divided=divided))
     cavity = _lower(coordinator) if index else MAIN
     bound = {b.desc.key: b for b in coordinator.bound if b.subdevice == cavity}
-    values = {"oven_mode": mode, "oven_setpoint": 400, "cook_time": 20}
+    values = {"oven_mode": mode, "oven_setpoint": 400, "cook_time_minutes": 20}
     before = deepcopy(coordinator.last_resources)
     _FakeConnection.log.clear()
 
@@ -45,7 +47,7 @@ async def test_entry_order_and_reselection_preserve_each_cavity_recipe(
     await coordinator.async_send_command(bound["oven_mode"], mode)
 
     assert LocalThingsNumber(coordinator, bound["oven_setpoint"]).native_value == 400
-    assert LocalThingsNumber(coordinator, bound["cook_time"]).native_value == 20
+    assert LocalThingsNumber(coordinator, bound["cook_time_minutes"]).native_value == 20
     assert coordinator.last_resources == before
     assert not _requests()
     assert not any(
@@ -231,7 +233,7 @@ async def test_pending_view_preserves_unset_readings_and_diagnostics(
     assert coordinator.data["oven_setpoint"] == (int(target) if target else None)
     expected_seconds = cook.parse_hms(seconds)
     assert expected_seconds is not None
-    assert coordinator.data["cook_time"] == expected_seconds / 60
+    assert coordinator.data["cook_time_minutes"] == expected_seconds / 60
     assert coordinator.last_resources == before
     assert not _requests()
     if parameter == cook.PARAM_DURATION:

@@ -22,7 +22,6 @@ from tests.test_legacy_http_lower_cavity import (
     PREFIX,
     _discovered,
     _fake_https,  # noqa: F401 -- installs the fake legacy transport
-    _lower,
     _requests,
     _routes,
 )
@@ -88,7 +87,7 @@ def test_same_board_combo_microwave_keeps_its_power_control():
 async def test_power_reports_idle_and_live_state_without_a_control(hass, divided):
     coordinator = await _discovered(hass, _routes(divided=divided))
     power = _power(coordinator)
-    cavities = {MAIN, _lower(coordinator)} if divided else {MAIN}
+    cavities = {MAIN}  # The personal combined oven keeps one shared Power reading.
     measured = [b for b in power if b.subdevice in cavities]
     assert {b.subdevice for b in measured} == cavities
     assert len(measured) == len(cavities)
@@ -187,7 +186,7 @@ async def test_cleanup_removes_exact_renamed_switches_and_is_idempotent(hass, di
     with caplog.at_level("INFO", logger="custom_components.localthings"):
         async_reconcile_entities(hass, coordinator._entry, coordinator)
         async_reconcile_entities(hass, coordinator._entry, coordinator)
-    assert len(removed) == 2
+    assert len(removed) == 1
     assert all(registry.async_get(entity_id) is None for entity_id in removed)
     assert all(registry.async_get(entity_id) is not None for entity_id in kept)
     for entity_id in removed:

@@ -26,6 +26,7 @@ from .coordinator import (
     snapshot_store,
 )
 from .entity import async_load_instance_names
+from .oven_device import async_combine_oven_devices
 from .registry.identity import resolve_serial
 from .rekey import rekey_entry
 from .services import async_setup_services
@@ -354,6 +355,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Before the platforms register, so a replaced row and its replacement
     # are never both alive.
     async_notify_removed(hass, entry, async_reconcile_entities(hass, entry, coordinator))
+    async_combine_oven_devices(hass, entry, coordinator)
     coordinator.instance_names = await async_load_instance_names(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

@@ -192,6 +192,27 @@
       },
       "energy_saving": {
         "name": "Úspora energie"
+      },
+      "instance_door": {
+        "name": "{instance_name}"
+      },
+      "oven_title_child_lock": {
+        "name": "Detská poistka"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Pripojené ku cloudu"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity}: V prevádzke"
+      },
+      "oven_title_cycle_active": {
+        "name": "V prevádzke"
+      },
+      "oven_title_firmware_update": {
+        "name": "Dostupná aktualizácia firmvéru"
+      },
+      "oven_title_energy_saving": {
+        "name": "Úspora energie"
       }
     },
     "button": {
@@ -245,6 +266,24 @@
       },
       "pair_bluetooth": {
         "name": "Spárovať Bluetooth"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Spustiť vlastnú kontrolu"
+      },
+      "oven_title_sync_clock": {
+        "name": "Synchronizovať hodiny"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity}: Zastaviť"
+      },
+      "oven_title_stop": {
+        "name": "Zastaviť"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity}: Spustiť"
+      },
+      "oven_title_start_cooking": {
+        "name": "Spustiť varenie"
       }
     },
     "climate": {
@@ -405,6 +444,36 @@
       },
       "woofer_level": {
         "name": "Úroveň woofera"
+      },
+      "cook_time_hours": {
+        "name": "Hodiny varenia"
+      },
+      "cook_time_minutes": {
+        "name": "Minúty varenia"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Čas varenia"
+      },
+      "oven_title_cook_time": {
+        "name": "Čas varenia"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity}: Požadovaná teplota"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Požadovaná teplota"
+      },
+      "oven_cavity_cook_time_hours": {
+        "name": "{cavity}: Hodiny varenia"
+      },
+      "oven_title_cook_time_hours": {
+        "name": "Hodiny varenia"
+      },
+      "oven_cavity_cook_time_minutes": {
+        "name": "{cavity}: Minúty varenia"
+      },
+      "oven_title_cook_time_minutes": {
+        "name": "Minúty varenia"
       }
     },
     "select": {
@@ -1388,6 +1457,99 @@
           "mute": "Stlmené",
           "voice": "Hlas"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Úroveň režimu AI Energy"
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity}: Režim varenia",
+        "state": {
+          "no_operation": "Nečinnosť",
+          "bake": "Pečenie",
+          "broil": "Grilovanie",
+          "convection": "Teplovzdušný ohrev",
+          "convection_bake": "Teplovzdušné pečenie",
+          "convection_broil": "Teplovzdušné grilovanie",
+          "frozen_pizza_plus": "Mrazená pizza+",
+          "slow_cook": "Pomalé varenie",
+          "plate_warm": "Ohrev tanierov",
+          "air_fry": "Teplovzdušné fritovanie",
+          "convection_roast": "Teplovzdušné opekanie",
+          "keep_warm": "Udržiavanie teploty",
+          "bread_proof": "Kysnutie cesta",
+          "dehydrate": "Sušenie",
+          "self_clean": "Samočistenie",
+          "air_fryer": "Teplovzdušné fritovanie",
+          "upper_broil": "Grilovanie (horná)",
+          "upper_convection_bake": "Teplovzdušné pečenie (horná)",
+          "upper_convection_roast": "Teplovzdušné opekanie (horná)",
+          "lower_bake": "Pečenie (dolná)",
+          "lower_convection_bake": "Teplovzdušné pečenie (dolná)",
+          "steam_bake": "Pečenie s parou",
+          "steam_roast": "Opekanie s parou",
+          "upper_steam_bake": "Pečenie s parou (horná)",
+          "descale": "Odvápnenie",
+          "drain": "Vypustenie vody",
+          "healthycook1": "Zdravé varenie 1",
+          "healthycook2": "Zdravé varenie 2",
+          "healthycook3": "Zdravé varenie 3",
+          "healthycook4": "Zdravé varenie 4",
+          "healthycook5": "Zdravé varenie 5",
+          "healthycook6": "Zdravé varenie 6",
+          "upper_healthycook1": "Zdravé varenie 1 (horná)",
+          "upper_healthycook2": "Zdravé varenie 2 (horná)",
+          "upper_healthycook3": "Zdravé varenie 3 (horná)",
+          "upper_healthycook4": "Zdravé varenie 4 (horná)",
+          "lower_healthycook1": "Zdravé varenie 1 (dolná)",
+          "lower_healthycook2": "Zdravé varenie 2 (dolná)",
+          "lower_healthycook3": "Zdravé varenie 3 (dolná)",
+          "lower_healthycook4": "Zdravé varenie 4 (dolná)"
+        }
+      },
+      "oven_title_oven_mode": {
+        "name": "Režim varenia",
+        "state": {
+          "no_operation": "Nečinnosť",
+          "bake": "Pečenie",
+          "broil": "Grilovanie",
+          "convection": "Teplovzdušný ohrev",
+          "convection_bake": "Teplovzdušné pečenie",
+          "convection_broil": "Teplovzdušné grilovanie",
+          "frozen_pizza_plus": "Mrazená pizza+",
+          "slow_cook": "Pomalé varenie",
+          "plate_warm": "Ohrev tanierov",
+          "air_fry": "Teplovzdušné fritovanie",
+          "convection_roast": "Teplovzdušné opekanie",
+          "keep_warm": "Udržiavanie teploty",
+          "bread_proof": "Kysnutie cesta",
+          "dehydrate": "Sušenie",
+          "self_clean": "Samočistenie",
+          "air_fryer": "Teplovzdušné fritovanie",
+          "upper_broil": "Grilovanie (horná)",
+          "upper_convection_bake": "Teplovzdušné pečenie (horná)",
+          "upper_convection_roast": "Teplovzdušné opekanie (horná)",
+          "lower_bake": "Pečenie (dolná)",
+          "lower_convection_bake": "Teplovzdušné pečenie (dolná)",
+          "steam_bake": "Pečenie s parou",
+          "steam_roast": "Opekanie s parou",
+          "upper_steam_bake": "Pečenie s parou (horná)",
+          "descale": "Odvápnenie",
+          "drain": "Vypustenie vody",
+          "healthycook1": "Zdravé varenie 1",
+          "healthycook2": "Zdravé varenie 2",
+          "healthycook3": "Zdravé varenie 3",
+          "healthycook4": "Zdravé varenie 4",
+          "healthycook5": "Zdravé varenie 5",
+          "healthycook6": "Zdravé varenie 6",
+          "upper_healthycook1": "Zdravé varenie 1 (horná)",
+          "upper_healthycook2": "Zdravé varenie 2 (horná)",
+          "upper_healthycook3": "Zdravé varenie 3 (horná)",
+          "upper_healthycook4": "Zdravé varenie 4 (horná)",
+          "lower_healthycook1": "Zdravé varenie 1 (dolná)",
+          "lower_healthycook2": "Zdravé varenie 2 (dolná)",
+          "lower_healthycook3": "Zdravé varenie 3 (dolná)",
+          "lower_healthycook4": "Zdravé varenie 4 (dolná)"
+        }
       }
     },
     "sensor": {
@@ -2082,6 +2244,130 @@
       },
       "oven_setpoint": {
         "name": "Požadovaná teplota"
+      },
+      "oven_cavity_alarm_code": {
+        "name": "{cavity}: Kód alarmu"
+      },
+      "oven_title_alarm_code": {
+        "name": "Kód alarmu"
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity}: Teplota"
+      },
+      "oven_title_current_temp_c": {
+        "name": "Teplota"
+      },
+      "oven_cavity_food_probe_temp": {
+        "name": "{cavity}: Teplotná sonda"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Teplotná sonda"
+      },
+      "oven_cavity_food_probe_setpoint": {
+        "name": "{cavity}: Cieľová teplota sondy"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Cieľová teplota sondy"
+      },
+      "oven_cavity_diagnosis_status": {
+        "name": "{cavity}: Stav diagnostiky",
+        "state": {
+          "ready": "Pripravené"
+        }
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Stav diagnostiky",
+        "state": {
+          "ready": "Pripravené"
+        }
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Čas prevádzky"
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Energia (minulý mesiac)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Ušetrená energia"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Energia (tento mesiac)"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity}: Odhadovaný koniec"
+      },
+      "oven_title_finish_time": {
+        "name": "Odhadovaný koniec"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity}: Čas prevádzky"
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Čas prevádzky"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity}: Stav vnútorného priestoru",
+        "state": {
+          "ready": "Pripravené",
+          "preheat": "Predhrievanie",
+          "cooking": "Varenie",
+          "finish": "Dokončené"
+        }
+      },
+      "oven_title_oven_state": {
+        "name": "Stav vnútorného priestoru",
+        "state": {
+          "ready": "Pripravené",
+          "preheat": "Predhrievanie",
+          "cooking": "Varenie",
+          "finish": "Dokončené"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Elektrická energia"
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity}: Priebeh v percentách"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Priebeh v percentách"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Chyba vlastnej kontroly"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Výsledok vlastnej kontroly"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Stav vlastnej kontroly"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity}: Stav zariadenia",
+        "state": {
+          "idle": "Nečinnosť",
+          "active": "Aktívne",
+          "pause": "Pozastavené"
+        }
+      },
+      "oven_title_machine_state": {
+        "name": "Stav zariadenia",
+        "state": {
+          "idle": "Nečinnosť",
+          "active": "Aktívne",
+          "pause": "Pozastavené"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Čas varenia"
+      },
+      "oven_title_cook_time": {
+        "name": "Čas varenia"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} Požadovaná teplota"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Požadovaná teplota"
       }
     },
     "switch": {
@@ -2372,6 +2658,24 @@
       },
       "repeated_cleaning": {
         "name": "Opakovať upratovanie"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Režim AI Energy"
+      },
+      "oven_title_child_lock": {
+        "name": "Detská poistka"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Rýchly predohrev"
+      },
+      "oven_title_natural_steam": {
+        "name": "Prirodzená para"
+      },
+      "oven_title_energy_saving": {
+        "name": "Úspora energie"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Upozornenie na zapnutú varnú dosku"
       }
     },
     "time": {
@@ -2827,6 +3131,21 @@
     },
     "media_option_not_supported": {
       "message": "Zariadenie túto možnosť práve neponúka."
+    },
+    "cook_duration_part_invalid": {
+      "message": "Zadajte celé hodiny od 0 do 9 a celé minúty od 0 do 59."
+    },
+    "cook_duration_unavailable": {
+      "message": "Aktuálny čas varenia nie je dostupný. Pred zmenou hodín alebo minút počkajte na aktualizáciu zariadenia."
+    },
+    "cook_duration_total_out_of_range": {
+      "message": "Celkový čas varenia nesmie prekročiť {max}."
+    },
+    "cook_untimed_unconfirmed": {
+      "message": "Pečenie bez časového obmedzenia sa nepodarilo potvrdiť. Rúra môže bežať s dočasne nastaveným časom pečenia. Pred opätovným stlačením tlačidla Štart skontrolujte rúru. Podrobnosti: {error}"
+    },
+    "cooking_cavity_not_found": {
+      "message": "Tento spotrebič neposkytuje zlúčenú dvojicu priestorov. Vyberte jeho existujúce zariadenie pre príslušný priestor."
     }
   },
   "selector": {
@@ -2850,7 +3169,10 @@
         "ice_maker": "Výrobník ľadu",
         "cubed_ice": "Kocky ľadu",
         "ice_bites": "Ice Bites",
-        "whiskey_ice_ball": "Ľadové gule"
+        "whiskey_ice_ball": "Ľadové gule",
+        "oven_cavity_upper": "Horná časť",
+        "oven_cavity_lower": "Dolná časť",
+        "oven_cavity_whole": "Rúra"
       }
     }
   },
@@ -2874,6 +3196,10 @@
         "duration": {
           "name": "Čas varenia",
           "description": "Ako dlho variť, vrátane predhrievania. Predvolený je predvolená hodnota režimu."
+        },
+        "cavity": {
+          "name": "Cavity",
+          "description": "For a combined oven device, choose Upper (the whole oven with the divider removed) or Lower. Leave empty to use the selected device's default cavity."
         }
       }
     },

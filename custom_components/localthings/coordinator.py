@@ -65,15 +65,16 @@ from .credentials import (
     check_device_binding,
     requires_authenticated_device_id,
 )
-from .devices import set_via_device
+from .devices import find_entry_device, set_via_device
 from .learned import LEARNABLE, LearnedModes, persist
 from .observe import GRACE_PERIOD_S, MODE_OBSERVE, MODE_POLL, ObserveManager
+from .oven_device import combined_lower
 from .registry import CAPABILITIES
 from .registry.adapter import _key, flatten
 from .registry.batch import parse_device0_batch
 from .registry.by_type import registry_for
 from .registry.by_type import resolve as resolve_registry
-from .registry.capabilities import cook
+from .registry.capabilities import cook, oven
 from .registry.capabilities.common import (
     REMOTE_CONTROL_HREFS,
     merge_items_field,
@@ -113,6 +114,7 @@ from .transport import (
     DecodeError,
     OvenStartUnconfirmed,
     Transport,
+    UntimedStartUnconfirmed,
     create_transport,
 )
 from .transport import local_source_port as _local_source_port
@@ -1096,6 +1098,19 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """The device-registry identifier of the subdevice keyed `key`."""
         return (DOMAIN, f"{self.device_key}_{key}")
 
+    @property
+    def combined_oven_lower(self) -> Subdevice | None:
+        lower = combined_lower(
+            self._cook_view(self.discovery_resources), self.subdevices, self.device_type_name
+        )
+        if lower is not None:
+            registered = find_entry_device(
+                self.hass, self._entry.entry_id, {self.subdevice_identifier(lower.key)}
+            )
+            if registered is not None and registered.disabled_by is not None:
+                return None
+        return lower
+
     def device_info_for(self, subdevice: Subdevice) -> DeviceInfo:
         """DeviceInfo for one logical subdevice on this connection (issue
         #177): the master's own device_info for MAIN, or a linked child
@@ -1107,6 +1122,8 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         answered yet. `serial_number` is set from it when it is a real one,
         but is informational only, not an identifier.
         """
+        if self.combined_oven_lower is not None and subdevice in (MAIN, self.combined_oven_lower):
+            return self.device_info
         base_name = self.device_info.get("name") or "Samsung Appliance"
         if subdevice.kind == "main":
             if label := _main_cavity_label(
@@ -2858,6 +2875,22 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         or the write's own descriptor doesn't need it (needs_remote_control)."""
         desc = bound_entity.desc
         cook_param = getattr(desc, "cook_param", None)
+        if cook_param in cook.DURATION_PARTS:
+            resources = self.canonical_resources(bound_entity.subdevice)
+            try:
+                payload = cook.duration_with_part(
+                    cook_param,
+                    payload,
+                    resources,
+                    unset=self.cook_time_is_unset(bound_entity.subdevice),
+                )
+            except cook.CookStartError as err:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key=err.key,
+                    translation_placeholders=err.placeholders,
+                ) from err
+            cook_param = cook.PARAM_DURATION
         if cook_param == cook.PARAM_START:
             await self.async_start_cooking(bound_entity.subdevice)
             return True
@@ -3121,6 +3154,7 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         prepare_body: Callable[[], dict | None] | None = None,
         confirm_on_refusal: bool = False,
         control_response: bool = False,
+        request_budget: float | None = None,
     ) -> bool:
         """PUT `body`, reconnecting and retrying once on a dead session.
         Raises HomeAssistantError if the retry fails too.
@@ -3143,7 +3177,11 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if sess is None:
                 raise RuntimeError("no session")
             sent = True
-            code, response = sess.write(path_segs, body, timeout=self._POST_TIMEOUT_S)
+            code, response = sess.write(
+                path_segs,
+                body,
+                timeout=self._POST_TIMEOUT_S if request_budget is None else request_budget,
+            )
             self._log.info("PUT %s → code %#04x", write_href, code)
             return code, response
 
@@ -3195,7 +3233,11 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if isinstance(e, OvenStartUnconfirmed):
                     raise HomeAssistantError(
                         translation_domain=DOMAIN,
-                        translation_key="cook_start_unconfirmed",
+                        translation_key=(
+                            "cook_untimed_unconfirmed"
+                            if isinstance(e, UntimedStartUnconfirmed)
+                            else "cook_start_unconfirmed"
+                        ),
                         translation_placeholders={"error": str(e)},
                     ) from e
                 # Only a write that went out is ambiguous: one that failed
@@ -3217,7 +3259,9 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if isinstance(e2, OvenStartUnconfirmed):
                         raise HomeAssistantError(
                             translation_domain=DOMAIN,
-                            translation_key="cook_start_unconfirmed",
+                            translation_key="cook_untimed_unconfirmed"
+                            if isinstance(e2, UntimedStartUnconfirmed)
+                            else "cook_start_unconfirmed",
                             translation_placeholders={"error": str(e2)},
                         ) from e2
                     self._log.error("command failed for %s after reconnect: %s", write_href, e2)
@@ -3318,6 +3362,21 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         view, with the upper cavity's modeSpec shared -- the cook checks'
         input. Held choices are not in it."""
         return canonical_view(subdevice, self._cook_view(self.last_resources), self.subdevices)
+
+    def cook_time_is_unset(self, subdevice: Subdevice) -> bool:
+        """Distinguish this wall oven's idle zero from an explicitly held timer."""
+        resources = self._cavity_resources(subdevice)
+        if not oven.has_paired_cook_time(resources) or not cook.is_idle(resources):
+            return False
+        held = self._held_cooks.get(subdevice)
+        view = held.overlay(resources) if held is not None else resources
+        if held is not None and cook.PARAM_DURATION in held.values:
+            return False
+        duration = (view.get(cook.OPERATION_HREF) or {}).get("x.com.samsung.da.operationTime")
+        # A pending mode without a timer default has no duration yet.
+        return cook.parse_hms(duration) == 0 or (
+            duration is None and held is not None and bool(held.values)
+        )
 
     def _with_held_cooks(self, snapshot: dict[str, dict]) -> dict[str, dict]:
         """Each idle cavity's held choices, written over its own actual
@@ -3439,10 +3498,16 @@ class LocalThingsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # which started the NV7B6665IAA's lower zone (#597).
         body = plan.batch(None if subdevice == MAIN else subdevice.to_actual)
         self._log.info("starting cook on /%s: %s", "/".join(path), plan)
-        # No readback after the write: smartthings-local found the
-        # fetch-back itself is what reverts some boards, and neither
-        # measured start had one.
-        await self._async_put(path, body, "/" + "/".join(path))
+        # The private untimed sequence needs time to confirm Run and timer clear.
+        # Ordinary starts retain upstream's write-only sequence.
+        await self._async_put(
+            path,
+            body,
+            "/" + "/".join(path),
+            request_budget=30.0
+            if oven.has_paired_cook_time(resources) and plan.duration in (None, 0)
+            else None,
+        )
         held.clear()
         self._canonical_cache.clear()
         await self.async_request_refresh()

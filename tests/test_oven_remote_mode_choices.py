@@ -72,7 +72,9 @@ async def test_captured_cavity_choices_keep_order_and_the_raw_snapshot(hass, div
         bound = _mode(coordinator, subdevice)
         entity = LocalThingsSelect(coordinator, bound)
         live = coordinator.canonical_resources(subdevice)["/mode/vs/0"][PREFIX + "supportedModes"]
-        assert bound.desc is next(d for d in oven.OVEN_MODE.entities if d.key == "oven_mode")
+        assert bound.desc is next(
+            d for d in oven.PERSONAL_OVEN_MODE.entities if d.key == "oven_mode"
+        )
         assert entity._raw_options() == [
             "NoOperation",
             *cook.startable_modes(coordinator.canonical_resources(subdevice)),
@@ -270,7 +272,9 @@ async def test_fixtures_filter_only_specless_oven_cavities(hass, name):
     modes = [b for b in coordinator.bound if b.desc.key == "oven_mode"]
     assert modes
     for bound in modes:
-        assert bound.desc is next(d for d in oven.OVEN_MODE.entities if d.key == "oven_mode")
+        assert bound.desc is next(
+            d for d in oven.OVEN_MODE_FALLBACK.entities if d.key == "oven_mode"
+        )
         entity = LocalThingsSelect(coordinator, bound)
         resources = coordinator.canonical_resources(bound.subdevice)
         rep = resources["/mode/vs/0"]

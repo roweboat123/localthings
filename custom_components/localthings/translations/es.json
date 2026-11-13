@@ -397,6 +397,21 @@
     },
     "media_option_not_supported": {
       "message": "El dispositivo no ofrece esa opción en este momento."
+    },
+    "cook_duration_part_invalid": {
+      "message": "Introduzca horas enteras de 0 a 9 y minutos enteros de 0 a 59."
+    },
+    "cook_duration_unavailable": {
+      "message": "El tiempo de cocción actual no está disponible. Espere a que se actualice el dispositivo antes de cambiar las horas o los minutos."
+    },
+    "cook_duration_total_out_of_range": {
+      "message": "El tiempo total de cocción no puede superar {max}."
+    },
+    "cook_untimed_unconfirmed": {
+      "message": "No se pudo confirmar la cocción sin límite de tiempo. Es posible que el horno esté funcionando con un tiempo de cocción temporal. Comprueba el horno antes de volver a pulsar Iniciar. Detalles: {error}"
+    },
+    "cooking_cavity_not_found": {
+      "message": "Este electrodoméstico no dispone de un par de zonas combinadas. Selecciona el dispositivo existente de la zona correspondiente."
     }
   },
   "entity": {
@@ -592,6 +607,27 @@
       },
       "energy_saving": {
         "name": "Ahorro de energía"
+      },
+      "instance_door": {
+        "name": "{instance_name}"
+      },
+      "oven_title_child_lock": {
+        "name": "Bloqueo infantil"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Conectado a la nube"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity}: En funcionamiento"
+      },
+      "oven_title_cycle_active": {
+        "name": "En funcionamiento"
+      },
+      "oven_title_firmware_update": {
+        "name": "Actualización de firmware disponible"
+      },
+      "oven_title_energy_saving": {
+        "name": "Ahorro de energía"
       }
     },
     "button": {
@@ -645,6 +681,24 @@
       },
       "pair_bluetooth": {
         "name": "Emparejar Bluetooth"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Iniciar autocomprobación"
+      },
+      "oven_title_sync_clock": {
+        "name": "Sincronizar reloj"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity}: Detener"
+      },
+      "oven_title_stop": {
+        "name": "Detener"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity}: Iniciar"
+      },
+      "oven_title_start_cooking": {
+        "name": "Iniciar cocción"
       }
     },
     "climate": {
@@ -805,6 +859,36 @@
       },
       "woofer_level": {
         "name": "Nivel de woofer"
+      },
+      "cook_time_hours": {
+        "name": "Horas de cocción"
+      },
+      "cook_time_minutes": {
+        "name": "Minutos de cocción"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Tiempo de cocción"
+      },
+      "oven_title_cook_time": {
+        "name": "Tiempo de cocción"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity}: Punto de ajuste"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Punto de ajuste"
+      },
+      "oven_cavity_cook_time_hours": {
+        "name": "{cavity}: Horas de cocción"
+      },
+      "oven_title_cook_time_hours": {
+        "name": "Horas de cocción"
+      },
+      "oven_cavity_cook_time_minutes": {
+        "name": "{cavity}: Minutos de cocción"
+      },
+      "oven_title_cook_time_minutes": {
+        "name": "Minutos de cocción"
       }
     },
     "select": {
@@ -1788,6 +1872,99 @@
           "mute": "Silencio",
           "voice": "Voz"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Nivel del modo de energía IA"
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity}: Modo de cocción",
+        "state": {
+          "no_operation": "Sin operación",
+          "bake": "Hornear",
+          "broil": "Gratinar",
+          "convection": "Convección",
+          "convection_bake": "Hornear por convección",
+          "convection_broil": "Gratinar por convección",
+          "frozen_pizza_plus": "Pizza congelada+",
+          "slow_cook": "Cocción lenta",
+          "plate_warm": "Calentar platos",
+          "air_fry": "Freidora de aire",
+          "convection_roast": "Asar por convección",
+          "keep_warm": "Mantener caliente",
+          "bread_proof": "Fermentar masa",
+          "dehydrate": "Deshidratar",
+          "self_clean": "Autolimpieza",
+          "air_fryer": "Freidora de aire",
+          "upper_broil": "Gratinar (superior)",
+          "upper_convection_bake": "Hornear por convección (superior)",
+          "upper_convection_roast": "Asar por convección (superior)",
+          "lower_bake": "Hornear (inferior)",
+          "lower_convection_bake": "Hornear por convección (inferior)",
+          "steam_bake": "Hornear al vapor",
+          "steam_roast": "Asar al vapor",
+          "upper_steam_bake": "Hornear al vapor (superior)",
+          "descale": "Descalcificación",
+          "drain": "Vaciado de agua",
+          "healthycook1": "Cocción saludable 1",
+          "healthycook2": "Cocción saludable 2",
+          "healthycook3": "Cocción saludable 3",
+          "healthycook4": "Cocción saludable 4",
+          "healthycook5": "Cocción saludable 5",
+          "healthycook6": "Cocción saludable 6",
+          "upper_healthycook1": "Cocción saludable 1 (superior)",
+          "upper_healthycook2": "Cocción saludable 2 (superior)",
+          "upper_healthycook3": "Cocción saludable 3 (superior)",
+          "upper_healthycook4": "Cocción saludable 4 (superior)",
+          "lower_healthycook1": "Cocción saludable 1 (inferior)",
+          "lower_healthycook2": "Cocción saludable 2 (inferior)",
+          "lower_healthycook3": "Cocción saludable 3 (inferior)",
+          "lower_healthycook4": "Cocción saludable 4 (inferior)"
+        }
+      },
+      "oven_title_oven_mode": {
+        "name": "Modo de cocción",
+        "state": {
+          "no_operation": "Sin operación",
+          "bake": "Hornear",
+          "broil": "Gratinar",
+          "convection": "Convección",
+          "convection_bake": "Hornear por convección",
+          "convection_broil": "Gratinar por convección",
+          "frozen_pizza_plus": "Pizza congelada+",
+          "slow_cook": "Cocción lenta",
+          "plate_warm": "Calentar platos",
+          "air_fry": "Freidora de aire",
+          "convection_roast": "Asar por convección",
+          "keep_warm": "Mantener caliente",
+          "bread_proof": "Fermentar masa",
+          "dehydrate": "Deshidratar",
+          "self_clean": "Autolimpieza",
+          "air_fryer": "Freidora de aire",
+          "upper_broil": "Gratinar (superior)",
+          "upper_convection_bake": "Hornear por convección (superior)",
+          "upper_convection_roast": "Asar por convección (superior)",
+          "lower_bake": "Hornear (inferior)",
+          "lower_convection_bake": "Hornear por convección (inferior)",
+          "steam_bake": "Hornear al vapor",
+          "steam_roast": "Asar al vapor",
+          "upper_steam_bake": "Hornear al vapor (superior)",
+          "descale": "Descalcificación",
+          "drain": "Vaciado de agua",
+          "healthycook1": "Cocción saludable 1",
+          "healthycook2": "Cocción saludable 2",
+          "healthycook3": "Cocción saludable 3",
+          "healthycook4": "Cocción saludable 4",
+          "healthycook5": "Cocción saludable 5",
+          "healthycook6": "Cocción saludable 6",
+          "upper_healthycook1": "Cocción saludable 1 (superior)",
+          "upper_healthycook2": "Cocción saludable 2 (superior)",
+          "upper_healthycook3": "Cocción saludable 3 (superior)",
+          "upper_healthycook4": "Cocción saludable 4 (superior)",
+          "lower_healthycook1": "Cocción saludable 1 (inferior)",
+          "lower_healthycook2": "Cocción saludable 2 (inferior)",
+          "lower_healthycook3": "Cocción saludable 3 (inferior)",
+          "lower_healthycook4": "Cocción saludable 4 (inferior)"
+        }
       }
     },
     "sensor": {
@@ -2482,6 +2659,130 @@
       },
       "oven_setpoint": {
         "name": "Punto de ajuste"
+      },
+      "oven_cavity_alarm_code": {
+        "name": "{cavity}: Código de alarma"
+      },
+      "oven_title_alarm_code": {
+        "name": "Código de alarma"
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity}: Temperatura"
+      },
+      "oven_title_current_temp_c": {
+        "name": "Temperatura"
+      },
+      "oven_cavity_food_probe_temp": {
+        "name": "{cavity}: Sonda de temperatura"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Sonda de alimentos"
+      },
+      "oven_cavity_food_probe_setpoint": {
+        "name": "{cavity}: Temperatura objetivo de la sonda"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Objetivo de la sonda"
+      },
+      "oven_cavity_diagnosis_status": {
+        "name": "{cavity}: Estado del diagnóstico",
+        "state": {
+          "ready": "Listo"
+        }
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Estado del diagnóstico",
+        "state": {
+          "ready": "Listo"
+        }
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Tiempo de funcionamiento"
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Energía (último mes)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Energía ahorrada"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Energía (este mes)"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity}: Finalización estimada"
+      },
+      "oven_title_finish_time": {
+        "name": "Finalización estimada"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity}: Tiempo de funcionamiento"
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Tiempo de funcionamiento"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity}: Estado de la cavidad",
+        "state": {
+          "ready": "Listo",
+          "preheat": "Precalentamiento",
+          "cooking": "Cocción",
+          "finish": "Finalizado"
+        }
+      },
+      "oven_title_oven_state": {
+        "name": "Estado de la cavidad",
+        "state": {
+          "ready": "Listo",
+          "preheat": "Precalentamiento",
+          "cooking": "Cocción",
+          "finish": "Finalizado"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Energía"
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity}: Porcentaje de progreso"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Porcentaje de progreso"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Error de autocomprobación"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Resultado de autocomprobación"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Estado de autocomprobación"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity}: Estado de la máquina",
+        "state": {
+          "idle": "Inactiva",
+          "active": "Activa",
+          "pause": "En pausa"
+        }
+      },
+      "oven_title_machine_state": {
+        "name": "Estado de la máquina",
+        "state": {
+          "idle": "Inactiva",
+          "active": "Activa",
+          "pause": "En pausa"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Tiempo de cocción"
+      },
+      "oven_title_cook_time": {
+        "name": "Tiempo de cocción"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} Punto de ajuste"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Punto de ajuste"
       }
     },
     "switch": {
@@ -2772,6 +3073,24 @@
       },
       "repeated_cleaning": {
         "name": "Repetir limpieza"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "Modo de energía IA"
+      },
+      "oven_title_child_lock": {
+        "name": "Bloqueo infantil"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Precalentamiento rápido"
+      },
+      "oven_title_natural_steam": {
+        "name": "Vapor natural"
+      },
+      "oven_title_energy_saving": {
+        "name": "Ahorro de energía"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Alerta de placa encendida"
       }
     },
     "time": {
@@ -2850,7 +3169,10 @@
         "ice_maker": "Máquina de hielo",
         "cubed_ice": "Máquina de cubitos",
         "ice_bites": "Máquina de Ice Bites",
-        "whiskey_ice_ball": "Máquina de bolas de hielo"
+        "whiskey_ice_ball": "Máquina de bolas de hielo",
+        "oven_cavity_upper": "Zona superior",
+        "oven_cavity_lower": "Zona inferior",
+        "oven_cavity_whole": "Horno"
       }
     }
   },
@@ -2874,6 +3196,10 @@
         "duration": {
           "name": "Tiempo de cocción",
           "description": "Cuánto tiempo cocinar, incluido el precalentamiento. Por defecto, el valor predeterminado del modo."
+        },
+        "cavity": {
+          "name": "Cavity",
+          "description": "For a combined oven device, choose Upper (the whole oven with the divider removed) or Lower. Leave empty to use the selected device's default cavity."
         }
       }
     },

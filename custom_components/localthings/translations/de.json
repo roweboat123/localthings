@@ -192,6 +192,27 @@
       },
       "energy_saving": {
         "name": "Energiesparen"
+      },
+      "instance_door": {
+        "name": "{instance_name}"
+      },
+      "oven_title_child_lock": {
+        "name": "Kindersicherung"
+      },
+      "oven_title_cloud_connected": {
+        "name": "Cloud verbunden"
+      },
+      "oven_cavity_cycle_active": {
+        "name": "{cavity}: Läuft"
+      },
+      "oven_title_cycle_active": {
+        "name": "Läuft"
+      },
+      "oven_title_firmware_update": {
+        "name": "Firmware-Update verfügbar"
+      },
+      "oven_title_energy_saving": {
+        "name": "Energiesparen"
       }
     },
     "button": {
@@ -245,6 +266,24 @@
       },
       "pair_bluetooth": {
         "name": "Bluetooth koppeln"
+      },
+      "oven_title_selfcheck_start": {
+        "name": "Selbsttest starten"
+      },
+      "oven_title_sync_clock": {
+        "name": "Uhr synchronisieren"
+      },
+      "oven_cavity_stop": {
+        "name": "{cavity}: Stopp"
+      },
+      "oven_title_stop": {
+        "name": "Stopp"
+      },
+      "oven_cavity_start_cooking": {
+        "name": "{cavity}: Start"
+      },
+      "oven_title_start_cooking": {
+        "name": "Garen starten"
       }
     },
     "climate": {
@@ -405,6 +444,36 @@
       },
       "woofer_level": {
         "name": "Woofer-Pegel"
+      },
+      "cook_time_hours": {
+        "name": "Garzeit Stunden"
+      },
+      "cook_time_minutes": {
+        "name": "Garzeit Minuten"
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Kochzeit"
+      },
+      "oven_title_cook_time": {
+        "name": "Kochzeit"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity}: Sollwert"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Sollwert"
+      },
+      "oven_cavity_cook_time_hours": {
+        "name": "{cavity}: Garzeit Stunden"
+      },
+      "oven_title_cook_time_hours": {
+        "name": "Garzeit Stunden"
+      },
+      "oven_cavity_cook_time_minutes": {
+        "name": "{cavity}: Garzeit Minuten"
+      },
+      "oven_title_cook_time_minutes": {
+        "name": "Garzeit Minuten"
       }
     },
     "select": {
@@ -1388,6 +1457,99 @@
           "mute": "Stumm",
           "voice": "Sprache"
         }
+      },
+      "oven_title_ai_energy_level": {
+        "name": "KI-Energiesparstufe"
+      },
+      "oven_cavity_oven_mode": {
+        "name": "{cavity}: Kochmodus",
+        "state": {
+          "no_operation": "Kein Betrieb",
+          "bake": "Backen",
+          "broil": "Grillen",
+          "convection": "Umluft",
+          "convection_bake": "Umluftbacken",
+          "convection_broil": "Umluftgrillen",
+          "frozen_pizza_plus": "Tiefkühlpizza+",
+          "slow_cook": "Langsam garen",
+          "plate_warm": "Tellerwärmen",
+          "air_fry": "Heißluftfritteuse",
+          "convection_roast": "Umluftbraten",
+          "keep_warm": "Warmhalten",
+          "bread_proof": "Teig gehen lassen",
+          "dehydrate": "Dörren",
+          "self_clean": "Selbstreinigung",
+          "air_fryer": "Heißluftfritteuse",
+          "upper_broil": "Grillen (oben)",
+          "upper_convection_bake": "Umluftbacken (oben)",
+          "upper_convection_roast": "Umluftbraten (oben)",
+          "lower_bake": "Backen (unten)",
+          "lower_convection_bake": "Umluftbacken (unten)",
+          "steam_bake": "Dampfbacken",
+          "steam_roast": "Dampfbraten",
+          "upper_steam_bake": "Dampfbacken (oben)",
+          "descale": "Entkalken",
+          "drain": "Wasser ablassen",
+          "healthycook1": "Gesundes Garen 1",
+          "healthycook2": "Gesundes Garen 2",
+          "healthycook3": "Gesundes Garen 3",
+          "healthycook4": "Gesundes Garen 4",
+          "healthycook5": "Gesundes Garen 5",
+          "healthycook6": "Gesundes Garen 6",
+          "upper_healthycook1": "Gesundes Garen 1 (oben)",
+          "upper_healthycook2": "Gesundes Garen 2 (oben)",
+          "upper_healthycook3": "Gesundes Garen 3 (oben)",
+          "upper_healthycook4": "Gesundes Garen 4 (oben)",
+          "lower_healthycook1": "Gesundes Garen 1 (unten)",
+          "lower_healthycook2": "Gesundes Garen 2 (unten)",
+          "lower_healthycook3": "Gesundes Garen 3 (unten)",
+          "lower_healthycook4": "Gesundes Garen 4 (unten)"
+        }
+      },
+      "oven_title_oven_mode": {
+        "name": "Kochmodus",
+        "state": {
+          "no_operation": "Kein Betrieb",
+          "bake": "Backen",
+          "broil": "Grillen",
+          "convection": "Umluft",
+          "convection_bake": "Umluftbacken",
+          "convection_broil": "Umluftgrillen",
+          "frozen_pizza_plus": "Tiefkühlpizza+",
+          "slow_cook": "Langsam garen",
+          "plate_warm": "Tellerwärmen",
+          "air_fry": "Heißluftfritteuse",
+          "convection_roast": "Umluftbraten",
+          "keep_warm": "Warmhalten",
+          "bread_proof": "Teig gehen lassen",
+          "dehydrate": "Dörren",
+          "self_clean": "Selbstreinigung",
+          "air_fryer": "Heißluftfritteuse",
+          "upper_broil": "Grillen (oben)",
+          "upper_convection_bake": "Umluftbacken (oben)",
+          "upper_convection_roast": "Umluftbraten (oben)",
+          "lower_bake": "Backen (unten)",
+          "lower_convection_bake": "Umluftbacken (unten)",
+          "steam_bake": "Dampfbacken",
+          "steam_roast": "Dampfbraten",
+          "upper_steam_bake": "Dampfbacken (oben)",
+          "descale": "Entkalken",
+          "drain": "Wasser ablassen",
+          "healthycook1": "Gesundes Garen 1",
+          "healthycook2": "Gesundes Garen 2",
+          "healthycook3": "Gesundes Garen 3",
+          "healthycook4": "Gesundes Garen 4",
+          "healthycook5": "Gesundes Garen 5",
+          "healthycook6": "Gesundes Garen 6",
+          "upper_healthycook1": "Gesundes Garen 1 (oben)",
+          "upper_healthycook2": "Gesundes Garen 2 (oben)",
+          "upper_healthycook3": "Gesundes Garen 3 (oben)",
+          "upper_healthycook4": "Gesundes Garen 4 (oben)",
+          "lower_healthycook1": "Gesundes Garen 1 (unten)",
+          "lower_healthycook2": "Gesundes Garen 2 (unten)",
+          "lower_healthycook3": "Gesundes Garen 3 (unten)",
+          "lower_healthycook4": "Gesundes Garen 4 (unten)"
+        }
       }
     },
     "sensor": {
@@ -2082,6 +2244,130 @@
       },
       "oven_setpoint": {
         "name": "Sollwert"
+      },
+      "oven_cavity_alarm_code": {
+        "name": "{cavity}: Alarmcode"
+      },
+      "oven_title_alarm_code": {
+        "name": "Alarmcode"
+      },
+      "oven_cavity_current_temp_c": {
+        "name": "{cavity}: Temperatur"
+      },
+      "oven_title_current_temp_c": {
+        "name": "Temperatur"
+      },
+      "oven_cavity_food_probe_temp": {
+        "name": "{cavity}: Temperaturfühler"
+      },
+      "oven_title_food_probe_temp": {
+        "name": "Bratenthermometer"
+      },
+      "oven_cavity_food_probe_setpoint": {
+        "name": "{cavity}: Zieltemperatur des Temperaturfühlers"
+      },
+      "oven_title_food_probe_setpoint": {
+        "name": "Bratenthermometer-Zieltemperatur"
+      },
+      "oven_cavity_diagnosis_status": {
+        "name": "{cavity}: Diagnosestatus",
+        "state": {
+          "ready": "Bereit"
+        }
+      },
+      "oven_title_diagnosis_status": {
+        "name": "Diagnosestatus",
+        "state": {
+          "ready": "Bereit"
+        }
+      },
+      "oven_title_usage_runtime_hours": {
+        "name": "Betriebszeit"
+      },
+      "oven_title_energy_last_month_kwh": {
+        "name": "Energie (letzter Monat)"
+      },
+      "oven_title_energy_saved_kwh": {
+        "name": "Eingesparte Energie"
+      },
+      "oven_title_energy_this_month_kwh": {
+        "name": "Energie (dieser Monat)"
+      },
+      "oven_cavity_finish_time": {
+        "name": "{cavity}: Voraussichtliches Ende"
+      },
+      "oven_title_finish_time": {
+        "name": "Voraussichtliches Ende"
+      },
+      "oven_cavity_operation_time_minutes": {
+        "name": "{cavity}: Betriebszeit"
+      },
+      "oven_title_operation_time_minutes": {
+        "name": "Betriebszeit"
+      },
+      "oven_cavity_oven_state": {
+        "name": "{cavity}: Ofenzustand",
+        "state": {
+          "ready": "Bereit",
+          "preheat": "Vorheizen",
+          "cooking": "Garen",
+          "finish": "Fertig"
+        }
+      },
+      "oven_title_oven_state": {
+        "name": "Ofenzustand",
+        "state": {
+          "ready": "Bereit",
+          "preheat": "Vorheizen",
+          "cooking": "Garen",
+          "finish": "Fertig"
+        }
+      },
+      "oven_title_power_energy_kwh": {
+        "name": "Energieverbrauch"
+      },
+      "oven_cavity_progress_percentage": {
+        "name": "{cavity}: Fortschritt in Prozent"
+      },
+      "oven_title_progress_percentage": {
+        "name": "Fortschritt in Prozent"
+      },
+      "oven_title_selfcheck_error": {
+        "name": "Selbsttestfehler"
+      },
+      "oven_title_selfcheck_result": {
+        "name": "Selbsttestergebnis"
+      },
+      "oven_title_selfcheck_status": {
+        "name": "Selbstteststatus"
+      },
+      "oven_cavity_machine_state": {
+        "name": "{cavity}: Maschinenzustand",
+        "state": {
+          "idle": "Leerlauf",
+          "active": "Aktiv",
+          "pause": "Pausiert"
+        }
+      },
+      "oven_title_machine_state": {
+        "name": "Maschinenzustand",
+        "state": {
+          "idle": "Leerlauf",
+          "active": "Aktiv",
+          "pause": "Pausiert"
+        }
+      },
+      "oven_cavity_cook_time": {
+        "name": "{cavity}: Kochzeit"
+      },
+      "oven_title_cook_time": {
+        "name": "Kochzeit"
+      },
+      "oven_cavity_oven_setpoint": {
+        "name": "{cavity} Sollwert"
+      },
+      "oven_title_oven_setpoint": {
+        "name": "Sollwert"
       }
     },
     "switch": {
@@ -2372,6 +2658,24 @@
       },
       "repeated_cleaning": {
         "name": "Reinigung wiederholen"
+      },
+      "oven_title_ai_energy_level": {
+        "name": "KI-Energiesparmodus"
+      },
+      "oven_title_child_lock": {
+        "name": "Kindersicherung"
+      },
+      "oven_title_fast_preheat": {
+        "name": "Schnellvorheizen"
+      },
+      "oven_title_natural_steam": {
+        "name": "Natürlicher Dampf"
+      },
+      "oven_title_energy_saving": {
+        "name": "Energiesparen"
+      },
+      "oven_title_cooktop_on_alert": {
+        "name": "Kochfeld-Ein-Warnung"
       }
     },
     "time": {
@@ -2827,6 +3131,21 @@
     },
     "media_option_not_supported": {
       "message": "Das Gerät bietet diese Option gerade nicht an."
+    },
+    "cook_duration_part_invalid": {
+      "message": "Geben Sie ganze Stunden von 0 bis 9 und ganze Minuten von 0 bis 59 ein."
+    },
+    "cook_duration_unavailable": {
+      "message": "Die aktuelle Garzeit ist nicht verfügbar. Warten Sie auf eine Aktualisierung des Geräts, bevor Sie Stunden oder Minuten ändern."
+    },
+    "cook_duration_total_out_of_range": {
+      "message": "Die gesamte Garzeit darf {max} nicht überschreiten."
+    },
+    "cook_untimed_unconfirmed": {
+      "message": "Garen ohne Zeitbegrenzung konnte nicht bestätigt werden. Der Backofen läuft möglicherweise mit einer vorübergehend eingestellten Garzeit. Prüfe den Backofen, bevor du erneut Start drückst. Details: {error}"
+    },
+    "cooking_cavity_not_found": {
+      "message": "Dieses Gerät stellt kein zusammengefasstes Garraumpaar bereit. Wähle stattdessen das vorhandene Gerät für den gewünschten Garraum."
     }
   },
   "selector": {
@@ -2850,7 +3169,10 @@
         "ice_maker": "Eisbereiter",
         "cubed_ice": "Eiswürfel",
         "ice_bites": "Ice Bites",
-        "whiskey_ice_ball": "Eiskugeln"
+        "whiskey_ice_ball": "Eiskugeln",
+        "oven_cavity_upper": "Oberer Garraum",
+        "oven_cavity_lower": "Unterer Garraum",
+        "oven_cavity_whole": "Ofen"
       }
     }
   },
@@ -2874,6 +3196,10 @@
         "duration": {
           "name": "Garzeit",
           "description": "Wie lange gegart wird, einschließlich Vorheizen. Standard ist der eigene Standardwert des Modus."
+        },
+        "cavity": {
+          "name": "Cavity",
+          "description": "For a combined oven device, choose Upper (the whole oven with the divider removed) or Lower. Leave empty to use the selected device's default cavity."
         }
       }
     },
